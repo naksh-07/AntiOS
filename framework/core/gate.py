@@ -1,7 +1,8 @@
 """AntiOS Stop Gate Verification Engine.
 
 Enforces physical process test execution ratchets, working tree cleanliness,
-and dynamic zero-config test runner discovery.
+unresolved conflict marker detection across staged/unstaged/untracked files,
+Same Change Set synchronization, and dynamic zero-config test runner discovery.
 """
 
 from __future__ import annotations
@@ -11,6 +12,8 @@ import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
 from framework.core.config import AntiOSConfig, RunnerConfig, load_config
+from framework.core.changeset import evaluate_changeset
+from framework.core.worktree import inspect_all_conflicts
 
 
 def run_command_safe(
@@ -33,6 +36,12 @@ def run_command_safe(
             timeout=timeout,
             shell=True if os.name == "nt" else False
         )
+        # On Windows with shell=True, missing binaries return exit code 1/9009
+        # with "is not recognized" in stderr instead of raising FileNotFoundError
+        if proc.returncode != 0 and proc.stderr:
+            stderr_lower = proc.stderr.lower()
+            if "is not recognized" in stderr_lower or "not found" in stderr_lower:
+                return proc.returncode, proc.stdout, proc.stderr, True
         return proc.returncode, proc.stdout, proc.stderr, False
     except FileNotFoundError:
         return -1, "", "Binary not found in PATH", True
@@ -43,20 +52,10 @@ def run_command_safe(
 
 
 def check_working_tree_conflicts(repo_root: str) -> Optional[str]:
-    """Checks if working tree contains unresolved git merge conflict markers."""
-    git_dir = os.path.join(repo_root, ".git")
-    if not os.path.exists(git_dir):
-        return None
-
-    ret, out, err, missing = run_command_safe(["git", "rev-parse", "--is-inside-work-tree"], repo_root, timeout=5)
-    if missing or ret != 0:
-        return None
-
-    ret, out, err, missing = run_command_safe(["git", "diff", "--check"], repo_root, timeout=10)
-    if ret != 0:
-        for line in (out + "\n" + err).splitlines():
-            if "leftover conflict marker" in line.lower():
-                return f"Unresolved git conflict markers detected in working tree: {line.strip()}"
+    """Checks if working tree contains unresolved git merge conflict markers across all files."""
+    conflicts = inspect_all_conflicts(repo_root)
+    if conflicts:
+        return f"Unresolved git conflict markers detected in working tree: {conflicts[0]}"
     return None
 
 
@@ -79,6 +78,7 @@ def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
                         scripts=["vitest:once"],
                         default_command=["npm", "run", "vitest:once"],
                         timeout_seconds=90,
+                        required=False,
                     )
                 )
             elif "test" in scripts:
@@ -89,6 +89,7 @@ def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
                         scripts=["test"],
                         default_command=["npm", "test"],
                         timeout_seconds=90,
+                        required=False,
                     )
                 )
         except Exception:
@@ -98,6 +99,7 @@ def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
                     manifest="package.json",
                     default_command=["npm", "test"],
                     timeout_seconds=90,
+                    required=False,
                 )
             )
 
@@ -112,6 +114,7 @@ def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
                 manifest=manifest_file,
                 default_command=["pytest"],
                 timeout_seconds=60,
+                required=False,
             )
         )
 
@@ -124,6 +127,7 @@ def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
                 manifest="Cargo.toml",
                 default_command=["cargo", "test"],
                 timeout_seconds=120,
+                required=False,
             )
         )
 
@@ -136,6 +140,7 @@ def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
                 manifest="go.mod",
                 default_command=["go", "test", "./..."],
                 timeout_seconds=60,
+                required=False,
             )
         )
 
@@ -146,31 +151,41 @@ def evaluate_stop_gate(
     input_data: Any,
     config: Optional[AntiOSConfig] = None
 ) -> Tuple[str, Optional[str]]:
-    """Evaluates a Stop hook event.
+    """Evaluates a Stop hook event with strict fail-closed semantics.
 
     Returns:
         (decision, reason) where decision is "allow" or "continue".
     """
     try:
         if not isinstance(input_data, dict):
-            return "continue", "AntiOS Stop Gate: Malformed hook input. Failing closed."
+            return "continue", "AntiOS Stop Gate: Malformed hook input (must be a JSON object). Failing closed."
 
-        workspace_paths = input_data.get("workspacePaths", [])
-        if not workspace_paths or not isinstance(workspace_paths, list):
-            repo_root = os.getcwd()
-        else:
-            repo_root = os.path.normcase(os.path.abspath(os.path.realpath(workspace_paths[0])))
+        workspace_paths = input_data.get("workspacePaths")
+        if not workspace_paths or not isinstance(workspace_paths, list) or len(workspace_paths) == 0:
+            return "continue", "AntiOS Stop Gate: workspacePaths must be a non-empty list. Failing closed."
+
+        first_workspace = workspace_paths[0]
+        if not isinstance(first_workspace, str) or not first_workspace.strip():
+            return "continue", "AntiOS Stop Gate: workspacePaths contains invalid entry. Failing closed."
+
+        repo_root = os.path.normcase(os.path.abspath(os.path.realpath(first_workspace)))
 
         if config is None:
             config = load_config(repo_root)
 
-        # 1. Cleanliness / Conflict Check
+        # 1. Cleanliness / Conflict Check across working tree
         if config.policies.enforce_working_tree_cleanliness:
             conflict_err = check_working_tree_conflicts(repo_root)
             if conflict_err:
                 return "continue", f"AntiOS Stop Gate: Cleanliness check failed: {conflict_err}"
 
-        # 2. Dynamic Test Execution (Configured or Auto-discovered)
+        # 2. Same Change Set Evaluation
+        if config.policies.enforce_same_change_set and config.changeset.enabled:
+            cs_eval = evaluate_changeset(repo_root, policy=config.changeset)
+            if not cs_eval.is_valid:
+                return "continue", f"AntiOS Stop Gate: {cs_eval.summary} Details: {'; '.join(cs_eval.violations)}"
+
+        # 3. Dynamic Test Execution (Configured or Auto-discovered)
         test_runners = config.test_runners if config.test_runners else discover_test_runners(repo_root)
 
         for runner in test_runners:
@@ -205,7 +220,13 @@ def evaluate_stop_gate(
             )
 
             if is_missing:
-                # Environment binary unavailable
+                if runner.required:
+                    return (
+                        "continue",
+                        f"AntiOS Stop Gate: Required test runtime '{runner.name}' executable not found in PATH.\n"
+                        f"Command: {' '.join(cmd)}\n"
+                        f"Failing closed to prevent unverified completion."
+                    )
                 continue
 
             if ret != 0:

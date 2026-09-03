@@ -56,3 +56,27 @@ AntiOS v1 mandates that all local repository inspections (`git status`, `git dif
 1. **Lazy Loading**: All permitted MCP servers must remain lazily loaded. Tools are queried only when the active task explicitly demands browser automation or documentation lookup.
 2. **Payload Restraint**: When querying `gemini-api-docs`, agents must request single chunks without unnecessary context expansion to conserve context window budgets.
 3. **Zero Contamination**: Sandboxes and production code must contain zero import statements, wrapper classes, or dependencies tying application logic to MCP servers.
+
+---
+
+## 5. Phase 16–18 MCP Integration Decision
+
+**Decision**: **DEFER** (with partial REJECT for anti-patterns)
+
+### Reasoning
+
+| Criterion | Assessment |
+| :--- | :--- |
+| **Does AntiOS Core need a custom MCP server?** | **No.** All governance, enforcement, and tool interfaces in Phase 16–18 are fully served by deterministic Python scripts invoked via `run_command`. Zero MCP gap exists. |
+| **Would wrapping existing scripts in MCP add value?** | **No.** It would add JSON-RPC overhead, runtime complexity, and a dependency on MCP transport for operations that execute in < 50ms locally. |
+| **Is there a future MCP integration surface?** | **Yes — DEFERRED.** The `ToolTier.MCP` tier in `framework/core/tool.py` reserves the extensibility surface. When a genuine need arises (e.g., remote CI integration, cross-repo verification), MCP can be adopted through the existing `ToolSelectionPolicy` without architectural changes. |
+| **What is explicitly REJECTED?** | Building a custom MCP server merely to wrap `inspect_repo.py`, `check_changeset.py`, or `check_worktree.py`. Building MCP wrappers for git CLI operations. Adding MCP dependencies to any core module. |
+
+### Formal Policy Statement
+
+> AntiOS Phase 16–18 does NOT build, register, or depend on any new MCP server.
+> The `ToolTier` enum reserves `MCP` as a third tier for future needs.
+> The `ToolSelectionPolicy.select_tool_tier()` method ensures MCP is only selected
+> when both native and script tiers are unavailable.
+> This decision can be revisited in a future phase if a concrete, irreplaceable
+> MCP capability is identified.

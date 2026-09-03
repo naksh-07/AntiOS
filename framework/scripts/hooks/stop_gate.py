@@ -1,4 +1,4 @@
-﻿"""AntiOS Stop Gate Hook Entrypoint.
+"""AntiOS Stop Gate Hook Entrypoint.
 
 Intercepts task conclusion attempt (Stop event).
 Delegates evaluation to framework.core.gate with dynamic test execution.
@@ -30,10 +30,10 @@ def main() -> None:
     try:
         raw_input = sys.stdin.read()
         if not raw_input.strip():
-            input_data = {}
-        else:
-            input_data = json.loads(raw_input)
+            output_decision("continue", "AntiOS Stop Gate: Empty input received on stdin. Failing closed.")
+            return
 
+        input_data = json.loads(raw_input)
         decision, reason = evaluate_stop_gate(input_data)
         output_decision(decision, reason)
 

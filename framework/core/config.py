@@ -5,10 +5,12 @@ Operates as a 100% domain-agnostic Universal Core.
 """
 
 from __future__ import annotations
+from dataclasses import dataclass, field
 import json
 import os
-from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+
+from framework.core.changeset import ChangesetPolicy
 
 
 @dataclass
@@ -43,6 +45,7 @@ class AntiOSConfig:
     test_runners: List[RunnerConfig] = field(default_factory=list)
     linters: List[Dict[str, Any]] = field(default_factory=list)
     policies: PoliciesConfig = field(default_factory=PoliciesConfig)
+    changeset: ChangesetPolicy = field(default_factory=ChangesetPolicy)
 
 
 def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
@@ -80,6 +83,18 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             enforce_same_change_set=raw_policies.get("enforce_same_change_set", True),
         )
 
+        raw_cs = data.get("same_change_set", {})
+        cs_policy = ChangesetPolicy(
+            enabled=raw_cs.get("enabled", policies.enforce_same_change_set),
+            code_patterns=raw_cs.get("code_patterns", ChangesetPolicy().code_patterns),
+            doc_patterns=raw_cs.get("doc_patterns", ChangesetPolicy().doc_patterns),
+            test_patterns=raw_cs.get("test_patterns", ChangesetPolicy().test_patterns),
+            state_patterns=raw_cs.get("state_patterns", ChangesetPolicy().state_patterns),
+            require_tests_on_code_change=raw_cs.get("require_tests_on_code_change", True),
+            require_docs_on_code_change=raw_cs.get("require_docs_on_code_change", False),
+            require_state_on_code_change=raw_cs.get("require_state_on_code_change", False),
+        )
+
         return AntiOSConfig(
             version=data.get("version", "1.0"),
             name=data.get("name", "AntiOS-Adapter"),
@@ -89,6 +104,7 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             test_runners=test_runners,
             linters=data.get("linters", []),
             policies=policies,
+            changeset=cs_policy,
         )
     except Exception:
         return AntiOSConfig()
