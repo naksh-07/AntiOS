@@ -11,7 +11,7 @@ SKILLS_DIR = os.path.join(REPO_ROOT, ".agents", "skills")
 def test_skills_exist_and_conform_to_budget():
     assert os.path.isdir(SKILLS_DIR), ".agents/skills directory must exist"
 
-    expected_skills = ["antios-engineer", "antios-verifier", "antios-debug"]
+    expected_skills = ["antios-engineer", "antios-verifier", "antios-debug", "antios-adapt-project"]
     for skill_name in expected_skills:
         skill_file = os.path.join(SKILLS_DIR, skill_name, "SKILL.md")
         assert os.path.isfile(skill_file), f"Skill file for {skill_name} must exist at {skill_file}"

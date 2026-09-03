@@ -43,6 +43,34 @@ from framework.core.worktree import (
     inspect_all_conflicts,
     audit_worktree,
 )
+from framework.core.profile import (
+    EvidenceTier,
+    ConfidenceLevel,
+    ToolCategory,
+    ConflictType,
+    EvidenceFact,
+    InferredFact,
+    UnknownFact,
+    ToolFact,
+    GuidanceFact,
+    ConflictFact,
+    ProjectIdentity,
+    ProjectProfile,
+)
+from framework.core.discovery import (
+    ProjectDiscoveryEngine,
+    discover_project,
+)
+from framework.core.adapter import (
+    ActionType,
+    ChangeTarget,
+    ProposalRisk,
+    AdaptationProposalItem,
+    AdaptationProposal,
+    analyze_adaptation,
+    generate_adapter_config,
+    apply_project_adaptation,
+)
 
 __all__ = [
     # Phase 12-15
@@ -77,4 +105,27 @@ __all__ = [
     "capture_worktree_snapshot",
     "inspect_all_conflicts",
     "audit_worktree",
+    # Phase 19-20: Project Intelligence & Adaptation
+    "EvidenceTier",
+    "ConfidenceLevel",
+    "ToolCategory",
+    "ConflictType",
+    "EvidenceFact",
+    "InferredFact",
+    "UnknownFact",
+    "ToolFact",
+    "GuidanceFact",
+    "ConflictFact",
+    "ProjectIdentity",
+    "ProjectProfile",
+    "ProjectDiscoveryEngine",
+    "discover_project",
+    "ActionType",
+    "ChangeTarget",
+    "ProposalRisk",
+    "AdaptationProposalItem",
+    "AdaptationProposal",
+    "analyze_adaptation",
+    "generate_adapter_config",
+    "apply_project_adaptation",
 ]

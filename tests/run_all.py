@@ -25,6 +25,13 @@ import tests.test_tool as test_tool
 import tests.test_worktree as test_worktree
 import tests.test_governance as test_governance
 
+# Phase 19-20 Project Intelligence & Adaptation test modules
+import tests.test_profile as test_profile
+import tests.test_discovery as test_discovery
+import tests.test_adapter as test_adapter
+import tests.test_conflict as test_conflict
+import tests.test_fixtures as test_fixtures
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -44,6 +51,12 @@ def build_suite() -> unittest.TestSuite:
         test_tool,
         test_worktree,
         test_governance,
+        # Phase 19-20
+        test_profile,
+        test_discovery,
+        test_adapter,
+        test_conflict,
+        test_fixtures,
     ]
 
     for mod in modules:

@@ -1,0 +1,2 @@
+Some arbitrary notes in an unknown environment.
+No git repository, no package manifests, no test runners.
