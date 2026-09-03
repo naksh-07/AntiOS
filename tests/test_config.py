@@ -11,9 +11,13 @@ def test_default_config_when_missing():
     with tempfile.TemporaryDirectory() as tmpdir:
         cfg = load_config(tmpdir)
         assert cfg.version == "1.0"
+        assert cfg.name == "AntiOS-Universal-Core"
         assert ".agents" in cfg.protected_zones
         assert "framework" in cfg.protected_zones
-        assert "rslib" in cfg.protected_domain_paths
+        # In decoupled Universal Core, domain paths and runners are empty by default
+        assert cfg.protected_domain_paths == []
+        assert cfg.forbidden_patterns == []
+        assert cfg.test_runners == []
         assert cfg.policies.fail_closed is True
 
 
@@ -62,4 +66,6 @@ def test_corrupt_config_falls_back_to_defaults():
 
         cfg = load_config(tmpdir)
         assert cfg.version == "1.0"
+        assert cfg.name == "AntiOS-Universal-Core"
         assert ".agents" in cfg.protected_zones
+        assert cfg.protected_domain_paths == []

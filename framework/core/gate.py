@@ -1,7 +1,7 @@
-﻿"""AntiOS Stop Gate Verification Engine.
+"""AntiOS Stop Gate Verification Engine.
 
 Enforces physical process test execution ratchets, working tree cleanliness,
-and dynamic test runner discovery.
+and dynamic zero-config test runner discovery.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import os
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
-from framework.core.config import AntiOSConfig, load_config
+from framework.core.config import AntiOSConfig, RunnerConfig, load_config
 
 
 def run_command_safe(
@@ -60,6 +60,88 @@ def check_working_tree_conflicts(repo_root: str) -> Optional[str]:
     return None
 
 
+def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
+    """Dynamically detects project test runners from root manifests if unconfigured."""
+    runners: List[RunnerConfig] = []
+
+    # 1. Node.js / TypeScript (package.json)
+    pkg_path = os.path.join(repo_root, "package.json")
+    if os.path.isfile(pkg_path):
+        try:
+            with open(pkg_path, "r", encoding="utf-8") as f:
+                pkg_data = json.load(f)
+            scripts = pkg_data.get("scripts", {})
+            if "vitest:once" in scripts:
+                runners.append(
+                    RunnerConfig(
+                        name="vitest",
+                        manifest="package.json",
+                        scripts=["vitest:once"],
+                        default_command=["npm", "run", "vitest:once"],
+                        timeout_seconds=90,
+                    )
+                )
+            elif "test" in scripts:
+                runners.append(
+                    RunnerConfig(
+                        name="npm-test",
+                        manifest="package.json",
+                        scripts=["test"],
+                        default_command=["npm", "test"],
+                        timeout_seconds=90,
+                    )
+                )
+        except Exception:
+            runners.append(
+                RunnerConfig(
+                    name="npm-test",
+                    manifest="package.json",
+                    default_command=["npm", "test"],
+                    timeout_seconds=90,
+                )
+            )
+
+    # 2. Python (pyproject.toml, pytest.ini, setup.py)
+    pyproject = os.path.join(repo_root, "pyproject.toml")
+    pytest_ini = os.path.join(repo_root, "pytest.ini")
+    if os.path.isfile(pyproject) or os.path.isfile(pytest_ini):
+        manifest_file = "pyproject.toml" if os.path.isfile(pyproject) else "pytest.ini"
+        runners.append(
+            RunnerConfig(
+                name="pytest",
+                manifest=manifest_file,
+                default_command=["pytest"],
+                timeout_seconds=60,
+            )
+        )
+
+    # 3. Rust (Cargo.toml)
+    cargo_toml = os.path.join(repo_root, "Cargo.toml")
+    if os.path.isfile(cargo_toml):
+        runners.append(
+            RunnerConfig(
+                name="cargo-test",
+                manifest="Cargo.toml",
+                default_command=["cargo", "test"],
+                timeout_seconds=120,
+            )
+        )
+
+    # 4. Go (go.mod)
+    go_mod = os.path.join(repo_root, "go.mod")
+    if os.path.isfile(go_mod):
+        runners.append(
+            RunnerConfig(
+                name="go-test",
+                manifest="go.mod",
+                default_command=["go", "test", "./..."],
+                timeout_seconds=60,
+            )
+        )
+
+    return runners
+
+
 def evaluate_stop_gate(
     input_data: Any,
     config: Optional[AntiOSConfig] = None
@@ -88,19 +170,23 @@ def evaluate_stop_gate(
             if conflict_err:
                 return "continue", f"AntiOS Stop Gate: Cleanliness check failed: {conflict_err}"
 
-        # 2. Dynamic Test Execution
-        for runner in config.test_runners:
-            manifest_path = os.path.join(repo_root, runner.manifest)
-            if not os.path.isfile(manifest_path):
-                continue
+        # 2. Dynamic Test Execution (Configured or Auto-discovered)
+        test_runners = config.test_runners if config.test_runners else discover_test_runners(repo_root)
+
+        for runner in test_runners:
+            if runner.manifest:
+                manifest_path = os.path.join(repo_root, runner.manifest)
+                if not os.path.isfile(manifest_path):
+                    continue
 
             # Determine command to run
             cmd: List[str] = list(runner.default_command)
+            cwd = os.path.join(repo_root, runner.cwd) if runner.cwd else repo_root
 
             # For npm / node packages, check package.json scripts
             if runner.manifest == "package.json":
                 try:
-                    with open(manifest_path, "r", encoding="utf-8") as f:
+                    with open(os.path.join(repo_root, "package.json"), "r", encoding="utf-8") as f:
                         pkg = json.load(f)
                     scripts = pkg.get("scripts", {})
                     chosen_script = None
@@ -115,7 +201,7 @@ def evaluate_stop_gate(
                     pass
 
             ret, stdout, stderr, is_missing = run_command_safe(
-                cmd, repo_root, timeout=runner.timeout_seconds
+                cmd, cwd, timeout=runner.timeout_seconds
             )
 
             if is_missing:

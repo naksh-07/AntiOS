@@ -1,29 +1,22 @@
-﻿{
+{
   "version": "1.0",
-  "name": "AntiOS-StudyLab-Adapter",
+  "name": "AntiOS-Universal-Self-Adapter",
   "protected_zones": [
     ".agents",
     "framework"
   ],
-  "protected_domain_paths": [
-    "rslib"
-  ],
-  "forbidden_patterns": [
-    "rslib~*"
-  ],
+  "protected_domain_paths": [],
+  "forbidden_patterns": [],
   "test_runners": [
     {
-      "name": "typescript",
-      "manifest": "package.json",
-      "scripts": ["vitest:once", "test"],
-      "default_command": ["npm", "run", "vitest:once"],
-      "timeout_seconds": 60
-    },
-    {
-      "name": "python",
+      "name": "python-self-tests",
       "manifest": "pyproject.toml",
-      "default_command": ["pytest"],
-      "timeout_seconds": 60
+      "default_command": [
+        "python",
+        "tests/run_all.py"
+      ],
+      "timeout_seconds": 60,
+      "required": true
     }
   ],
   "policies": {

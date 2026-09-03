@@ -1,4 +1,4 @@
-﻿---
+---
 name: antios-debug
 description: >-
   Systematic root-cause debugging skill for AntiOS projects.
@@ -8,11 +8,11 @@ description: >-
 
 # AntiOS Systematic Debugging Protocol
 
-You are diagnosing an issue under **AntiOS v1** governance.
+You are diagnosing an issue under **AntiOS Core** governance.
 Follow this deterministic protocol to prevent speculative patching and regressions.
 
 ## 1. Safety & Boundary Rules
-- **Never modify protected cores**: Upstream components (`rslib/`) and governance (`.agents/`, `framework/`) are immutable.
+- **Never modify protected cores**: Governance (`.agents/`, `framework/`) and configured domain cores are immutable.
 - **Fail-Closed Principle**: Do not assume environment errors are test passes.
 - **Evidence Hierarchy**: A bug is only fixed when demonstrated by a passing test execution (Exit Code 0).
 
@@ -28,8 +28,8 @@ Follow this deterministic protocol to prevent speculative patching and regressio
    - Differentiate environment failures (`ENVIRONMENT_UNAVAILABLE`) from logical regressions.
 4. **Apply Surgical Patch**:
    - Make the smallest possible edit that addresses the root cause directly.
-   - Keep changes within the application layer (e.g., `ts/` or `app/`).
+   - Keep changes strictly within application layers.
 5. **Verify & Regress-Check**:
    - Run the reproducing test to confirm the fix.
-   - Run the entire project test suite (`npm run vitest:once` or `pytest`) to ensure no regressions.
+   - Run the entire project test suite to ensure no regressions.
    - Ensure `docs/ACTIVE_CONTEXT.md` logs the root cause and resolution.

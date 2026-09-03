@@ -5,7 +5,7 @@ import os
 import tempfile
 
 from framework.core.config import AntiOSConfig, TestRunnerConfig
-from framework.core.gate import evaluate_stop_gate
+from framework.core.gate import discover_test_runners, evaluate_stop_gate
 
 
 def test_gate_allows_when_no_runner_in_repo():
@@ -60,3 +60,37 @@ def test_gate_fail_closed_on_malformed_input():
     decision, reason = evaluate_stop_gate(None)
     assert decision == "continue"
     assert "Failing closed" in reason
+
+
+def test_gate_auto_discovers_manifests():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test Node package.json with vitest
+        with open(os.path.join(tmpdir, "package.json"), "w", encoding="utf-8") as f:
+            json.dump({"scripts": {"vitest:once": "vitest run"}}, f)
+        runners = discover_test_runners(tmpdir)
+        assert len(runners) == 1
+        assert runners[0].name == "vitest"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test Python pyproject.toml
+        with open(os.path.join(tmpdir, "pyproject.toml"), "w", encoding="utf-8") as f:
+            f.write("[tool.pytest.ini_options]\n")
+        runners = discover_test_runners(tmpdir)
+        assert len(runners) == 1
+        assert runners[0].name == "pytest"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test Rust Cargo.toml
+        with open(os.path.join(tmpdir, "Cargo.toml"), "w", encoding="utf-8") as f:
+            f.write("[package]\nname = \"test\"\n")
+        runners = discover_test_runners(tmpdir)
+        assert len(runners) == 1
+        assert runners[0].name == "cargo-test"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test Go go.mod
+        with open(os.path.join(tmpdir, "go.mod"), "w", encoding="utf-8") as f:
+            f.write("module example.com/mod\n")
+        runners = discover_test_runners(tmpdir)
+        assert len(runners) == 1
+        assert runners[0].name == "go-test"

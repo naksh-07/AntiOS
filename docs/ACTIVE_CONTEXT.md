@@ -1,37 +1,38 @@
 # Active Context (`docs/ACTIVE_CONTEXT.md`)
 
-**Current Mission**: Phase 12–13 Architecture Re-baseline & Universal Core Design  
-**Date**: 2026-09-04  
-**Active State**: Canonical universal architecture baselined (5 core specs authored)  
+**Current Mission**: Phase 14–15: Core Skills & Engineering Workflow Layer
+**Date**: 2026-09-04
+**Active State**: Universal Core, Workflows, Lifecycle Engine & Skills Complete
 
 ## 1. Objective
 Establish AntiOS as a universal, reusable Agent-Native Engineering OS for Antigravity:
-- Demarcate Antigravity Platform vs AntiOS Core vs Project Adapter vs Target Project.
-- Decouple generic governance from StudyLab proving ground assumptions.
-- Author 5 canonical architectural specifications.
+- Decouple AntiOS Core from StudyLab proving ground domain assumptions.
+- Generalize 3 canonical skills (`antios-engineer`, `antios-verifier`, `antios-debug`) to <= 60 lines.
+- Implement 6 canonical engineering workflows (`FEATURE`, `BUG`, `REFACTOR`, `INVESTIGATION`, `DOCUMENTATION`, `RELEASE_MAINTENANCE`).
+- Implement 10-step lifecycle state engine and test runner dynamic manifest auto-discovery.
 
 ## 2. Active Tasks
-- [x] Phase 12–13: Comprehensive codebase & research forensic inspection
-- [x] Phase 12–13: Author `ANTIOS_SYSTEM_ARCHITECTURE.md` (4-tier model & shell gap)
-- [x] Phase 12–13: Author `ANTIOS_COMPONENT_MODEL.md` (components, contracts, lifecycles)
-- [x] Phase 12–13: Author `ANTIOS_CORE_VS_ADAPTER.md` (adapter schema & decoupling plan)
-- [x] Phase 12–13: Author `ANTIOS_CAPABILITY_MATRIX.md` (16 layers & capability audit)
-- [x] Phase 12–13: Author `ANTIOS_PHASE12_13_REPORT.md` (ADRs, roadmap, risk analysis)
-- [x] Phase 12–13: Framework self-test verification (18/18 tests passing in <1.0s)
-- [ ] Phase 14: Core Decoupling & Dynamic Manifest Discovery (`framework/core/config.py`)
+- [x] Phase 14: Core Decoupling (`framework/core/config.py` defaults to empty domain lists)
+- [x] Phase 14: Dynamic Manifest Discovery (`framework/core/gate.py` auto-detects runners)
+- [x] Phase 14: Lifecycle State Engine (`framework/core/lifecycle.py` 10-step progression)
+- [x] Phase 14: Universal Workflow Registry (`framework/core/workflow.py` 6 task classes)
+- [x] Phase 15: Universal Core Skills (`.agents/skills/` <= 60 lines, parameterized)
+- [x] Phase 15: Workflow Specifications (`.agents/workflows/*.md` 6 workflow files)
+- [x] Phase 15: Universal Project Constitution (`docs/AGENTS.md`)
+- [x] Phase 15: Comprehensive Test Suite (31/31 tests passing in 0.77s)
+- [x] Phase 15: Author Milestone Report (`ANTIOS_PHASE14_15_REPORT.md`)
+- [x] Phase 15: Independent Verification Audit Wave (Status: PASS)
 
-## 3. Blockers & Constraints
+## 3. Blockers & Invariants
 - StudySourceCore is 100% OUT OF SCOPE.
 - Production StudyLab code remains completely untouched.
 - Subagent Shallow Depth Law: Depth <= 2 strictly enforced.
 - Token Budget: Skills <= 60 lines, ACTIVE_CONTEXT <= 60 lines.
 
 ## 4. Dead Ends (Do Not Repeat)
-- Do NOT build custom AST parsers, schema validators, or vector databases.
-- Do NOT use static cryptographic receipts (`evidence/` - Ratchet Expiry).
-- Do NOT place skills inside `framework/.agents` (causes discoverability black hole).
-- Do NOT fracture skills into 7 micro-skills (causes prompt thrashing).
-- Do NOT hardcode domain paths into Core fallback dataclasses.
+- Do NOT hardcode domain paths (e.g. rslib) into Core fallback dataclasses.
+- Do NOT create micro-skills for every verb (caused prompt thrashing and discovery clutter).
+- Do NOT duplicate platform Planning Mode mechanisms in skill files.
 
 ## 5. Next Immediate Action
-Execute Phase 14: Purge residual StudyLab defaults from `framework/core/config.py` and implement dynamic manifest scanning in `framework/core/gate.py`.
+Phase 16: Project Adapter Ecosystem & Proving Ground Certification.

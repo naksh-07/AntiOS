@@ -1,7 +1,7 @@
 """AntiOS Adapter Configuration Loader.
 
-Decouples generic AntiOS governance mechanisms from project-specific domains
-(e.g., StudyLab rslib paths or custom test commands).
+Decouples generic AntiOS governance mechanisms from project-specific domains.
+Operates as a 100% domain-agnostic Universal Core.
 """
 
 from __future__ import annotations
@@ -14,10 +14,12 @@ from typing import Any, Dict, List, Optional
 @dataclass
 class RunnerConfig:
     name: str
-    manifest: str
+    manifest: str = ""
     scripts: List[str] = field(default_factory=list)
     default_command: List[str] = field(default_factory=list)
     timeout_seconds: int = 60
+    cwd: Optional[str] = None
+    required: bool = True
 
 
 # Alias for backward compatibility
@@ -34,31 +36,17 @@ class PoliciesConfig:
 @dataclass
 class AntiOSConfig:
     version: str = "1.0"
-    name: str = "AntiOS-Default-Adapter"
+    name: str = "AntiOS-Universal-Core"
     protected_zones: List[str] = field(default_factory=lambda: [".agents", "framework"])
-    protected_domain_paths: List[str] = field(default_factory=lambda: ["rslib"])
-    forbidden_patterns: List[str] = field(default_factory=lambda: ["rslib~*"])
-    test_runners: List[RunnerConfig] = field(default_factory=lambda: [
-        RunnerConfig(
-            name="typescript",
-            manifest="package.json",
-            scripts=["vitest:once", "test"],
-            default_command=["npm", "run", "vitest:once"],
-            timeout_seconds=60
-        ),
-        RunnerConfig(
-            name="python",
-            manifest="pyproject.toml",
-            scripts=[],
-            default_command=["pytest"],
-            timeout_seconds=60
-        )
-    ])
+    protected_domain_paths: List[str] = field(default_factory=list)
+    forbidden_patterns: List[str] = field(default_factory=list)
+    test_runners: List[RunnerConfig] = field(default_factory=list)
+    linters: List[Dict[str, Any]] = field(default_factory=list)
     policies: PoliciesConfig = field(default_factory=PoliciesConfig)
 
 
 def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
-    """Load antios.config.json from repo_root, falling back to secure defaults."""
+    """Load antios.config.json from repo_root, falling back to secure universal defaults."""
     if not repo_root:
         repo_root = os.getcwd()
 
@@ -72,19 +60,22 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
 
         test_runners = []
         for tr in data.get("test_runners", []):
+            cmd = tr.get("default_command") or tr.get("command") or []
             test_runners.append(
                 RunnerConfig(
                     name=tr.get("name", "unknown"),
                     manifest=tr.get("manifest", ""),
                     scripts=tr.get("scripts", []),
-                    default_command=tr.get("default_command", []),
+                    default_command=cmd,
                     timeout_seconds=tr.get("timeout_seconds", 60),
+                    cwd=tr.get("cwd"),
+                    required=tr.get("required", True),
                 )
             )
 
         raw_policies = data.get("policies", {})
         policies = PoliciesConfig(
-            fail_closed=raw_policies.get("fail_closed", True),
+            fail_closed=raw_policies.get("fail_closed", data.get("fail_closed", True)),
             enforce_working_tree_cleanliness=raw_policies.get("enforce_working_tree_cleanliness", True),
             enforce_same_change_set=raw_policies.get("enforce_same_change_set", True),
         )
@@ -93,9 +84,10 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             version=data.get("version", "1.0"),
             name=data.get("name", "AntiOS-Adapter"),
             protected_zones=data.get("protected_zones", [".agents", "framework"]),
-            protected_domain_paths=data.get("protected_domain_paths", ["rslib"]),
-            forbidden_patterns=data.get("forbidden_patterns", ["rslib~*"]),
-            test_runners=test_runners if test_runners else AntiOSConfig().test_runners,
+            protected_domain_paths=data.get("protected_domain_paths", []),
+            forbidden_patterns=data.get("forbidden_patterns", []),
+            test_runners=test_runners,
+            linters=data.get("linters", []),
             policies=policies,
         )
     except Exception:

@@ -1,4 +1,4 @@
-"""Tests for AntiOS Skills and Platform Discovery Layer."""
+"""Tests for AntiOS Skills, Platform Discovery Layer, and Universality."""
 
 import os
 import re
@@ -30,6 +30,26 @@ def test_skills_exist_and_conform_to_budget():
         fm = match.group(1)
         assert "name:" in fm, f"Skill {skill_name} frontmatter must specify 'name'"
         assert "description:" in fm, f"Skill {skill_name} frontmatter must specify 'description'"
+
+
+def test_skills_and_core_are_project_agnostic():
+    """Universality test: verify skills and core do not hardcode StudyLab or StudySourceCore."""
+    forbidden_terms = ["rslib", "studylab", "studysource"]
+
+    check_dirs = [
+        os.path.join(REPO_ROOT, ".agents", "skills"),
+        os.path.join(REPO_ROOT, "framework", "core"),
+    ]
+
+    for check_dir in check_dirs:
+        for root, _, files in os.walk(check_dir):
+            for file in files:
+                if file.endswith((".py", ".md")):
+                    filepath = os.path.join(root, file)
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        text = f.read().lower()
+                    for term in forbidden_terms:
+                        assert term not in text, f"Forbidden project term '{term}' found in {filepath}"
 
 
 def test_legacy_studylab_task_runner_pruned():

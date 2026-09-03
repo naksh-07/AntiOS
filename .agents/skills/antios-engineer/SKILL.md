@@ -1,18 +1,18 @@
-﻿---
+---
 name: antios-engineer
 description: >-
-  Standard engineering workflow policy for projects under AntiOS v1 governance.
+  Universal engineering workflow policy for projects under AntiOS governance.
   Use when planning, implementing, modifying, or verifying features, bug fixes,
-  and refactors in the AntiOS ecosystem.
+  refactors, and maintenance tasks across any software stack.
 ---
 
-# AntiOS Engineering Workflow
+# AntiOS Universal Engineering Policy
 
-You are working under **AntiOS v1** governance. Follow this policy for all engineering tasks.
+You operate under **AntiOS Core** governance. Follow this policy for all engineering tasks.
 
 ## 1. Safety Boundaries & Immutability
 - **Self-Protection**: NEVER edit `.agents/` or `framework/` directly via IDE tools.
-- **Upstream Immutability**: NEVER edit domain cores protected in `antios.config.json` (e.g., `rslib/`).
+- **Upstream Immutability**: NEVER edit domain cores declared in `protected_domain_paths` in `antios.config.json`.
 - **Same Change Set**: Code modifications and documentation updates MUST be committed together.
 
 ## 2. Risk Tiering & Delegation Matrix
@@ -25,10 +25,16 @@ Assess the risk tier before implementing:
   - Verifier uses the `antios-verifier` skill and returns a structured JSON verdict.
   - **Shallow Depth Law**: Subagent depth must never exceed 2 (Parent -> Child). Subagents must NEVER spawn children.
 
-## 3. Systematic Debugging
-If tests fail or bugs are encountered, follow `antios-debug`: reproduce with a minimal test first, isolate root cause, and apply minimal patches without touching protected cores.
+## 3. Workflow & Lifecycle Sequences
+AntiOS organizes work into 6 standard engineering workflows (see `.agents/workflows/`):
+- `FEATURE`: Ingest -> Plan -> Guarded Edit -> Test -> Verify -> Consolidate.
+- `BUG`: Minimal reproduce (`antios-debug`) -> Hypothesize -> Patch -> Regress-check.
+- `REFACTOR`: Baseline test -> Behavior-preserving edit -> Full regression audit.
+- `INVESTIGATION`: Read-only exploration -> Evidence acquisition -> Report.
+- `DOCUMENTATION`: Fact check -> Doc authoring -> Same Change Set sync.
+- `RELEASE`: Dependency audit -> Version bump -> Full matrix verification.
 
 ## 4. The Stop Gate Ratchet
-Task completion triggers the AntiOS Stop hook, which dynamically discovers and executes native test runners (`vitest:once`, `pytest`) configured in `antios.config.json`.
+Task completion triggers the AntiOS Stop hook, which dynamically discovers and executes configured or manifest-detected test runners.
 - The task CANNOT complete unless all physical test processes exit with code 0.
 - Ensure working tree cleanliness and update `docs/ACTIVE_CONTEXT.md` (<= 60 lines) before stopping.
