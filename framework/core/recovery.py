@@ -179,13 +179,23 @@ def detect_state_contradictions(
             state.verification_verdict
             and state.verification_verdict.get("status") == "PASS"
         )
-        if state.risk_tier in (RiskTier.HIGH, RiskTier.MEDIUM) and not has_verified_verdict:
+        if state.risk_tier == RiskTier.HIGH and not has_verified_verdict:
             contradictions.append(
                 Contradiction(
                     type=ContradictionType.PREMATURE_COMPLETION,
                     description=f"Task marked COMPLETE at {state.risk_tier.value} risk, but lacks verified passing verdict.",
                     stale_claim="Stage: COMPLETE",
                     physical_reality=f"Verification verdict is {state.verification_verdict.get('status') if state.verification_verdict else 'MISSING'}",
+                    severity="CRITICAL",
+                )
+            )
+        elif state.risk_tier == RiskTier.MEDIUM and state.verification_verdict and state.verification_verdict.get("status") in ("FAIL", "BLOCK"):
+            contradictions.append(
+                Contradiction(
+                    type=ContradictionType.PREMATURE_COMPLETION,
+                    description="Task marked COMPLETE at MEDIUM risk, but contains failing/blocking verification verdict.",
+                    stale_claim="Stage: COMPLETE",
+                    physical_reality=f"Verification verdict is {state.verification_verdict.get('status')}",
                     severity="CRITICAL",
                 )
             )
@@ -210,9 +220,12 @@ def detect_state_contradictions(
         state, snapshot.dirty_files, manifest_fingerprint, current_git_head
     )
     if stale:
+        c_type = ContradictionType.VERIFICATION_STALE_WORKING_TREE
+        if any("fingerprint" in r.lower() or "manifest" in r.lower() or "adapter" in r.lower() for r in reasons):
+            c_type = ContradictionType.VERIFICATION_STALE_ADAPTER
         contradictions.append(
             Contradiction(
-                type=ContradictionType.VERIFICATION_STALE_WORKING_TREE,
+                type=c_type,
                 description=f"Verification invalidated: {'; '.join(reasons)}",
                 stale_claim=f"verification_state: {state.verification_state}",
                 physical_reality="Subsequent repository modifications invalidated prior test results",

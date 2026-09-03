@@ -283,6 +283,19 @@ def apply_project_adaptation(repo_root: str, proposal: AdaptationProposal, dry_r
     new_linters: List[Dict[str, Any]] = []
     new_protected: List[str] = list(current_config.protected_domain_paths if current_config else [])
 
+    # Map discovered tool metadata (like member-scoped cwd)
+    tool_cwds: Dict[str, str] = {}
+    manifest_fingerprint = ""
+    try:
+        from framework.core.discovery import discover_project
+        discovered = discover_project(repo_root)
+        manifest_fingerprint = discovered.manifest_fingerprint
+        for t in discovered.tools:
+            if t.cwd:
+                tool_cwds[t.name] = t.cwd
+    except Exception:
+        manifest_fingerprint = current_config.manifest_fingerprint if current_config else ""
+
     for item in proposal.items:
         if item.action == ActionType.ADD and item.component == "test_runners":
             # Extract from profile or item
@@ -290,13 +303,16 @@ def apply_project_adaptation(repo_root: str, proposal: AdaptationProposal, dry_r
             runner_name = item.description.split("'")[1] if "'" in item.description else "discovered-runner"
             cmd = item.verification_required.split()
             manifest = item.source_evidence[0] if item.source_evidence else ""
-            new_runners.append({
+            runner_entry = {
                 "name": runner_name,
                 "manifest": manifest,
                 "default_command": cmd,
                 "timeout_seconds": 90,
                 "required": True,
-            })
+            }
+            if runner_name in tool_cwds:
+                runner_entry["cwd"] = tool_cwds[runner_name]
+            new_runners.append(runner_entry)
         elif item.action == ActionType.ADD and item.component == "linters":
             linter_name = item.description.split("'")[1] if "'" in item.description else "discovered-linter"
             cmd = item.verification_required.split()
@@ -316,22 +332,16 @@ def apply_project_adaptation(repo_root: str, proposal: AdaptationProposal, dry_r
     if current_config:
         for ex in current_config.test_runners:
             if not any(nr["name"] == ex.name for nr in new_runners):
-                new_runners.append({
+                ex_entry = {
                     "name": ex.name,
                     "manifest": ex.manifest,
                     "default_command": ex.default_command,
                     "timeout_seconds": ex.timeout_seconds,
                     "required": ex.required,
-                })
-
-    # Compute manifest fingerprint if possible
-    manifest_fingerprint = ""
-    try:
-        from framework.core.discovery import discover_project
-        discovered = discover_project(repo_root)
-        manifest_fingerprint = discovered.manifest_fingerprint
-    except Exception:
-        manifest_fingerprint = current_config.manifest_fingerprint if current_config else ""
+                }
+                if hasattr(ex, "cwd") and ex.cwd:
+                    ex_entry["cwd"] = ex.cwd
+                new_runners.append(ex_entry)
 
     config_dict: Dict[str, Any] = {
         "version": "1.0",
@@ -402,7 +412,15 @@ def verify_adapter(
 
     # 2. Check runners
     if not cfg.test_runners:
-        issues.append("No test runners configured in adapter. Verification requires at least one runner or dynamic discovery.")
+        try:
+            from framework.core.gate import discover_test_runners
+            dyn_runners = discover_test_runners(repo_root)
+            if not dyn_runners:
+                issues.append("No test runners configured in adapter. Verification requires at least one runner or dynamic discovery.")
+            else:
+                passed.append(f"Dynamic runner discovery active ({len(dyn_runners)} runners discovered).")
+        except Exception:
+            issues.append("No test runners configured in adapter. Verification requires at least one runner or dynamic discovery.")
     else:
         for tr in cfg.test_runners:
             if not tr.default_command:

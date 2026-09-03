@@ -260,18 +260,25 @@ def _parse_npm_workspace(repo_root: Path) -> List[WorkspaceMember]:
 # -----------------------------------------------------------------------------
 def _parse_cargo_dependencies(cargo_content: str) -> List[str]:
     deps: List[str] = []
-    in_deps = False
+    in_simple_deps = False
     for line in cargo_content.splitlines():
         line_stripped = line.strip()
         if not line_stripped or line_stripped.startswith("#"):
             continue
-        if re.match(r"^\[.*dependencies.*\]", line_stripped):
-            in_deps = True
+        # Section syntax: [dependencies.crate_name] or [target.'...'.dependencies.crate_name]
+        section_dep_match = re.match(r"^\[.*dependencies\.([a-zA-Z0-9_\-]+)\]", line_stripped)
+        if section_dep_match:
+            deps.append(section_dep_match.group(1).strip())
+            in_simple_deps = False
+            continue
+        # Standard table: [dependencies], [dev-dependencies], [build-dependencies]
+        if re.match(r"^\[.*dependencies\]", line_stripped):
+            in_simple_deps = True
             continue
         if line_stripped.startswith("["):
-            in_deps = False
+            in_simple_deps = False
             continue
-        if in_deps and "=" in line_stripped:
+        if in_simple_deps and "=" in line_stripped:
             dep_name = line_stripped.split("=", 1)[0].strip()
             if dep_name:
                 deps.append(dep_name)
@@ -424,8 +431,8 @@ def _parse_go_workspace(repo_root: Path) -> List[WorkspaceMember]:
 # -----------------------------------------------------------------------------
 def _parse_python_dependencies(pyproject_content: str) -> List[str]:
     deps: List[str] = []
-    match = re.search(r"dependencies\s*=\s*\[(.*?)\]", pyproject_content, re.DOTALL)
-    if match:
+    # Parse standard dependencies = [...] as well as optional and group dependencies
+    for match in re.finditer(r"(?:dependencies|dependency-groups[a-zA-Z0-9_\-.]*)\s*=\s*\[(.*?)\]", pyproject_content, re.DOTALL):
         raw_list = match.group(1)
         for item in re.findall(r'["\']([^"\']+)["\']', raw_list):
             dep_name = re.split(r"[=><~^! ]", item)[0].strip()

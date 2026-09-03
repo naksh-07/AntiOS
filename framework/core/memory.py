@@ -577,8 +577,8 @@ class DeterministicLessonMatcher:
         s = re.sub(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?", "<TIMESTAMP>", s)
         # Strip Windows/Unix absolute file paths
         s = re.sub(r"(?:[a-zA-Z]:[/\\]|[/\\])[^\s:\"']+", "<PATH>", s)
-        # Strip line numbers like :L123 or line 123
-        s = re.sub(r"(?::L|line\s+)\d+", ":<LINE>", s, flags=re.IGNORECASE)
+        # Strip line numbers like :L123, :123, or line 123
+        s = re.sub(r"(?::L?|line\s+)\d+", ":<LINE>", s, flags=re.IGNORECASE)
         # Strip excessive whitespace and lowercase
         return " ".join(s.lower().split())
 

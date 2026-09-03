@@ -1,6 +1,6 @@
 # AntiOS: Autonomous Engineering Governance & Verification Framework
 
-[![Tests](https://img.shields.io/badge/tests-18%2F18%20passing-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-234%2F234%20passing-brightgreen)](#)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 [![Antigravity: Native](https://img.shields.io/badge/Antigravity-v4%20Native-purple.svg)](#)
@@ -52,7 +52,7 @@ AI coding agents often:
 ### 1. Fail-Closed Boundary Protection (`framework/core/guard.py`)
 Intercepts IDE tool calls (`write_to_file`, `replace_file_content`).
 - **Self-Protection**: Strictly prevents agents from tampering with governance files (`.agents/`, `framework/`).
-- **Domain Protection**: Protects configured upstream core libraries (e.g. `rslib`, `engine/core`) from direct edits.
+- **Domain Protection**: Protects configured upstream core libraries (e.g. `core/engine`, `shared_kernel`) from direct edits.
 - **8.3 Short Name & Canonicalization**: Uses `os.path.commonpath` and resolves Windows 8.3 aliases (`rslib~1`) to block path traversal bypasses.
 - **Fail-Closed**: Any unhandled exception or malformed payload returns `decision: deny`.
 
@@ -76,6 +76,7 @@ Avoids context saturation by enforcing a strict $\le 60$-line budget per skill:
 - **`antios-engineer`** (34 lines): Core engineering lifecycle, safety boundaries, risk tiering, and Stop Gate ratchet.
 - **`antios-verifier`** (48 lines): Independent Checker verification contract and structured verdict emission.
 - **`antios-debug`** (35 lines): Deterministic root-cause debugging protocol (minimal reproducing test first).
+- **`antios-adapt-project`** (≤60 lines): Universal project intelligence and adaptation procedure for unfamiliar repositories.
 
 ---
 
@@ -147,7 +148,7 @@ Define your project's protected paths and test runners:
 
 ## 🧪 Testing
 
-AntiOS includes a comprehensive 18-test suite with **zero third-party dependencies**:
+AntiOS includes a comprehensive 234-test suite across 32 test files with **zero third-party dependencies**:
 
 ```bash
 # Run using standard library Python
@@ -157,7 +158,7 @@ python tests/run_all.py
 pytest tests/ -v
 ```
 
-All 18 tests execute in $\le 1.2$ seconds, validating configuration loading, security guards, stop gate ratchets, verdict parsing, and skill token budgets.
+All 234 tests execute in $\le 13$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, end-to-end scenarios, and performance benchmarks.
 
 ---
 
@@ -167,7 +168,7 @@ All 18 tests execute in $\le 1.2$ seconds, validating configuration loading, sec
 - **`framework/`**: Core governance implementation (`framework/core/`, `framework/scripts/hooks/`).
 - **`docs/`**: Active governance (`AGENTS.md`, `ACTIVE_CONTEXT.md`, `CAPABILITY_ARCHITECTURE.md`).
 - **`tests/`**: Automated test suite (`run_all.py`, `test_*.py`).
-- **`specs/` & Root**: Master specification documents and decision registers.
+- **`specs/` & Root**: Architecture specifications, phase reports, and decision registers.
 
 ---
 

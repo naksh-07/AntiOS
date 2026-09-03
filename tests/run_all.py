@@ -45,6 +45,13 @@ import tests.test_lesson_distillation as test_lesson_distillation
 import tests.test_adversarial_verification as test_adversarial_verification
 import tests.test_external_proving_ground as test_external_proving_ground
 
+# Phase 25 Full-System Integration & Adversarial Certification test modules
+import tests.test_subsystem_contracts as test_subsystem_contracts
+import tests.test_e2e_scenarios as test_e2e_scenarios
+import tests.test_false_done_campaign as test_false_done_campaign
+import tests.test_failure_injection_campaign as test_failure_injection_campaign
+import tests.test_performance_benchmarks as test_performance_benchmarks
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -81,6 +88,12 @@ def build_suite() -> unittest.TestSuite:
         test_lesson_distillation,
         test_adversarial_verification,
         test_external_proving_ground,
+        # Phase 25
+        test_subsystem_contracts,
+        test_e2e_scenarios,
+        test_false_done_campaign,
+        test_failure_injection_campaign,
+        test_performance_benchmarks,
     ]
 
     for mod in modules:

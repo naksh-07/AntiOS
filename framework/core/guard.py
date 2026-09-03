@@ -110,14 +110,28 @@ def evaluate_tool_call(
         rel_norm = rel_path.replace("\\", "/").lower().strip("/")
         parts = rel_path.split(os.sep)
 
-        # 8.3 alias defense on self-protection zones
+        # 8.3 alias defense on self-protection zones and configured protected zones/domains
+        alias_targets = ["framework", "agents", "antios"]
+        for pz in config.protected_zones:
+            c = pz.replace("\\", "/").strip("/").split("/")[0].lower()
+            if c and c not in alias_targets:
+                alias_targets.append(c)
+        for dp in config.protected_domain_paths:
+            c = dp.replace("\\", "/").strip("/").split("/")[0].lower()
+            if c and c not in alias_targets:
+                alias_targets.append(c)
+
         for part in parts:
             part_lower = part.lower()
             if "~" in part_lower:
-                if any(fnmatch.fnmatch(part_lower, f"{z[:6].lower()}~*") for z in ["framework", "agents", "antios"]):
+                prefix = part_lower.split("~")[0]
+                if (
+                    any(fnmatch.fnmatch(part_lower, f"{z[:6].lower()}~*") for z in alias_targets if len(z) >= 1)
+                    or (len(prefix) >= 3 and any(z.startswith(prefix) for z in alias_targets))
+                ):
                     return (
                         "deny",
-                        f"AntiOS Self-Protection Policy: 8.3 alias '{part}' targeting protected governance files "
+                        f"AntiOS Boundary Policy: 8.3 alias '{part}' targeting protected governance or domain files "
                         f"is strictly forbidden. Failing closed."
                     )
 

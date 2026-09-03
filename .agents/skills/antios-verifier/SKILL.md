@@ -36,6 +36,8 @@ Emit your final verdict as a clean JSON block in this exact schema:
   "status": "PASS",
   "risk_tier": "HIGH",
   "project_member": null,
+  "git_head": "<git_commit_sha>",
+  "manifest_fingerprint": "<manifest_fingerprint>",
   "files_audited": ["path/to/modified_file.ts"],
   "tests": [
     {"command": "<configured_test_runner>", "exit_code": 0, "passed": true, "details": "All tests passed"}

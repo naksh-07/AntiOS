@@ -42,6 +42,7 @@ class TaskClass(str, Enum):
     INVESTIGATION = "INVESTIGATION"
     DOCUMENTATION = "DOCUMENTATION"
     RELEASE = "RELEASE"
+    RELEASE_MAINTENANCE = "RELEASE_MAINTENANCE"
 
 
 class RiskTier(str, Enum):
@@ -123,6 +124,9 @@ def transition_stage(
     if state.status == TaskStatus.FAILED:
         return False, "Cannot transition failed task. Must recover first.", state
 
+    if state.status == TaskStatus.VERIFICATION_STALE and target_stage == TaskStage.COMPLETE:
+        return False, "Cannot complete task in VERIFICATION_STALE state. Re-verification required.", state
+
     current_idx = ORDERED_STAGES.index(state.current_stage)
     target_idx = ORDERED_STAGES.index(target_stage)
 
@@ -131,11 +135,20 @@ def transition_stage(
         # Gate checks
         if target_stage == TaskStage.COMPLETE:
             # Requires verified evidence or passing verdict
-            if state.risk_tier == RiskTier.HIGH and not state.verification_verdict:
-                return False, "High-risk task requires verified verdict before COMPLETE.", state
+            if state.risk_tier == RiskTier.HIGH:
+                if not state.verification_verdict or state.verification_verdict.get("status") != "PASS":
+                    return False, "High-risk task requires verified verdict before COMPLETE.", state
+            elif state.verification_verdict and state.verification_verdict.get("status") in ("FAIL", "BLOCK"):
+                return False, f"Cannot complete task with failing verifier verdict ({state.verification_verdict.get('status')}).", state
 
         state.current_stage = target_stage
-        state.status = TaskStatus.COMPLETED if target_stage == TaskStage.COMPLETE else TaskStatus.ACTIVE
+        if target_stage == TaskStage.COMPLETE:
+            state.status = TaskStatus.COMPLETED
+        elif target_stage == TaskStage.VERIFY:
+            state.status = TaskStatus.VERIFYING
+        else:
+            state.status = TaskStatus.ACTIVE
+
         if evidence:
             state.metadata.update(evidence)
         return True, f"Transitioned to {target_stage.value}", state
@@ -230,16 +243,21 @@ def sync_to_active_context(state: TaskState, repo_root: str) -> str:
     changed_lines = [f"- Verification State: {state.verification_state}"]
     if state.changed_files:
         changed_lines.append("- Changed Files:")
-        for cf in state.changed_files[:5]:
+        for cf in state.changed_files:
             changed_lines.append(f"  - {cf}")
-        if len(state.changed_files) > 5:
-            changed_lines.append(f"  - ... ({len(state.changed_files) - 5} more)")
     else:
         changed_lines.append("- Changed Files: None")
 
     if state.verification_verdict:
-        verdict_summary = f"{state.verification_verdict.get('status', 'UNKNOWN')} ({state.verification_verdict.get('summary', '')})"
-        changed_lines.append(f"- Verdict: {verdict_summary}")
+        v_status = state.verification_verdict.get('status', 'UNKNOWN')
+        v_summary = state.verification_verdict.get('summary', '')
+        extra = []
+        if state.verification_verdict.get('git_head'):
+            extra.append(f"head:{state.verification_verdict['git_head']}")
+        if state.verification_verdict.get('manifest_fingerprint'):
+            extra.append(f"fp:{state.verification_verdict['manifest_fingerprint']}")
+        tag = f" [{', '.join(extra)}]" if extra else ""
+        changed_lines.append(f"- Verdict: {v_status} ({v_summary}){tag}")
 
     # 4. Dead-End Memory & Candidate Lessons
     dead_end_lines = [f"- {d}" for d in state.dead_ends[:5]] if state.dead_ends else ["- None"]
@@ -378,11 +396,22 @@ def parse_active_context(repo_root: str) -> Optional[TaskState]:
 
         # Verification verdict
         verification_verdict = None
-        verdict_match = re.search(r"-\s*Verdict:\s*([A-Z_]+)\s*(?:\(([^)]*)\))?", text)
+        verdict_match = re.search(r"-\s*Verdict:\s*([A-Z_]+)\s*(?:\(([^)]*)\))?(?:\s*\[([^\]]*)\])?", text)
         if verdict_match:
             v_status = verdict_match.group(1).strip()
             v_summary = verdict_match.group(2).strip() if verdict_match.group(2) else ""
             verification_verdict = {"status": v_status, "summary": v_summary}
+            if verdict_match.group(3):
+                tags_str = verdict_match.group(3).strip()
+                for tag in tags_str.split(","):
+                    if ":" in tag:
+                        k, v = tag.split(":", 1)
+                        k = k.strip()
+                        v = v.strip()
+                        if k == "head":
+                            verification_verdict["git_head"] = v
+                        elif k == "fp":
+                            verification_verdict["manifest_fingerprint"] = v
 
         action_match = re.search(r"## 5\. Next Immediate Action\s*\n([^\n#]+)", text)
         next_action = action_match.group(1).strip() if action_match else ""

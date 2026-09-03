@@ -9,22 +9,19 @@
 ## 1. The Tripartite Governance Matrix
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          RESPONSIBILITY BOUNDARIES                          │
-├───────────────────────┬─────────────────────────┬───────────────────────────┤
-│ ANTIGRAVITY (Platform)│ ANTI OS (Engineering)   │ STUDYLAB (Domain Truth)   │
-├───────────────────────┼─────────────────────────┼───────────────────────────┤
-│ • Subagent Runtime    │ • Project Engineering   │ • Application Behavior    │
-│ • Tool Transport      │   Policy                │ • Domain Contracts        │
-│ • Planning UI         │ • Protected Boundaries  │ • APKG Semantics          │
-│ • Transcript Log      │ • Verification Policy   │ • Application Test Suites │
-│ • Scheduling & Cron   │ • Task-State Model      │ • Compiler & Toolchain    │
-│ • MCP Client Engine   │ • Skill Design          │ • Product Decisions       │
-│ • Shell Execution     │ • Hook Policy           │ • Reviewer FSM            │
-│                       │ • Maker-Checker Policy  │ • Double SQLite Storage   │
-│                       │ • Recovery Protocol     │ • Pedagogical Invariants  │
-│                       │ • Source-of-Truth Rules │                           │
-└───────────────────────┴─────────────────────────┴───────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 RESPONSIBILITY BOUNDARIES                                 │
+├───────────────────────┬─────────────────────────┬─────────────────────────┬───────────────┤
+│ ANTIGRAVITY (Platform)│ ANTI OS (Core Governed) │ PROJECT ADAPTER (Config)│ TARGET PROJECT│
+├───────────────────────┼─────────────────────────┼─────────────────────────┼───────────────┤
+│ • Subagent Runtime    │ • Security Guards       │ • Manifest Fingerprint  │ • Domain Truth│
+│ • Tool Transport      │ • Stop Gate Ratchet     │ • Scoped Test Runners   │ • Source Code │
+│ • Planning UI         │ • Task State Machine    │ • Protected Zones       │ • Native Tests│
+│ • Transcript Log      │ • Maker-Checker Policy  │ • Dynamic Commands      │ • Build Steps │
+│ • Scheduling & Cron   │ • Memory Distillation   │ • Member Topology       │ • Schemas     │
+│ • MCP Client Engine   │ • Telemetry Aggregator  │ • Tool CWD Bindings     │ • App Logic   │
+│ • Shell Execution     │ • Self-Protection       │ • Zero Core Mutations   │ • Products    │
+└───────────────────────┴─────────────────────────┴─────────────────────────┴───────────────┘
 ```
 
 ---
@@ -92,40 +89,37 @@ AntiOS is the operating layer within the repository that constrains, directs, an
 
 ---
 
-### C. StudyLab Owns (Domain Truth & Application Logic)
+### C. Target Project Owns (Domain Truth & Application Logic)
 
-StudyLab is the application under development. AntiOS does not absorb, re-implement, or dilute its domain semantics:
+Target projects (e.g. StudyLab, Pallets/Click) define domain truth. AntiOS does not absorb, re-implement, or dilute domain semantics:
 
 1. **Application Behavior & Features**:
-   - User interface logic, flashcard rendering, review modes, deck management.
+   - User-facing business logic, APIs, schemas, and UI components.
 2. **Domain Contracts & Schemas**:
-   - The canonical 20-field source question schema.
-   - Mathematical and LaTeX formatting standards.
-   - Telemetry firewall rules and double SQLite database schemas.
-3. **APKG Packaging & Compilation**:
-   - Artifact generation logic (`generate_apkg.py`).
-   - SQLite generation and Anki package format serialization.
+   - Application data contracts, serialization models, and database migrations.
+3. **Packaging & Distribution**:
+   - Artifact compilation, package bundling, wheel/crate generation, and release pipelines.
 4. **Application Test Suites**:
-   - The actual assertions, test suites, and fixtures in TypeScript (`ts/tests/`) and Rust (`rslib/`).
+   - Unit tests, integration tests, fuzzers, and end-to-end assertions in native frameworks (`pytest`, `vitest`, `cargo test`).
 5. **Compiler & Toolchain Correctness**:
-   - TypeScript compilation (`tsc`), bundling (`esbuild`/`vite`), Rust compilation (`cargo`).
-6. **Product & Pedagogical Decisions**:
-   - Curriculum design, learning science principles, spaced repetition algorithms.
+   - Compiler configuration (`tsconfig.json`, `Cargo.toml`, `pyproject.toml`).
+6. **Product Decisions**:
+   - Functional requirements, roadmap priorities, and architecture trade-offs.
 
 ---
 
 ## 3. Boundary Crossing Invariants
 
 ```text
-Rule 1: AntiOS never implements domain validation.
-        If an APKG or schema needs validation, invoke StudyLab's generate_apkg.py or tsc.
+Rule 1: AntiOS Core never implements domain validation.
+        If a schema or build artifact needs validation, AntiOS invokes the project's native toolchain.
 
-Rule 2: AntiOS never rebuilds platform orchestration.
-        If a subagent needs to run, invoke Antigravity's invoke_subagent.
+Rule 2: AntiOS Core never rebuilds platform orchestration.
+        If a subagent needs to run, AntiOS invokes Antigravity's invoke_subagent.
 
 Rule 3: Antigravity never assumes domain safety.
         The platform allows any tool call unless AntiOS hooks intercept and block it.
 
-Rule 4: StudyLab never implements agent governance.
-        StudyLab code contains zero knowledge of prompts, skills, or agent personas.
+Rule 4: Target Projects never implement agent governance.
+        Target codebase source files contain zero knowledge of prompts, skills, or agent personas.
 ```

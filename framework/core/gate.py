@@ -218,13 +218,25 @@ def resolve_verification_scope(
     if not target_obj:
         return test_runners, f"Target member '{resolved_target}' not found in workspace topology: executing all runners."
 
-    # Find members that declare dependency on resolved_target
-    dependent_members = [
-        m.name for m in members
-        if resolved_target in m.dependencies or (target_obj and target_obj.name in m.dependencies)
-    ]
+    # Find all members that declare dependency on resolved_target (directly or transitively)
+    scoped_member_names: Set[str] = {resolved_target}
+    if target_obj:
+        scoped_member_names.add(target_obj.name)
 
-    scoped_member_names = {resolved_target} | set(dependent_members)
+    # Transitive blast radius expansion
+    expanded = True
+    while expanded:
+        expanded = False
+        for m in members:
+            if m.name not in scoped_member_names:
+                if any(dep in scoped_member_names for dep in m.dependencies):
+                    scoped_member_names.add(m.name)
+                    expanded = True
+
+    dependent_members = [
+        name for name in scoped_member_names
+        if name != resolved_target and (not target_obj or name != target_obj.name)
+    ]
 
     # 4. Filter runners
     scoped_runners: List[RunnerConfig] = []
@@ -300,7 +312,46 @@ def evaluate_stop_gate(
             if not cs_eval.is_valid:
                 return "continue", f"AntiOS Stop Gate: {cs_eval.summary} Details: {'; '.join(cs_eval.violations)}"
 
-        # 3. Dynamic Test Execution (Configured or Auto-discovered)
+        # 3. Active Task State & Verification Continuity Check (if active context exists)
+        ac_path = os.path.join(repo_root, "docs", "ACTIVE_CONTEXT.md")
+        if os.path.isfile(ac_path):
+            try:
+                from framework.core.lifecycle import parse_active_context, TaskStatus, RiskTier
+                from framework.core.recovery import is_verification_stale
+                from framework.core.worktree import capture_worktree_snapshot
+                from framework.core.discovery import discover_project
+
+                task_state = parse_active_context(repo_root)
+                if task_state:
+                    if task_state.status == TaskStatus.FAILED:
+                        return "continue", "AntiOS Stop Gate: Task status is FAILED. Must recover before completion."
+                    if task_state.status == TaskStatus.VERIFICATION_STALE:
+                        return "continue", "AntiOS Stop Gate: Task status is VERIFICATION_STALE. Re-verification required."
+
+                    # HIGH risk tasks mandate verified Maker-Checker pass
+                    if task_state.risk_tier == RiskTier.HIGH:
+                        if not task_state.verification_verdict or task_state.verification_verdict.get("status") != "PASS":
+                            return "continue", "AntiOS Stop Gate: HIGH risk task requires verified Maker-Checker pass before completion."
+
+                    # Check verification continuity / staleness
+                    if task_state.verification_verdict:
+                        snapshot = capture_worktree_snapshot(repo_root)
+                        mf = ""
+                        try:
+                            mf = discover_project(repo_root).manifest_fingerprint
+                        except Exception:
+                            pass
+                        stale, reasons = is_verification_stale(
+                            task_state, snapshot.dirty_files,
+                            current_manifest_fingerprint=mf,
+                            current_git_head=snapshot.commit_sha
+                        )
+                        if stale:
+                            return "continue", f"AntiOS Stop Gate: Verification invalidated: {'; '.join(reasons)}. Re-verification required."
+            except Exception:
+                pass
+
+        # 4. Dynamic Test Execution (Configured or Auto-discovered)
         available_runners = config.test_runners if config.test_runners else discover_test_runners(repo_root)
 
         # Apply Member-Scoped Verification filtering

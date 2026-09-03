@@ -84,20 +84,29 @@ def _matches_any_pattern(file_path: str, patterns: List[str]) -> bool:
     return False
 
 
-def get_git_changed_files(repo_root: str) -> List[str]:
-    """Retrieves all changed, staged, unstaged, and untracked files from git."""
+def get_git_changed_files(repo_root: str) -> Optional[List[str]]:
+    """Retrieves all changed, staged, unstaged, and untracked files from git.
+    Returns None if git status fails or times out in a git repository.
+    Returns [] if repo_root is not a git repository.
+    """
+    is_git = os.path.exists(os.path.join(repo_root, ".git"))
+    if not is_git:
+        return []
+
     changed = set()
     try:
-        # Check porcelain status (includes untracked and staged)
+        # Check porcelain status (includes untracked and staged, with individual untracked files)
         res = subprocess.run(
-            ["git", "status", "--porcelain"],
+            ["git", "status", "--porcelain", "-uall"],
             cwd=repo_root,
             capture_output=True,
             text=True,
-            timeout=5,
+            timeout=10,
             shell=True if os.name == "nt" else False
         )
-        if res.returncode == 0 and res.stdout:
+        if res.returncode != 0:
+            return None
+        if res.stdout:
             for line in res.stdout.splitlines():
                 line = line.strip()
                 if len(line) >= 3:
@@ -107,10 +116,9 @@ def get_git_changed_files(repo_root: str) -> List[str]:
                         file_part = file_part.split(" -> ")[-1].strip()
                     if file_part:
                         changed.add(file_part.replace("\\", "/"))
+        return sorted(list(changed))
     except Exception:
-        pass
-
-    return sorted(list(changed))
+        return None
 
 
 def evaluate_changeset(
@@ -132,7 +140,14 @@ def evaluate_changeset(
         )
 
     if changed_files is None:
-        changed_files = get_git_changed_files(repo_root)
+        files = get_git_changed_files(repo_root)
+        if files is None:
+            return ChangeSetEvaluation(
+                is_valid=False,
+                violations=["Unable to inspect git status (git command failed, timed out, or repository unavailable)."],
+                summary="Same Change Set evaluation failed closed: could not inspect git status."
+            )
+        changed_files = files
 
     if not changed_files:
         return ChangeSetEvaluation(

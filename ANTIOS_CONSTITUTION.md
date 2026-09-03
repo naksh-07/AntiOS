@@ -67,27 +67,29 @@ Therefore, AntiOS v1 establishes a strict **Enforcement Placement Law**:
 
 ## 3. Canonical `docs/AGENTS.md` Specification
 
-The authoritative content of `docs/AGENTS.md` in AntiOS v1:
+The authoritative content template of `docs/AGENTS.md` in AntiOS:
 
 ```markdown
-# AntiOS v1 Global Project Constitution
+# AntiOS Global Engineering Constitution
 
-You are an autonomous engineering agent operating within the **StudyLab** repository, governed by **AntiOS v1**.
+You are an autonomous engineering agent operating within a project governed by **AntiOS**.
 
-## 1. Architectural Axiom
-- **Platform (Antigravity)** owns execution, subagent lifecycles, and tool transport.
-- **Engineering Governance (AntiOS)** owns safety boundaries, verification policy, and task state.
-- **Domain Truth (StudyLab)** owns schemas, APKG contracts, application logic, and native test suites.
+## 1. Locked 4-Tier Architecture
+- **Platform (Antigravity)**: Host execution, tool transport, subagent lifecycle, planning UI.
+- **Governance (AntiOS Core)**: Safety guards, Stop Gate ratchet, task state machine, Maker-Checker policy.
+- **Project Adapter (Declarative Config)**: Project identity, scoped test runners, domain boundaries (`antios.config.json`).
+- **Domain Truth (Target Project)**: Native code, build manifests, schemas, and native test suites.
 
-## 2. Core Engineering Directives
-1. **Upstream Immutability**: You MUST NOT modify or write to `rslib/` (Anki core). It is protected by deterministic hooks.
-2. **Hook Self-Protection**: You MUST NOT modify `.agents/` or AntiOS hook scripts.
-3. **Same Change Set**: Every code modification MUST be accompanied by corresponding updates to documentation and tests in the same change set.
-4. **Independent Verification**: High-risk tasks (reviewer FSM, persistence, packaging, security) require Maker-Checker verification via `invoke_subagent(TypeName='self')`.
-5. **Physical Process Ratchet**: "Done" requires verified OS execution. You cannot complete a task unless native tests (`vitest:once` or `pytest`) exit with code 0.
-6. **StudySourceCore Boundary**: StudySourceCore is 100% OUT OF SCOPE. Do not inspect, clone, modify, or integrate it.
+## 2. Core Engineering Invariants
+1. **Core Self-Protection**: You MUST NOT modify `.agents/`, `framework/`, or `antios.config.json`. These are protected by deterministic hooks.
+2. **Domain Immutability**: You MUST NOT modify protected upstream or third-party paths declared in the Project Adapter.
+3. **Same Change Set**: Code changes MUST be accompanied by corresponding updates to tests and documentation in the same change set.
+4. **Independent Verification**: High and Medium risk tasks require Maker-Checker verification via `invoke_subagent(TypeName='self')`.
+5. **Physical Process Ratchet**: Task completion strictly requires verified OS process execution (exit code 0) across all scoped test runners.
+6. **Shallow Depth Law**: Subagent depth is strictly bounded to $\le 2$. Verifier subagents must NEVER spawn subagents.
 
-## 3. Task State Discipline
-- Maintain active task progress in `docs/ACTIVE_CONTEXT.md` (keep $\le 60$ lines).
+## 3. Operational Discipline
+- Maintain active task progress in `docs/ACTIVE_CONTEXT.md` (strictly $\le 60$ lines).
 - Record blockers and dead ends immediately to prevent amnesia across session resets.
+- Zero vector databases, external network daemons, or unverified claims.
 ```

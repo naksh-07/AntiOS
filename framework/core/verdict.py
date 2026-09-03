@@ -239,9 +239,12 @@ def evaluate_checker_verdict(
     if not verdict.same_change_set_verified:
         return False, "Checker noted Same Change Set violation (code/doc desynchronization)."
 
-    if required_risk_tier.upper() == "HIGH":
+    if any("Failed to parse formal JSON verdict" in issue for issue in verdict.issues):
+        return False, "Checker verdict is malformed: extracted via heuristic fallback without verified JSON payload."
+
+    if required_risk_tier.upper() in ("HIGH", "MEDIUM"):
         if not verdict.tests:
-            return False, "HIGH risk task requires at least one executed physical test result in verdict."
+            return False, f"{required_risk_tier.upper()} risk task requires at least one executed physical test result in verdict."
         failing_tests = [t for t in verdict.tests if not t.passed or t.exit_code != 0]
         if failing_tests:
             return False, f"Checker verdict contained {len(failing_tests)} failing test(s)."
