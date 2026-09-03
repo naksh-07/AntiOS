@@ -31,6 +31,8 @@ class TaskStatus(str, Enum):
     FAILED = "FAILED"
     INTERRUPTED = "INTERRUPTED"
     COMPLETED = "COMPLETED"
+    VERIFYING = "VERIFYING"
+    VERIFICATION_STALE = "VERIFICATION_STALE"
 
 
 class TaskClass(str, Enum):
@@ -74,6 +76,10 @@ class TaskState:
     dead_ends: List[str] = field(default_factory=list)
     verification_verdict: Optional[Dict[str, Any]] = None
     next_action: str = ""
+    changed_files: List[str] = field(default_factory=list)
+    verification_state: str = "UNVERIFIED"
+    target_member: Optional[str] = None
+    pending_decisions: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -82,7 +88,11 @@ def create_task(
     task_class: TaskClass = TaskClass.FEATURE,
     risk_tier: RiskTier = RiskTier.MEDIUM,
     checklist: Optional[List[str]] = None,
-    next_action: str = ""
+    next_action: str = "",
+    target_member: Optional[str] = None,
+    changed_files: Optional[List[str]] = None,
+    verification_state: str = "UNVERIFIED",
+    pending_decisions: Optional[List[str]] = None,
 ) -> TaskState:
     """Initializes a new task state at INTAKE stage."""
     return TaskState(
@@ -92,7 +102,11 @@ def create_task(
         current_stage=TaskStage.INTAKE,
         status=TaskStatus.ACTIVE,
         active_checklist=checklist or [],
-        next_action=next_action or "Understand boundaries and constraints."
+        next_action=next_action or "Understand boundaries and constraints.",
+        target_member=target_member,
+        changed_files=changed_files or [],
+        verification_state=verification_state,
+        pending_decisions=pending_decisions or [],
     )
 
 
@@ -183,43 +197,80 @@ def sync_to_active_context(state: TaskState, repo_root: str) -> str:
     os.makedirs(docs_dir, exist_ok=True)
     target_path = os.path.join(docs_dir, "ACTIVE_CONTEXT.md")
 
-    checklist_lines = [f"- [{'x' if item.startswith('[x]') else ' '}] {item.replace('[x]', '').replace('[ ]', '').strip()}" for item in state.active_checklist[:10]]
-    if not checklist_lines:
-        checklist_lines = ["- [ ] Initial task execution"]
+    # Header lines
+    header_lines = [
+        "# Active Context (`docs/ACTIVE_CONTEXT.md`)",
+        "",
+        f"**Mission**: {state.mission_id}",
+        f"**Class**: {state.task_class.value} | **Risk**: {state.risk_tier.value}",
+        f"**Stage**: {state.current_stage.value} | **Status**: {state.status.value}",
+    ]
+    if state.target_member:
+        header_lines.append(f"**Target Member**: {state.target_member}")
 
-    blocker_lines = [f"- {b}" for b in state.blockers[:5]] if state.blockers else ["- None"]
-    dead_end_lines = [f"- {d}" for d in state.dead_ends[:5]] if state.dead_ends else ["- None"]
+    # 1. Active Checklist (capped to 8 items to stay within budget)
+    checklist_items = state.active_checklist[:8] if state.active_checklist else ["[ ] Initial task execution"]
+    checklist_lines = [
+        f"- [{'x' if item.startswith('[x]') or item.startswith('- [x]') else ' '}] {item.replace('- [x]', '').replace('- [ ]', '').replace('[x]', '').replace('[ ]', '').strip()}"
+        for item in checklist_items
+    ]
 
-    verdict_summary = "None"
+    # 2. Blockers & Invariants (including pending decisions if any)
+    blocker_lines = []
+    if state.pending_decisions:
+        for dec in state.pending_decisions[:3]:
+            blocker_lines.append(f"- [Pending Decision] {dec}")
+    if state.blockers:
+        for b in state.blockers[:5]:
+            blocker_lines.append(f"- {b}")
+    if not blocker_lines:
+        blocker_lines = ["- None"]
+
+    # 3. Changed Files & Verification State
+    changed_lines = [f"- Verification State: {state.verification_state}"]
+    if state.changed_files:
+        changed_lines.append("- Changed Files:")
+        for cf in state.changed_files[:5]:
+            changed_lines.append(f"  - {cf}")
+        if len(state.changed_files) > 5:
+            changed_lines.append(f"  - ... ({len(state.changed_files) - 5} more)")
+    else:
+        changed_lines.append("- Changed Files: None")
+
     if state.verification_verdict:
         verdict_summary = f"{state.verification_verdict.get('status', 'UNKNOWN')} ({state.verification_verdict.get('summary', '')})"
+        changed_lines.append(f"- Verdict: {verdict_summary}")
 
-    sep = chr(10)
-    content = f"""# Active Context (`docs/ACTIVE_CONTEXT.md`)
+    # 4. Dead-End Memory & Candidate Lessons
+    dead_end_lines = [f"- {d}" for d in state.dead_ends[:5]] if state.dead_ends else ["- None"]
 
-**Mission**: {state.mission_id}
-**Class**: {state.task_class.value} | **Risk**: {state.risk_tier.value}
-**Stage**: {state.current_stage.value} | **Status**: {state.status.value}
+    # 5. Next Immediate Action
+    action_text = state.next_action or f"Execute {state.current_stage.value} stage."
 
-## 1. Active Checklist
-{sep.join(checklist_lines)}
-
-## 2. Blockers & Invariants
-{sep.join(blocker_lines)}
-
-## 3. Dead-End Memory
-{sep.join(dead_end_lines)}
-
-## 4. Verification Verdict
-- {verdict_summary}
-
-## 5. Next Immediate Action
-{state.next_action or f"Execute {state.current_stage.value} stage."}
-"""
-
-    lines = content.strip().splitlines()
+    sep = "\n"
+    sections = [
+        sep.join(header_lines),
+        "",
+        "## 1. Active Checklist",
+        sep.join(checklist_lines),
+        "",
+        "## 2. Blockers & Invariants",
+        sep.join(blocker_lines),
+        "",
+        "## 3. Changed Files & Verification State",
+        sep.join(changed_lines),
+        "",
+        "## 4. Dead-End Memory & Candidate Lessons",
+        sep.join(dead_end_lines),
+        "",
+        "## 5. Next Immediate Action",
+        action_text,
+    ]
+    content = "\n".join(sections).strip() + "\n"
+    lines = content.splitlines()
     if len(lines) > 60:
-        content = sep.join(lines[:60]) + sep
+        lines = lines[:60]
+        content = "\n".join(lines) + "\n"
 
     with open(target_path, "w", encoding="utf-8") as f:
         f.write(content)
@@ -236,7 +287,7 @@ def parse_active_context(repo_root: str) -> Optional[TaskState]:
         with open(target_path, "r", encoding="utf-8-sig") as f:
             text = f.read()
 
-        mission_match = re.search(r"\*\*Mission\*\*:\s*([^\n]+)", text)
+        mission_match = re.search(r"\*\*(?:Current )?Mission\*\*:\s*([^\n]+)", text)
         mission_id = mission_match.group(1).strip() if mission_match else "Recovered-Mission"
 
         class_match = re.search(r"\*\*Class\*\*:\s*([A-Z_]+)", text)
@@ -251,6 +302,88 @@ def parse_active_context(repo_root: str) -> Optional[TaskState]:
         status_match = re.search(r"\*\*Status\*\*:\s*([A-Z_]+)", text)
         status = TaskStatus(status_match.group(1).strip()) if status_match and status_match.group(1).strip() in TaskStatus.__members__ else TaskStatus.ACTIVE
 
+        member_match = re.search(r"\*\*Target Member\*\*:\s*([^\n]+)", text)
+        target_member = None
+        if member_match:
+            val = member_match.group(1).strip()
+            if val and val.lower() != "none":
+                target_member = val
+
+        # Verification state
+        verif_state_match = re.search(r"(?:-\s*Verification State|\*\*Verification State\*\*):\s*([A-Z_]+)", text, re.IGNORECASE)
+        verification_state = verif_state_match.group(1).strip() if verif_state_match else "UNVERIFIED"
+
+        # Changed files
+        changed_files: List[str] = []
+        cf_block_match = re.search(r"-\s*Changed Files:\s*\n((?:\s+-\s+[^\n]+\n*)+)", text)
+        if cf_block_match:
+            for line in cf_block_match.group(1).splitlines():
+                line = line.strip()
+                if line.startswith("- "):
+                    fpath = line[2:].strip()
+                    if fpath and not fpath.startswith("...") and fpath.lower() != "none":
+                        changed_files.append(fpath)
+        else:
+            # Inline check: - Changed Files: foo.py, bar.py
+            cf_inline_match = re.search(r"-\s*Changed Files:\s*([^\n]+)", text)
+            if cf_inline_match:
+                val = cf_inline_match.group(1).strip()
+                if val.lower() != "none":
+                    changed_files = [p.strip() for p in val.split(",") if p.strip() and not p.strip().startswith("...")]
+
+        # Pending decisions & blockers from Section 2
+        pending_decisions: List[str] = []
+        blockers: List[str] = []
+        sec2_match = re.search(r"## 2\. Blockers & Invariants\s*\n(.*?)(?=\n## |\Z)", text, re.DOTALL)
+        if sec2_match:
+            for b_line in sec2_match.group(1).splitlines():
+                b_line = b_line.strip()
+                if not b_line.startswith("- "):
+                    continue
+                content = b_line[2:].strip()
+                if content.lower() == "none":
+                    continue
+                if content.startswith("[Pending Decision]"):
+                    dec_name = content.replace("[Pending Decision]", "").strip()
+                    if dec_name:
+                        pending_decisions.append(dec_name)
+                else:
+                    blockers.append(content)
+
+        # Check for header pending decisions if not in section 2
+        if not pending_decisions:
+            hdr_dec_match = re.search(r"\*\*Pending Decisions?\*\*:\s*([^\n]+)", text)
+            if hdr_dec_match:
+                d_val = hdr_dec_match.group(1).strip()
+                if d_val.lower() != "none":
+                    pending_decisions = [d.strip() for d in d_val.split(",") if d.strip()]
+
+        # Active checklist from Section 1
+        active_checklist: List[str] = []
+        sec1_match = re.search(r"## 1\. Active (?:Checklist|Tasks|Objective)\s*\n(.*?)(?=\n## |\Z)", text, re.DOTALL)
+        if sec1_match:
+            for c_line in sec1_match.group(1).splitlines():
+                c_line = c_line.strip()
+                if c_line.startswith("- ["):
+                    active_checklist.append(c_line)
+
+        # Dead ends from Section 4
+        dead_ends: List[str] = []
+        sec4_match = re.search(r"## 4\. Dead-End Memory[^\n]*\s*\n(.*?)(?=\n## |\Z)", text, re.DOTALL)
+        if sec4_match:
+            for d_line in sec4_match.group(1).splitlines():
+                d_line = d_line.strip()
+                if d_line.startswith("- ") and d_line[2:].strip().lower() != "none":
+                    dead_ends.append(d_line[2:].strip())
+
+        # Verification verdict
+        verification_verdict = None
+        verdict_match = re.search(r"-\s*Verdict:\s*([A-Z_]+)\s*(?:\(([^)]*)\))?", text)
+        if verdict_match:
+            v_status = verdict_match.group(1).strip()
+            v_summary = verdict_match.group(2).strip() if verdict_match.group(2) else ""
+            verification_verdict = {"status": v_status, "summary": v_summary}
+
         action_match = re.search(r"## 5\. Next Immediate Action\s*\n([^\n#]+)", text)
         next_action = action_match.group(1).strip() if action_match else ""
 
@@ -260,7 +393,15 @@ def parse_active_context(repo_root: str) -> Optional[TaskState]:
             risk_tier=risk_tier,
             current_stage=stage,
             status=status,
-            next_action=next_action
+            active_checklist=active_checklist,
+            blockers=blockers,
+            dead_ends=dead_ends,
+            verification_verdict=verification_verdict,
+            next_action=next_action,
+            changed_files=changed_files,
+            verification_state=verification_state,
+            target_member=target_member,
+            pending_decisions=pending_decisions,
         )
     except Exception:
         return None

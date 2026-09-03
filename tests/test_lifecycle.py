@@ -119,3 +119,90 @@ def test_lifecycle_sync_and_parse_active_context():
         assert recovered.task_class == TaskClass.FEATURE
         assert recovered.risk_tier == RiskTier.HIGH
         assert recovered.current_stage == TaskStage.IMPLEMENT
+
+
+def test_lifecycle_enhanced_statuses_and_fields():
+    task = create_task(
+        mission_id="Enhanced-Task-01",
+        task_class=TaskClass.FEATURE,
+        risk_tier=RiskTier.MEDIUM,
+        target_member="antios-core",
+        changed_files=["framework/core/memory.py", "framework/core/lifecycle.py"],
+        verification_state="VERIFYING",
+        pending_decisions=["DEC-09: Memory Model"],
+    )
+    assert task.status == TaskStatus.ACTIVE
+    assert task.target_member == "antios-core"
+    assert task.changed_files == ["framework/core/memory.py", "framework/core/lifecycle.py"]
+    assert task.verification_state == "VERIFYING"
+    assert task.pending_decisions == ["DEC-09: Memory Model"]
+
+    task.status = TaskStatus.VERIFYING
+    assert task.status == TaskStatus.VERIFYING
+
+    task.status = TaskStatus.VERIFICATION_STALE
+    assert task.status == TaskStatus.VERIFICATION_STALE
+
+
+def test_lifecycle_enhanced_active_context_roundtrip():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        task = create_task(
+            mission_id="Phase-16-Memory-Engine",
+            task_class=TaskClass.FEATURE,
+            risk_tier=RiskTier.HIGH,
+            checklist=["[x] Formalize MemoryCategory", "[ ] Add verification"],
+            next_action="Run full test suite",
+            target_member="antios-memory",
+            changed_files=["framework/core/memory.py", "framework/core/lifecycle.py"],
+            verification_state="VERIFIED",
+            pending_decisions=["DEC-10: Persistent Memory"],
+        )
+        task.current_stage = TaskStage.VERIFY
+        task.verification_verdict = {"status": "PASS", "summary": "Memory model verified"}
+
+        path = sync_to_active_context(task, tmpdir)
+        assert os.path.isfile(path)
+
+        with open(path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        assert len(lines) <= 60, f"Exceeded line budget: {len(lines)}"
+
+        recovered = parse_active_context(tmpdir)
+        assert recovered is not None
+        assert recovered.mission_id == "Phase-16-Memory-Engine"
+        assert recovered.task_class == TaskClass.FEATURE
+        assert recovered.risk_tier == RiskTier.HIGH
+        assert recovered.current_stage == TaskStage.VERIFY
+        assert recovered.target_member == "antios-memory"
+        assert recovered.verification_state == "VERIFIED"
+        assert "framework/core/memory.py" in recovered.changed_files
+        assert "framework/core/lifecycle.py" in recovered.changed_files
+        assert "DEC-10: Persistent Memory" in recovered.pending_decisions
+        assert recovered.verification_verdict is not None
+        assert recovered.verification_verdict["status"] == "PASS"
+
+
+def test_lifecycle_active_context_hard_budget_truncation():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a task with lots of checklist items, blockers, dead ends, and files
+        huge_checklist = [f"[ ] Step {i}" for i in range(100)]
+        huge_blockers = [f"Blocker {i}" for i in range(50)]
+        huge_dead_ends = [f"Dead end {i}" for i in range(50)]
+        huge_files = [f"path/to/file_{i}.py" for i in range(50)]
+
+        task = create_task(
+            mission_id="Budget-Stress-Test",
+            checklist=huge_checklist,
+            changed_files=huge_files,
+            target_member="stress-tester",
+        )
+        task.blockers = huge_blockers
+        task.dead_ends = huge_dead_ends
+
+        path = sync_to_active_context(task, tmpdir)
+        assert os.path.isfile(path)
+
+        with open(path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        assert len(lines) <= 60, f"Hard budget violated: {len(lines)} lines"
+

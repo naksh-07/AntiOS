@@ -30,15 +30,38 @@ class WorktreeDisposition(str, Enum):
 @dataclass
 class WorktreeSnapshot:
     """Snapshot of working tree state taken at a specific point in time (e.g. at task intake)."""
-    timestamp: float
-    commit_sha: str
+    timestamp: float = 0.0
+    commit_sha: str = "UNKNOWN"
     staged_files: List[str] = field(default_factory=list)
     unstaged_files: List[str] = field(default_factory=list)
     untracked_files: List[str] = field(default_factory=list)
+    repo_root: str = ""
+    is_clean: bool = True
+    dirty_files: Optional[List[str]] = None
+
+    def __post_init__(self):
+        if self.dirty_files is not None:
+            self.unstaged_files = list(self.dirty_files)
+            self.is_clean = len(self.dirty_files) == 0
+        else:
+            self.dirty_files = sorted(list(set(self.staged_files + self.unstaged_files + self.untracked_files)))
+            self.is_clean = len(self.dirty_files) == 0
 
     @property
     def all_dirty_files(self) -> Set[str]:
-        return set(self.staged_files + self.unstaged_files + self.untracked_files)
+        return set(self.dirty_files or [])
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "timestamp": self.timestamp,
+            "commit_sha": self.commit_sha,
+            "staged_files": self.staged_files,
+            "unstaged_files": self.unstaged_files,
+            "untracked_files": self.untracked_files,
+            "dirty_files": self.dirty_files or [],
+            "repo_root": self.repo_root,
+            "is_clean": self.is_clean,
+        }
 
 
 @dataclass

@@ -20,8 +20,10 @@ REPO_ROOT = os.path.normcase(os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
+from framework.core.adapter import verify_adapter
 from framework.core.config import load_config
 from framework.core.gate import discover_test_runners
+from framework.core.topology import detect_workspace_topology
 
 
 def inspect_repo(repo_root: str) -> dict:
@@ -34,23 +36,44 @@ def inspect_repo(repo_root: str) -> dict:
         "has_agents_dir": os.path.isdir(os.path.join(repo_root, ".agents")),
         "has_framework_dir": os.path.isdir(os.path.join(repo_root, "framework")),
         "has_hooks_json": os.path.isfile(os.path.join(repo_root, ".agents", "hooks.json")),
+        "workspace_topology": "STANDALONE",
+        "workspace_members": [],
         "manifests_detected": [],
         "configured_runners": [],
         "discovered_runners": [],
+        "adapter_health": None,
         "git_status": "unknown",
     }
 
     if not result["exists"]:
         return result
 
+    # Check topology
+    try:
+        topo, members = detect_workspace_topology(repo_root)
+        result["workspace_topology"] = topo.value
+        result["workspace_members"] = [m.to_dict() for m in members]
+    except Exception:
+        pass
+
     # Check manifests
-    for m in ["package.json", "pyproject.toml", "Cargo.toml", "go.mod", "pytest.ini"]:
+    for m in ["package.json", "pyproject.toml", "Cargo.toml", "go.mod", "pytest.ini", "pnpm-workspace.yaml", "go.work"]:
         if os.path.isfile(os.path.join(repo_root, m)):
             result["manifests_detected"].append(m)
 
-    # Load config
+    # Load config and verify adapter
     config = load_config(repo_root)
     result["configured_runners"] = [r.name for r in config.test_runners]
+    if result["has_antios_config"]:
+        try:
+            verif = verify_adapter(repo_root, config, check_fingerprint=False)
+            result["adapter_health"] = {
+                "is_valid": verif.is_valid,
+                "issues": verif.issues,
+                "passed_checks": len(verif.passed_checks),
+            }
+        except Exception as e:
+            result["adapter_health"] = {"is_valid": False, "error": str(e)}
 
     # Discover additional runners
     discovered = discover_test_runners(repo_root)

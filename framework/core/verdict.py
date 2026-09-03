@@ -32,6 +32,10 @@ class VerificationVerdict:
     same_change_set_verified: bool = True
     summary: str = ""
     issues: List[str] = field(default_factory=list)
+    git_head: Optional[str] = None
+    manifest_fingerprint: Optional[str] = None
+    adapter_verified: bool = True
+    timestamp: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -78,6 +82,11 @@ def parse_verdict(raw_text: str) -> VerificationVerdict:
                     )
                 )
 
+        git_head = data.get("git_head")
+        manifest_fingerprint = data.get("manifest_fingerprint")
+        adapter_verified = bool(data.get("adapter_verified", True))
+        timestamp = data.get("timestamp")
+
         return VerificationVerdict(
             status=raw_status,
             risk_tier=raw_tier,
@@ -86,6 +95,10 @@ def parse_verdict(raw_text: str) -> VerificationVerdict:
             same_change_set_verified=bool(data.get("same_change_set_verified", True)),
             summary=str(data.get("summary", "")),
             issues=[str(i) for i in data.get("issues", [])],
+            git_head=str(git_head) if git_head else None,
+            manifest_fingerprint=str(manifest_fingerprint) if manifest_fingerprint else None,
+            adapter_verified=adapter_verified,
+            timestamp=str(timestamp) if timestamp else None,
         )
 
     except Exception as e:

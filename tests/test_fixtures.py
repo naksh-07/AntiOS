@@ -86,5 +86,44 @@ def test_unknown_partial_environment_validation():
     assert blocking_unknowns[0].field_name == "project_language"
 
 
+def test_ts_monorepo_archetype_validation():
+    target = FIXTURES_DIR / "ts_monorepo"
+    profile = discover_project(str(target))
+
+    assert profile.topology.value == "PNPM_WORKSPACE"
+    assert len(profile.workspace_members) == 2
+    member_names = [m.name for m in profile.workspace_members]
+    assert "@monorepo/core" in member_names
+    assert "@monorepo/ui" in member_names
+
+    # Check member tools have scoped cwd
+    core_member = next(m for m in profile.workspace_members if m.name == "@monorepo/core")
+    assert any(t.category == ToolCategory.TEST_RUNNER for t in core_member.tools)
+    assert any(t.cwd and t.cwd.replace("\\", "/") == "packages/core" for t in core_member.tools)
+
+
+def test_cargo_workspace_archetype_validation():
+    target = FIXTURES_DIR / "cargo_workspace"
+    profile = discover_project(str(target))
+
+    assert profile.topology.value == "CARGO_WORKSPACE"
+    assert len(profile.workspace_members) == 2
+    member_names = [m.name for m in profile.workspace_members]
+    assert "engine" in member_names
+    assert "cli" in member_names
+
+
+def test_go_workspace_archetype_validation():
+    target = FIXTURES_DIR / "go_workspace"
+    profile = discover_project(str(target))
+
+    assert profile.topology.value == "GO_WORKSPACE"
+    assert len(profile.workspace_members) == 2
+    member_names = [m.name for m in profile.workspace_members]
+    assert "example.com/services/auth" in member_names
+    assert "example.com/services/api" in member_names
+
+
 if __name__ == "__main__":
     unittest.main()
+

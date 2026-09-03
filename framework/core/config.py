@@ -22,6 +22,9 @@ class RunnerConfig:
     timeout_seconds: int = 60
     cwd: Optional[str] = None
     required: bool = True
+    scope: str = "workspace"
+    member: Optional[str] = None
+    __test__: bool = False
 
 
 # Alias for backward compatibility
@@ -46,6 +49,7 @@ class AntiOSConfig:
     linters: List[Dict[str, Any]] = field(default_factory=list)
     policies: PoliciesConfig = field(default_factory=PoliciesConfig)
     changeset: ChangesetPolicy = field(default_factory=ChangesetPolicy)
+    manifest_fingerprint: str = ""
 
 
 def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
@@ -73,6 +77,8 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
                     timeout_seconds=tr.get("timeout_seconds", 60),
                     cwd=tr.get("cwd"),
                     required=tr.get("required", True),
+                    scope=tr.get("scope", "workspace"),
+                    member=tr.get("member"),
                 )
             )
 
@@ -105,6 +111,7 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             linters=data.get("linters", []),
             policies=policies,
             changeset=cs_policy,
+            manifest_fingerprint=data.get("manifest_fingerprint", ""),
         )
     except Exception:
         return AntiOSConfig()

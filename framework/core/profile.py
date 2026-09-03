@@ -16,6 +16,8 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from framework.core.topology import WorkspaceMember, WorkspaceTopology
+
 
 class EvidenceTier(str, Enum):
     """Epistemological tier for discovered project intelligence."""
@@ -224,6 +226,9 @@ class ProjectProfile:
     risk_zones: List[str] = field(default_factory=list)
     protected_paths: List[str] = field(default_factory=list)
     forbidden_patterns: List[str] = field(default_factory=list)
+    topology: WorkspaceTopology = WorkspaceTopology.STANDALONE
+    workspace_members: List[WorkspaceMember] = field(default_factory=list)
+    manifest_fingerprint: str = ""
 
     def add_observed(self, path: str, selector: str, value: Any, witness_type: str = "FILE_CONTENT", description: str = "") -> None:
         self.observed_facts.append(EvidenceFact(path, selector, value, witness_type, description))
@@ -249,6 +254,9 @@ class ProjectProfile:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "identity": self.identity.to_dict(),
+            "topology": self.topology.value if hasattr(self.topology, "value") else str(self.topology),
+            "workspace_members": [m.to_dict() if hasattr(m, "to_dict") else m for m in self.workspace_members],
+            "manifest_fingerprint": self.manifest_fingerprint,
             "observed_facts": [f.to_dict() for f in self.observed_facts],
             "inferred_facts": [f.to_dict() for f in self.inferred_facts],
             "unknown_fields": [f.to_dict() for f in self.unknown_fields],

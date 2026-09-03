@@ -13,6 +13,7 @@ Physical Manifests & Git State > CI Automation > Passive Markdown Guidance.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -24,6 +25,13 @@ try:
     import tomllib  # Python 3.11+ stdlib
 except ImportError:
     tomllib = None  # Fallback handled via regex
+
+from framework.core.topology import (
+    WorkspaceMember,
+    WorkspaceTopology,
+    detect_workspace_topology,
+    safe_read_json,
+)
 
 from framework.core.profile import (
     ConfidenceLevel,
@@ -90,8 +98,19 @@ def parse_simple_toml(content: str) -> Dict[str, Any]:
 class ProjectDiscoveryEngine:
     """Zero-dependency, read-only project intelligence discovery engine."""
 
-    def __init__(self, repo_root: str):
+    def __init__(
+        self,
+        repo_root: str,
+        topology: Optional[WorkspaceTopology] = None,
+        members: Optional[List[WorkspaceMember]] = None,
+    ):
         self.repo_root = Path(os.path.normcase(os.path.abspath(repo_root)))
+        if topology is not None:
+            self.topology = topology
+            self.workspace_members = members if members is not None else []
+        else:
+            self.topology, self.workspace_members = detect_workspace_topology(str(self.repo_root))
+
         self.observed: List[EvidenceFact] = []
         self.inferred: List[InferredFact] = []
         self.unknowns: List[UnknownFact] = []
@@ -141,6 +160,11 @@ class ProjectDiscoveryEngine:
                 )
             )
 
+        # Workspace topology integration
+        if self.topology and self.topology != WorkspaceTopology.STANDALONE:
+            self._record_workspace_facts()
+            self._discover_member_tools()
+
         # 1. Multi-ecosystem manifest discovery
         self._discover_python()
         self._discover_typescript_javascript()
@@ -154,7 +178,7 @@ class ProjectDiscoveryEngine:
         self._detect_conflicts()
 
         # 4. Synthesize unknowns if no recognized languages found
-        if not self.languages:
+        if not self.languages and not self.workspace_members:
             self.unknowns.append(
                 UnknownFact(
                     field_name="project_language",
@@ -163,6 +187,9 @@ class ProjectDiscoveryEngine:
                     is_blocking=True,
                 )
             )
+
+        # Compute deterministic manifest_fingerprint
+        manifest_fingerprint = self._compute_manifest_fingerprint()
 
         # 5. Assemble and return canonical ProjectProfile
         identity = ProjectIdentity(
@@ -187,7 +214,244 @@ class ProjectDiscoveryEngine:
             risk_zones=sorted(list(self.risk_zones)),
             protected_paths=sorted(list(self.protected_paths)),
             forbidden_patterns=sorted(list(self.forbidden_patterns)),
+            topology=self.topology or WorkspaceTopology.STANDALONE,
+            workspace_members=self.workspace_members,
+            manifest_fingerprint=manifest_fingerprint,
         )
+
+    def _record_workspace_facts(self) -> None:
+        """Record observed and inferred facts regarding workspace topology."""
+        manifest_path = "workspace"
+        if (self.repo_root / "pnpm-workspace.yaml").is_file():
+            manifest_path = "pnpm-workspace.yaml"
+        elif (self.repo_root / "pnpm-workspace.yml").is_file():
+            manifest_path = "pnpm-workspace.yml"
+        elif (self.repo_root / "go.work").is_file():
+            manifest_path = "go.work"
+        elif (self.repo_root / "Cargo.toml").is_file() and "[workspace]" in safe_read_text(self.repo_root / "Cargo.toml"):
+            manifest_path = "Cargo.toml"
+        elif (self.repo_root / "package.json").is_file() and "workspaces" in safe_read_json(self.repo_root / "package.json"):
+            manifest_path = "package.json"
+        elif (self.repo_root / "pyproject.toml").is_file() and "[tool.uv.workspace]" in safe_read_text(self.repo_root / "pyproject.toml"):
+            manifest_path = "pyproject.toml"
+
+        self.observed.append(
+            EvidenceFact(
+                path=manifest_path,
+                selector="workspace",
+                value=self.topology.value,
+                witness_type="FILE_CONTENT",
+                description=f"Workspace topology '{self.topology.value}' with {len(self.workspace_members)} members",
+            )
+        )
+        self.inferred.append(
+            InferredFact(
+                hypothesis=f"Project is structured as {self.topology.value}",
+                confidence=1.0,
+                rationale=f"Detected workspace topology with {len(self.workspace_members)} members",
+                underlying_evidence=[m.manifest_path for m in self.workspace_members],
+            )
+        )
+
+    def _discover_member_tools(self) -> None:
+        """Discover member-specific tools and attach them with cwd=member.relative_path."""
+        for member in self.workspace_members:
+            member_dir = self.repo_root / member.relative_path
+
+            if member.package_type == "typescript":
+                self.languages.add("TypeScript / JavaScript")
+                member_pkg = member_dir / "package.json"
+                pkg_data = safe_read_json(member_pkg) if member_pkg.is_file() else {}
+                scripts = pkg_data.get("scripts", {})
+
+                pkg_mgr = "pnpm" if (self.repo_root / "pnpm-workspace.yaml").is_file() or (self.repo_root / "pnpm-lock.yaml").is_file() else "npm"
+                self.package_managers.add(pkg_mgr)
+
+                # Test runner
+                for cand in ["test:ci", "vitest:once", "test:once", "test:unit", "test"]:
+                    if cand in scripts:
+                        s_val = scripts[cand]
+                        cmd = [pkg_mgr, "run", cand] if pkg_mgr != "npm" or cand != "test" else ["npm", "test"]
+                        flags: List[str] = []
+                        if "vitest" in s_val and "--run" not in s_val:
+                            flags.append("--run")
+                        elif "jest" in s_val and "--watchAll=false" not in s_val:
+                            flags.append("--watchAll=false")
+
+                        tool = ToolFact(
+                            name=f"{member.name}-test-runner",
+                            category=ToolCategory.TEST_RUNNER,
+                            manifest_path=member.manifest_path,
+                            command=cmd,
+                            timeout_seconds=90,
+                            required=True,
+                            cwd=member.relative_path,
+                            is_available_in_path=is_tool_in_path(pkg_mgr),
+                            non_interactive_flags=flags,
+                        )
+                        member.tools.append(tool)
+                        self.tools.append(tool)
+                        break
+
+                # Linter
+                for cand in ["lint:check", "lint", "eslint"]:
+                    if cand in scripts:
+                        tool = ToolFact(
+                            name=f"{member.name}-linter",
+                            category=ToolCategory.LINTER,
+                            manifest_path=member.manifest_path,
+                            command=[pkg_mgr, "run", cand],
+                            timeout_seconds=60,
+                            required=False,
+                            cwd=member.relative_path,
+                            is_available_in_path=is_tool_in_path(pkg_mgr),
+                        )
+                        member.tools.append(tool)
+                        self.tools.append(tool)
+                        break
+
+            elif member.package_type == "rust":
+                self.languages.add("Rust")
+                self.build_systems.add("cargo")
+                test_tool = ToolFact(
+                    name=f"{member.name}-cargo-test",
+                    category=ToolCategory.TEST_RUNNER,
+                    manifest_path=member.manifest_path,
+                    command=["cargo", "test", "-p", member.name, "--no-fail-fast"],
+                    timeout_seconds=120,
+                    required=True,
+                    cwd=member.relative_path,
+                    is_available_in_path=is_tool_in_path("cargo"),
+                    non_interactive_flags=["--no-fail-fast"],
+                )
+                member.tools.append(test_tool)
+                self.tools.append(test_tool)
+
+                clippy_tool = ToolFact(
+                    name=f"{member.name}-cargo-clippy",
+                    category=ToolCategory.LINTER,
+                    manifest_path=member.manifest_path,
+                    command=["cargo", "clippy", "-p", member.name, "--", "-D", "warnings"],
+                    timeout_seconds=60,
+                    required=False,
+                    cwd=member.relative_path,
+                    is_available_in_path=is_tool_in_path("cargo"),
+                    non_interactive_flags=["--", "-D", "warnings"],
+                )
+                member.tools.append(clippy_tool)
+                self.tools.append(clippy_tool)
+
+            elif member.package_type == "go":
+                self.languages.add("Go")
+                self.build_systems.add("go")
+                test_tool = ToolFact(
+                    name=f"{member.name}-go-test",
+                    category=ToolCategory.TEST_RUNNER,
+                    manifest_path=member.manifest_path,
+                    command=["go", "test", "-v", "./..."],
+                    timeout_seconds=90,
+                    required=True,
+                    cwd=member.relative_path,
+                    is_available_in_path=is_tool_in_path("go"),
+                    non_interactive_flags=["-v"],
+                )
+                member.tools.append(test_tool)
+                self.tools.append(test_tool)
+
+                if (member_dir / ".golangci.yml").is_file() or (self.repo_root / ".golangci.yml").is_file():
+                    lint_tool = ToolFact(
+                        name=f"{member.name}-golangci-lint",
+                        category=ToolCategory.LINTER,
+                        manifest_path=member.manifest_path,
+                        command=["golangci-lint", "run"],
+                        timeout_seconds=60,
+                        required=False,
+                        cwd=member.relative_path,
+                        is_available_in_path=is_tool_in_path("golangci-lint"),
+                    )
+                    member.tools.append(lint_tool)
+                    self.tools.append(lint_tool)
+
+            elif member.package_type == "python":
+                self.languages.add("Python")
+                self.build_systems.add("python")
+                test_tool = ToolFact(
+                    name=f"{member.name}-pytest",
+                    category=ToolCategory.TEST_RUNNER,
+                    manifest_path=member.manifest_path,
+                    command=["pytest", "-o", "console_output_style=classic", "--capture=no"],
+                    timeout_seconds=90,
+                    required=True,
+                    cwd=member.relative_path,
+                    is_available_in_path=is_tool_in_path("pytest"),
+                    non_interactive_flags=["-o", "console_output_style=classic", "--capture=no"],
+                )
+                member.tools.append(test_tool)
+                self.tools.append(test_tool)
+
+                lint_tool = ToolFact(
+                    name=f"{member.name}-ruff-check",
+                    category=ToolCategory.LINTER,
+                    manifest_path=member.manifest_path,
+                    command=["ruff", "check", "."],
+                    timeout_seconds=30,
+                    required=False,
+                    cwd=member.relative_path,
+                    is_available_in_path=is_tool_in_path("ruff"),
+                )
+                member.tools.append(lint_tool)
+                self.tools.append(lint_tool)
+
+    def _compute_manifest_fingerprint(self) -> str:
+        """Compute deterministic SHA-256 hash of all discovered manifest file contents."""
+        candidate_paths: Set[str] = set()
+
+        for member in self.workspace_members:
+            if member.manifest_path:
+                candidate_paths.add(member.manifest_path.replace("\\", "/"))
+
+        manifest_extensions = (
+            ".json", ".toml", ".yaml", ".yml", ".mod", ".work",
+            ".sum", ".lock", ".lockb", ".ini", ".cfg", ".txt",
+        )
+        for fact in self.observed:
+            p = fact.path.replace("\\", "/")
+            if any(p.endswith(ext) for ext in manifest_extensions):
+                candidate_paths.add(p)
+
+        known_root_manifests = [
+            "pnpm-workspace.yaml", "pnpm-workspace.yml", "package.json",
+            "pnpm-lock.yaml", "package-lock.json", "yarn.lock", "bun.lockb",
+            "Cargo.toml", "Cargo.lock",
+            "go.work", "go.work.sum", "go.mod", "go.sum",
+            "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt",
+            "uv.lock", "poetry.lock", "Pipfile.lock", "pytest.ini", "ruff.toml",
+            "tsconfig.json", "golangci.yml", ".golangci.yml"
+        ]
+        for km in known_root_manifests:
+            if (self.repo_root / km).is_file():
+                candidate_paths.add(km)
+
+        valid_manifests: List[Tuple[str, Path]] = []
+        for rel in sorted(candidate_paths):
+            target = self.repo_root / rel
+            if target.is_file():
+                valid_manifests.append((rel, target))
+
+        if not valid_manifests:
+            return ""
+
+        hasher = hashlib.sha256()
+        for rel_name, full_path in valid_manifests:
+            hasher.update(rel_name.encode("utf-8"))
+            try:
+                with open(full_path, "rb") as f:
+                    hasher.update(f.read())
+            except Exception:
+                pass
+
+        return hasher.hexdigest()
+
 
     # -------------------------------------------------------------------------
     # Python Ecosystem
@@ -788,5 +1052,6 @@ class ProjectDiscoveryEngine:
 
 def discover_project(repo_root: str) -> ProjectProfile:
     """Public functional entrypoint for project discovery."""
-    engine = ProjectDiscoveryEngine(repo_root)
+    topology, members = detect_workspace_topology(repo_root)
+    engine = ProjectDiscoveryEngine(repo_root, topology=topology, members=members)
     return engine.discover()

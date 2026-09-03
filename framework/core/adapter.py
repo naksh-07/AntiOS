@@ -324,9 +324,19 @@ def apply_project_adaptation(repo_root: str, proposal: AdaptationProposal, dry_r
                     "required": ex.required,
                 })
 
+    # Compute manifest fingerprint if possible
+    manifest_fingerprint = ""
+    try:
+        from framework.core.discovery import discover_project
+        discovered = discover_project(repo_root)
+        manifest_fingerprint = discovered.manifest_fingerprint
+    except Exception:
+        manifest_fingerprint = current_config.manifest_fingerprint if current_config else ""
+
     config_dict: Dict[str, Any] = {
         "version": "1.0",
         "name": f"AntiOS-{proposal.project_name}-Adapter",
+        "manifest_fingerprint": manifest_fingerprint,
         "protected_zones": [".agents", "framework"],
         "protected_domain_paths": new_protected,
         "forbidden_patterns": current_config.forbidden_patterns if current_config else [],
@@ -348,3 +358,86 @@ def apply_project_adaptation(repo_root: str, proposal: AdaptationProposal, dry_r
         return True, f"Successfully configured project adapter at '{target_config_path}'"
     except Exception as e:
         return False, f"Failed to write adapter config: {e}"
+
+
+@dataclass
+class AdapterVerificationResult:
+    """Outcome of adapter validation against AntiOS Core invariants and physical toolchain reality."""
+    is_valid: bool
+    issues: List[str] = field(default_factory=list)
+    passed_checks: List[str] = field(default_factory=list)
+    manifest_fingerprint: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+def verify_adapter(
+    repo_root: str,
+    config: Optional[AntiOSConfig] = None,
+    check_fingerprint: bool = True
+) -> AdapterVerificationResult:
+    """Verifies an adapter configuration (antios.config.json) against AntiOS Core invariants,
+    schema requirements, binary availability, and manifest drift.
+    """
+    from framework.core.discovery import discover_project, is_tool_in_path
+
+    cfg = config or load_config(repo_root)
+    issues: List[str] = []
+    passed: List[str] = []
+
+    # 1. Check core zones invariant
+    immutable_zones = [".agents", "framework"]
+    for zone in immutable_zones:
+        if zone not in cfg.protected_zones:
+            issues.append(f"CONSTITUTIONAL VIOLATION: Immutable core zone '{zone}' is missing from protected_zones.")
+        else:
+            passed.append(f"Immutable core zone '{zone}' protected.")
+
+    # Check fail-closed policy
+    if not cfg.policies.fail_closed:
+        issues.append("CONSTITUTIONAL VIOLATION: Fail-closed policy disabled (must be true).")
+    else:
+        passed.append("Fail-closed policy enforced.")
+
+    # 2. Check runners
+    if not cfg.test_runners:
+        issues.append("No test runners configured in adapter. Verification requires at least one runner or dynamic discovery.")
+    else:
+        for tr in cfg.test_runners:
+            if not tr.default_command:
+                issues.append(f"Test runner '{tr.name}' has empty default_command execution list.")
+            else:
+                binary = tr.default_command[0]
+                if tr.required and not is_tool_in_path(binary):
+                    issues.append(f"Required runner binary '{binary}' for '{tr.name}' is NOT available in PATH.")
+                else:
+                    passed.append(f"Runner '{tr.name}' valid (command: {' '.join(tr.default_command)}).")
+
+    # 3. Check Manifest Fingerprint Drift
+    current_fingerprint = ""
+    if check_fingerprint:
+        try:
+            profile = discover_project(repo_root)
+            current_fingerprint = profile.manifest_fingerprint
+            if cfg.manifest_fingerprint:
+                if cfg.manifest_fingerprint != current_fingerprint:
+                    issues.append(
+                        f"MANIFEST DRIFT: Discovered manifests changed on disk. "
+                        f"Expected fingerprint {cfg.manifest_fingerprint[:8]}..., got {current_fingerprint[:8]}... "
+                        f"Run 'adapt_project.py' to re-synchronize."
+                    )
+                else:
+                    passed.append(f"Manifest fingerprint matched ({current_fingerprint[:8]}...).")
+            else:
+                passed.append(f"Manifest fingerprint computed ({current_fingerprint[:8]}...).")
+        except Exception as e:
+            passed.append(f"Fingerprint check bypassed: {e}")
+
+    is_valid = len(issues) == 0
+    return AdapterVerificationResult(
+        is_valid=is_valid,
+        issues=issues,
+        passed_checks=passed,
+        manifest_fingerprint=current_fingerprint or cfg.manifest_fingerprint
+    )

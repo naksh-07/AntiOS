@@ -24,6 +24,7 @@ from framework.core.adapter import (
     analyze_adaptation,
     apply_project_adaptation,
     generate_adapter_config,
+    verify_adapter,
 )
 from framework.core.config import load_config
 from framework.core.discovery import discover_project
@@ -35,6 +36,7 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Output raw JSON format")
     parser.add_argument("--apply", action="store_true", help="Apply safe project-local adaptation to antios.config.json")
     parser.add_argument("--dry-run", action="store_true", help="Simulate applying adapter configuration without writing files")
+    parser.add_argument("--verify", action="store_true", help="Verify adapter configuration against AntiOS Core invariants and manifest drift")
 
     args = parser.parse_args()
     target_root = os.path.abspath(args.repo_root)
@@ -42,6 +44,26 @@ def main() -> int:
     if not os.path.isdir(target_root):
         print(f"Error: Target path '{target_root}' is not a valid directory.", file=sys.stderr)
         return 1
+
+    # Verification Mode
+    if args.verify:
+        verification = verify_adapter(target_root)
+        if args.json:
+            print(json.dumps(verification.to_dict(), indent=2))
+            return 0 if verification.is_valid else 1
+        print("=" * 70)
+        print(" AntiOS Adapter Verification")
+        print("=" * 70)
+        print(f"Status:               {'VALID' if verification.is_valid else 'INVALID / DRIFT DETECTED'}")
+        print(f"Manifest Fingerprint: {verification.manifest_fingerprint[:16]}..." if verification.manifest_fingerprint else "None")
+        print(f"Passed Checks:        {len(verification.passed_checks)}")
+        for p in verification.passed_checks:
+            print(f"  [OK] {p}")
+        if verification.issues:
+            print(f"Issues / Violations:  {len(verification.issues)}")
+            for issue in verification.issues:
+                print(f"  [FAIL] {issue}")
+        return 0 if verification.is_valid else 1
 
     # 1. Discover Project Intelligence
     profile = discover_project(target_root)

@@ -32,6 +32,12 @@ import tests.test_adapter as test_adapter
 import tests.test_conflict as test_conflict
 import tests.test_fixtures as test_fixtures
 
+# Phase 21-22 Memory, Topology, Recovery & Adapter Verification test modules
+import tests.test_memory as test_memory
+import tests.test_topology as test_topology
+import tests.test_recovery as test_recovery
+import tests.test_adapter_verification as test_adapter_verification
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -57,6 +63,11 @@ def build_suite() -> unittest.TestSuite:
         test_adapter,
         test_conflict,
         test_fixtures,
+        # Phase 21-22
+        test_memory,
+        test_topology,
+        test_recovery,
+        test_adapter_verification,
     ]
 
     for mod in modules:
