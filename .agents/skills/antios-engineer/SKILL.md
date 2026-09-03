@@ -21,7 +21,7 @@ Assess the risk tier before implementing:
 - **Medium Risk** (isolated UI fixes, standard feature additions): Primary agent implements and self-verifies with native tests.
 - **High Risk** (state machines, persistence/schema, security hooks, packaging): **MANDATORY MAKER-CHECKER**.
   - Dispatch an independent verifier via `invoke_subagent` using `TypeName='self'` (strictly NEVER `TypeName='research'`).
-  - Pass task objective, modified files, and test commands.
+  - Pass minimal context: objective, modified files, test commands, target member (via `prepare_checker_context`).
   - Verifier uses the `antios-verifier` skill and returns a structured JSON verdict.
   - **Shallow Depth Law**: Subagent depth must never exceed 2 (Parent -> Child). Subagents must NEVER spawn children.
 
@@ -36,5 +36,6 @@ AntiOS organizes work into 6 standard engineering workflows (see `.agents/workfl
 
 ## 4. The Stop Gate Ratchet
 Task completion triggers the AntiOS Stop hook, which dynamically discovers and executes configured or manifest-detected test runners.
+- Member-scoped filtering applies for monorepos (executes member runners unless broader blast radius or RELEASE/REFACTOR).
 - The task CANNOT complete unless all physical test processes exit with code 0.
 - Ensure working tree cleanliness and update `docs/ACTIVE_CONTEXT.md` (<= 60 lines) before stopping.

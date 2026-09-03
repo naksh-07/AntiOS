@@ -38,6 +38,13 @@ import tests.test_topology as test_topology
 import tests.test_recovery as test_recovery
 import tests.test_adapter_verification as test_adapter_verification
 
+# Phase 23-24 External Proving Ground, Maker-Checker & Learning Loop test modules
+import tests.test_maker_checker_dispatch as test_maker_checker_dispatch
+import tests.test_member_scoped_verification as test_member_scoped_verification
+import tests.test_lesson_distillation as test_lesson_distillation
+import tests.test_adversarial_verification as test_adversarial_verification
+import tests.test_external_proving_ground as test_external_proving_ground
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -68,6 +75,12 @@ def build_suite() -> unittest.TestSuite:
         test_topology,
         test_recovery,
         test_adapter_verification,
+        # Phase 23-24
+        test_maker_checker_dispatch,
+        test_member_scoped_verification,
+        test_lesson_distillation,
+        test_adversarial_verification,
+        test_external_proving_ground,
     ]
 
     for mod in modules:

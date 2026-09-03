@@ -147,9 +147,116 @@ def discover_test_runners(repo_root: str) -> List[RunnerConfig]:
     return runners
 
 
+def resolve_verification_scope(
+    repo_root: str,
+    test_runners: List[RunnerConfig],
+    target_member: Optional[str] = None,
+    touched_files: Optional[List[str]] = None,
+    workflow: Optional[str] = None,
+) -> Tuple[List[RunnerConfig], str]:
+    """Resolves whether Stop Gate executes workspace-wide or member-scoped test runners.
+
+    Invariants:
+    1. If workflow is RELEASE or REFACTOR, full workspace verification is mandatory.
+    2. If touched_files touch shared root configs or multiple members, broader validation is mandatory.
+    3. If touched_files belong strictly to member M (or target_member is M), check for dependent
+       workspace members that rely on M. If dependents exist, include their runners.
+    4. Makes the scoping decision explicit.
+    """
+    from framework.core.topology import detect_workspace_topology, WorkspaceTopology
+
+    topology, members = detect_workspace_topology(repo_root)
+    if topology == WorkspaceTopology.STANDALONE or not members:
+        return test_runners, "Standalone repository topology: executing all configured test runners."
+
+    # 1. Workflow overrides: RELEASE and REFACTOR require full workspace regression
+    if workflow and workflow.upper() in ("RELEASE", "REFACTOR"):
+        return test_runners, f"Workflow '{workflow.upper()}' mandates full workspace verification."
+
+    # 2. Identify target member from touched files or explicit parameter
+    resolved_target: Optional[str] = target_member
+
+    if touched_files and not resolved_target:
+        # Determine which member directories contain the touched files
+        member_matches: Set[str] = set()
+        shared_root_touched = False
+
+        for f in touched_files:
+            norm_f = os.path.normpath(f).replace("\\", "/")
+            # Ignore documentation or git files for member blast-radius calculation
+            if norm_f.startswith("docs/") or norm_f.startswith(".agents/") or norm_f.startswith(".git/"):
+                continue
+
+            matched_member = None
+            for m in members:
+                norm_m = os.path.normpath(m.relative_path).replace("\\", "/")
+                if norm_f == norm_m or norm_f.startswith(norm_m + "/"):
+                    matched_member = m.name
+                    break
+
+            if matched_member:
+                member_matches.add(matched_member)
+            else:
+                # Substantive file outside any member directory (root config, build script)
+                shared_root_touched = True
+
+        if shared_root_touched:
+            return test_runners, "Shared workspace root files modified: escalating to full workspace validation."
+
+        if len(member_matches) > 1:
+            return test_runners, f"Touched files span multiple members ({', '.join(sorted(member_matches))}): escalating to full workspace validation."
+
+        if len(member_matches) == 1:
+            resolved_target = next(iter(member_matches))
+
+    if not resolved_target:
+        return test_runners, "No specific member scope isolated: executing all configured test runners."
+
+    # 3. Member identified: Check for dependent workspace members
+    # Target member object
+    target_obj = next((m for m in members if m.name == resolved_target), None)
+    if not target_obj:
+        return test_runners, f"Target member '{resolved_target}' not found in workspace topology: executing all runners."
+
+    # Find members that declare dependency on resolved_target
+    dependent_members = [
+        m.name for m in members
+        if resolved_target in m.dependencies or (target_obj and target_obj.name in m.dependencies)
+    ]
+
+    scoped_member_names = {resolved_target} | set(dependent_members)
+
+    # 4. Filter runners
+    scoped_runners: List[RunnerConfig] = []
+    for r in test_runners:
+        # Match by explicit runner.member
+        if r.member and r.member in scoped_member_names:
+            scoped_runners.append(r)
+            continue
+        # Match by runner cwd matching member relative path
+        if r.cwd:
+            norm_cwd = os.path.normpath(r.cwd).replace("\\", "/")
+            for m in members:
+                if m.name in scoped_member_names:
+                    norm_m = os.path.normpath(m.relative_path).replace("\\", "/")
+                    if norm_cwd == norm_m or norm_cwd.startswith(norm_m + "/"):
+                        scoped_runners.append(r)
+                        break
+
+    if scoped_runners:
+        dep_str = f" (plus dependents: {', '.join(sorted(dependent_members))})" if dependent_members else " (no dependent members)"
+        return scoped_runners, f"Member-scoped verification: isolated to '{resolved_target}'{dep_str}."
+
+    # Fallback if no runner was explicitly tagged with member/cwd
+    return test_runners, f"Member '{resolved_target}' isolated, but no member-scoped runner configured: running workspace runners."
+
+
 def evaluate_stop_gate(
     input_data: Any,
-    config: Optional[AntiOSConfig] = None
+    config: Optional[AntiOSConfig] = None,
+    target_member: Optional[str] = None,
+    touched_files: Optional[List[str]] = None,
+    workflow: Optional[str] = None,
 ) -> Tuple[str, Optional[str]]:
     """Evaluates a Stop hook event with strict fail-closed semantics.
 
@@ -170,6 +277,14 @@ def evaluate_stop_gate(
 
         repo_root = os.path.normcase(os.path.abspath(os.path.realpath(first_workspace)))
 
+        # Extract context if present in input_data
+        if target_member is None:
+            target_member = input_data.get("target_member") or input_data.get("targetMember")
+        if touched_files is None:
+            touched_files = input_data.get("touched_files") or input_data.get("touchedFiles")
+        if workflow is None:
+            workflow = input_data.get("workflow")
+
         if config is None:
             config = load_config(repo_root)
 
@@ -186,7 +301,16 @@ def evaluate_stop_gate(
                 return "continue", f"AntiOS Stop Gate: {cs_eval.summary} Details: {'; '.join(cs_eval.violations)}"
 
         # 3. Dynamic Test Execution (Configured or Auto-discovered)
-        test_runners = config.test_runners if config.test_runners else discover_test_runners(repo_root)
+        available_runners = config.test_runners if config.test_runners else discover_test_runners(repo_root)
+
+        # Apply Member-Scoped Verification filtering
+        test_runners, scope_rationale = resolve_verification_scope(
+            repo_root=repo_root,
+            test_runners=available_runners,
+            target_member=target_member,
+            touched_files=touched_files,
+            workflow=workflow,
+        )
 
         for runner in test_runners:
             if runner.manifest:
@@ -234,7 +358,7 @@ def evaluate_stop_gate(
                 stderr_snip = stderr.strip()[-1000:] if stderr else ""
                 return (
                     "continue",
-                    f"AntiOS Stop Gate: Verification failed! Test runner '{runner.name}' did not pass.\n"
+                    f"AntiOS Stop Gate: Verification failed! Test runner '{runner.name}' did not pass ({scope_rationale}).\n"
                     f"Command: {' '.join(cmd)}\nExit Code: {ret}\n"
                     f"Stdout: {stdout_snip}\nStderr: {stderr_snip}"
                 )

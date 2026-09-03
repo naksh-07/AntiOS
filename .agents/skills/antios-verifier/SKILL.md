@@ -25,7 +25,7 @@ Your mandate is to provide unbiased, deterministic verification of changes compl
 3. **Same Change Set Check**:
    - Verify that documentation (`docs/`, markdown specs) was updated alongside functional code changes.
 4. **Physical Test Execution**:
-   - Execute the target project test command (from task parameters or `antios.config.json`) via `run_command`.
+   - Execute the target project test command (or member-scoped runner with cwd=member) via `run_command`.
    - Inspect exit codes, test assertions, and error logs directly.
 
 ## 3. Structured Verdict Output
@@ -35,6 +35,7 @@ Emit your final verdict as a clean JSON block in this exact schema:
 {
   "status": "PASS",
   "risk_tier": "HIGH",
+  "project_member": null,
   "files_audited": ["path/to/modified_file.ts"],
   "tests": [
     {"command": "<configured_test_runner>", "exit_code": 0, "passed": true, "details": "All tests passed"}

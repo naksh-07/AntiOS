@@ -13,8 +13,14 @@ This package provides the governance and capability primitives for AntiOS:
 
 from framework.core.config import AntiOSConfig, load_config
 from framework.core.guard import evaluate_tool_call
-from framework.core.gate import evaluate_stop_gate
-from framework.core.verdict import VerificationVerdict, parse_verdict, format_verdict
+from framework.core.gate import evaluate_stop_gate, resolve_verification_scope
+from framework.core.verdict import (
+    VerificationVerdict,
+    parse_verdict,
+    format_verdict,
+    prepare_checker_context,
+    evaluate_checker_verdict,
+)
 from framework.core.governance import (
     GovernancePrimitiveType,
     GovernancePrimitiveDefinition,
@@ -116,6 +122,9 @@ from framework.core.memory import (
     parse_historical_record,
     sync_decision_register,
     parse_decision_register,
+    DeterministicLessonMatcher,
+    DistillationResult,
+    LessonDistillationEngine,
 )
 from framework.core.recovery import (
     ContradictionType,
@@ -126,6 +135,12 @@ from framework.core.recovery import (
     is_verification_stale,
     generate_recovery_plan,
     recover_session,
+)
+from framework.core.telemetry import (
+    ExecutionTelemetryRecord,
+    record_telemetry,
+    load_telemetry,
+    summarize_telemetry,
 )
 
 __all__ = [
@@ -223,6 +238,12 @@ __all__ = [
     "parse_historical_record",
     "sync_decision_register",
     "parse_decision_register",
+    "DeterministicLessonMatcher",
+    "DistillationResult",
+    "LessonDistillationEngine",
+    "prepare_checker_context",
+    "evaluate_checker_verdict",
+    "resolve_verification_scope",
     "ContradictionType",
     "Contradiction",
     "RecoveryPlan",
@@ -231,4 +252,8 @@ __all__ = [
     "is_verification_stale",
     "generate_recovery_plan",
     "recover_session",
+    "ExecutionTelemetryRecord",
+    "record_telemetry",
+    "load_telemetry",
+    "summarize_telemetry",
 ]
