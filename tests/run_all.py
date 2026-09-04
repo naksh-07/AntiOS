@@ -98,6 +98,14 @@ import tests.test_tool_negative as test_tool_negative
 import tests.test_tool_failure as test_tool_failure
 import tests.test_tool_benchmark as test_tool_benchmark
 
+# Phase 43-48 Project Agent OS Foundation & Installation Contract
+import tests.test_project_manifest as test_project_manifest
+import tests.test_provenance_ownership as test_provenance_ownership
+import tests.test_boundary_compiler as test_boundary_compiler
+import tests.test_installation_lifecycle as test_installation_lifecycle
+import tests.test_orchestration_constitution as test_orchestration_constitution
+import tests.test_installation_certification_e2e as test_installation_certification_e2e
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -181,13 +189,22 @@ def build_suite() -> unittest.TestSuite:
         test_tool_negative,
         test_tool_failure,
         test_tool_benchmark,
+        # Phase 43-48
+        test_project_manifest,
+        test_provenance_ownership,
+        test_boundary_compiler,
+        test_installation_lifecycle,
+        test_orchestration_constitution,
+        test_installation_certification_e2e,
     ]
 
+    loader = unittest.defaultTestLoader
     for mod in modules:
+        suite.addTests(loader.loadTestsFromModule(mod))
         for attr in dir(mod):
-            if attr.startswith("test_") and callable(getattr(mod, attr)):
-                func = getattr(mod, attr)
-                suite.addTest(unittest.FunctionTestCase(func))
+            val = getattr(mod, attr)
+            if attr.startswith("test_") and callable(val) and not isinstance(val, type):
+                suite.addTest(unittest.FunctionTestCase(val))
 
     return suite
 

@@ -219,6 +219,9 @@ def evaluate_changeset(
         try:
             from framework.core.docaudit import audit_documentation_references
             for df in doc_files:
+                norm_df = df.replace("\\", "/")
+                if "templates/" in norm_df or "fixtures/" in norm_df:
+                    continue
                 abs_df = os.path.join(repo_root, df) if not os.path.isabs(df) else df
                 if os.path.exists(abs_df) and df.endswith(".md"):
                     audit_res = audit_documentation_references(df, repo_root)

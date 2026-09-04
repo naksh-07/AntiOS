@@ -242,6 +242,44 @@ from framework.core.tool_pack import (
     ToolRoutingPack,
 )
 
+
+# Phase 43-48: Project Agent OS Foundation, Manifest, Provenance, Compilation, Installation & Orchestration
+from framework.core.manifest import (
+    CURRENT_ANTIOS_VERSION,
+    CURRENT_SCHEMA_VERSION,
+    InstallationState,
+    AdaptationState,
+    ArtifactOwnership,
+    ArtifactRecord,
+    ProjectManifest,
+    load_manifest,
+    save_manifest,
+)
+from framework.core.provenance import (
+    ProvenanceConflict,
+    ProvenanceTracker,
+    classify_artifact,
+    can_safely_overwrite,
+    compute_file_sha256,
+)
+from framework.core.compiler import (
+    CompilationResult,
+    ProjectBoundaryCompiler,
+)
+from framework.core.installation import (
+    LifecycleResult,
+    InstallationLifecycleManager,
+)
+from framework.core.orchestration import (
+    OrchestrationBudgetExceeded,
+    WaveState,
+    StructuredHandoff,
+    AgentRecord,
+    OrchestrationBudget,
+    Wave,
+    WaveManager,
+)
+
 __all__ = [
     # Phase 12-15
     "AntiOSConfig",
@@ -425,4 +463,30 @@ __all__ = [
     "MCPJustificationEngine",
     "DeterministicToolSelector",
     "ToolRoutingPack",
+    # Phase 43-48: Project Agent OS
+    "CURRENT_ANTIOS_VERSION",
+    "CURRENT_SCHEMA_VERSION",
+    "InstallationState",
+    "AdaptationState",
+    "ArtifactOwnership",
+    "ArtifactRecord",
+    "ProjectManifest",
+    "load_manifest",
+    "save_manifest",
+    "ProvenanceConflict",
+    "ProvenanceTracker",
+    "classify_artifact",
+    "can_safely_overwrite",
+    "compute_file_sha256",
+    "CompilationResult",
+    "ProjectBoundaryCompiler",
+    "LifecycleResult",
+    "InstallationLifecycleManager",
+    "OrchestrationBudgetExceeded",
+    "WaveState",
+    "StructuredHandoff",
+    "AgentRecord",
+    "OrchestrationBudget",
+    "Wave",
+    "WaveManager",
 ]

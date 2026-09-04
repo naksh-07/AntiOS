@@ -353,3 +353,73 @@
 - **WHY SELECTED**: Transforms AntiOS from an evolving research prototype into a polished, release-hardened, production-grade engineering operating system.
 - **CONSEQUENCES**: Zero architectural churn; rock-solid stability and long-term maintainability.
 - **REVERSIBILITY**: Immutable release milestone.
+
+---
+
+## DECISION 36: Four-Boundary Demarcation Model
+- **DECISION**: AntiOS 2.0 establishes four inviolable boundary laws: `SOURCE ≠ INSTANCE`, `INSTANCE ≠ PROJECT`, `PROJECT ≠ ANTIGRAVITY`, and `CANONICAL CORE ≠ LOCAL ADAPTER`.
+- **EVIDENCE**: Attempting to ship the entire AntiOS development framework (internal tests, blueprints, doc tooling) into target repositories causes massive file bloat, confusing ownership, and broken path assumptions. Decoupling ensures the target repository receives only a lean, self-contained Agent OS instance.
+- **ALTERNATIVES**: Cloning or submoduling the entire AntiOS repository into every target project.
+- **WHY SELECTED**: Guarantees clean separation of concerns, zero target repository pollution, and surgical installation/removal.
+- **CONSEQUENCES**: Canonical framework core resides solely in the source repository; target repositories receive compiled, project-local assets.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 37: Cryptographic Project Manifest (.antios/manifest.json)
+- **DECISION**: Every installed AntiOS instance must maintain an authoritative `.antios/manifest.json` tracking all managed and generated artifacts with LF-normalized SHA-256 checksums, source revision, schema version, and project fingerprint.
+- **EVIDENCE**: Cross-platform file edits (CRLF on Windows vs LF on Linux/macOS) produce hash mismatches unless normalized. Cryptographic manifests allow fail-closed detection of file tampering, accidental deletion, or manifest drift.
+- **ALTERNATIVES**: Unversioned file presence checks without hashes or metadata.
+- **WHY SELECTED**: Provides deterministic, reproducible provenance across all operating systems.
+- **CONSEQUENCES**: Any unrecorded mutation or corruption is immediately surfaced by `verify()` and `repair()`.
+- **REVERSIBILITY**: Low (Foundational to AntiOS 2.0).
+
+---
+
+## DECISION 38: Five-Tier Artifact Ownership and Safe Mutation Policy
+- **DECISION**: Filesystem artifacts are strictly categorized into 5 tiers: Tier 1 (Canonical Source), Tier 2 (Managed Config & Hooks), Tier 3 (Generated Intelligence), Tier 4 (Operating Interface), and Tier 5 (Target Project Source). User-modified managed files must never be silently overwritten during updates; conflicts must be surfaced explicitly.
+- **EVIDENCE**: Overwriting user modifications (such as custom runners or domain paths in `antios.config.json`) destroys user intent and breaks existing project adaptations.
+- **ALTERNATIVES**: Blind overwriting of all config and skill files during updates.
+- **WHY SELECTED**: Enforces the immutable rule that user-owned and user-modified assets are sovereign.
+- **CONSEQUENCES**: Updates preserve user edits and provide structured conflict reports.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 39: Deterministic Six-Phase Installation Lifecycle Engine
+- **DECISION**: AntiOS 2.0 lifecycle management is implemented in `InstallationLifecycleManager` covering six distinct operations: `INSTALL` (idempotent), `ADAPT` (manifest re-sync), `UPDATE` (source revision migration), `REPAIR` (missing file restoration), `REMOVE` (surgical uninstallation), and `VERIFY` (checksum and schema audit).
+- **EVIDENCE**: Real projects evolve: manifests change, dependencies are added, files are moved. A unified lifecycle manager prevents divergent maintenance scripts.
+- **ALTERNATIVES**: Fragmented, ad-hoc shell scripts for installation and updates.
+- **WHY SELECTED**: Provides a single, programmatic, testable lifecycle engine with full CLI exposure (`install_project.py`).
+- **CONSEQUENCES**: Unified status reporting and consistent error handling across all project operations.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 40: Universal Project Boundary Compiler
+- **DECISION**: The `ProjectBoundaryCompiler` compiles project intelligence (`project_profile.json`, `knowledge.json`, `agent_topology.json`, `tool_policy.json`) and operating skill (`SKILL.md`) in memory from discovered project traits before emitting files. It strictly excludes internal development files (`tests/`, `reports/`, `docs/archive/`).
+- **EVIDENCE**: In-memory compilation allows dry-run evaluation, conflict pre-detection, and atomic file emission.
+- **ALTERNATIVES**: Direct file copying from template directories into target repositories.
+- **WHY SELECTED**: Ensures tailor-made, project-specific instance configuration rather than generic templates.
+- **CONSEQUENCES**: Target projects receive customized specialist routing and tool policies matching their actual tech stack.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 41: Antigravity-Native Orchestration Constitution
+- **DECISION**: Codify the orchestration principles of Adaptive Orchestrator into AntiOS: maximum 10 active subagents per wave, maximum 20 total lifetime launches per mission, mandatory wave collapse to 0 active agents before the next wave, shallow delegation depth ($\le 2$), and Maker-Checker independent verification.
+- **EVIDENCE**: Unconstrained subagent spawning leads to exponential context exhaustion, token waste, and uncontrollable background swarms. Strict wave lifecycle (`WAVE -> DISCOVER -> CONSOLIDATE -> COLLAPSE -> NEXT WAVE`) guarantees decisive execution.
+- **ALTERNATIVES**: Unbounded recursive agent spawning; continuous long-running background swarms.
+- **WHY SELECTED**: Enforces resource awareness, prompt containment, and deterministic mission convergence.
+- **CONSEQUENCES**: All AntiOS multi-agent missions operate within strict, mathematically bounded budgets.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 42: Self-Contained Skill Interface (.agents/skills/antios/SKILL.md)
+- **DECISION**: Target projects expose AntiOS capabilities via a single self-contained skill (`/antios` entrypoint) rather than custom external tools or fragmented slash commands.
+- **EVIDENCE**: Antigravity natively discovers and binds skills in `.agents/skills/*/SKILL.md`. A unified `/antios` skill provides instant wayfinding and progressive disclosure for both human operators and AI agents.
+- **ALTERNATIVES**: Creating multiple fragmented project skills (`/antios-install`, `/antios-test`, `/antios-plan`).
+- **WHY SELECTED**: Minimizes cognitive overhead and conforms 100% to Google Antigravity skill discovery conventions.
+- **CONSEQUENCES**: Developers and agents use `/antios` as the primary operational gateway in any adapted project.
+- **REVERSIBILITY**: High.

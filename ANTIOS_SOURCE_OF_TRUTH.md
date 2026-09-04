@@ -1,7 +1,7 @@
 # AntiOS Master Source of Truth (`ANTIOS_SOURCE_OF_TRUTH.md`)
 
 **Date**: 2026-09-04  
-**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1–42 Consolidated)  
+**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1â€“42 Consolidated)  
 **Objective**: Establish the single authoritative source of truth for every architectural, operational, and governance dimension of AntiOS, eliminating dual-truth risks, documentation drift, and authority fragmentation.
 
 ---
@@ -21,7 +21,9 @@
 | :--- | :--- | :--- | :---: | :--- |
 | **Engineering Invariants & Constitution** | AntiOS Master Constitution | `ANTIOS_CONSTITUTION.md` | **CONSTITUTION** | Highest architectural policy; defines invariants, boundaries, and immutable rules. |
 | **System Architecture** | AntiOS Master Architecture Specification | `ANTIOS_V1.md` | **PRIMARY SPEC** | Comprehensive system specification: 4-tier model, 7 subsystems, 34 core modules. |
-| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–35) recording why decisions were made. |
+| **Project Agent OS Architecture** | AntiOS 2.0 Project Agent OS Specification | `docs/architecture/PROJECT_AGENT_OS.md` | **PRIMARY SPEC** | Compilation contract, 5-tier ownership, 6-phase lifecycle, and orchestration limits. |
+| **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
+| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01â€“35) recording why decisions were made. |
 | **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 447 certified tests. |
 | **Formal System Certification** | AntiOS Formal Certification Matrix | `docs/architecture/CERTIFICATION_MATRIX.md` | **CERTIFICATION LEDGER** | Complete verification ledger across all 50 capability dimensions. |
 | **Core vs Adapter Contract** | Core vs Project Adapter Specification | `docs/architecture/CORE_VS_ADAPTER.md` | **BOUNDARY CONTRACT** | Strict demarcation between universal Core logic and declarative project adapters. |
@@ -56,7 +58,7 @@ Rank 5: Master Architecture Specification (ANTIOS_V1.md)
         +-- Canonical system blueprint. Overrides older subsystem proposals.
 
 Rank 6: Master Decision Register (DECISION_REGISTER.md)
-        +-- Recorded consensus (Decisions 01–35). Overrides informal proposals.
+        +-- Recorded consensus (Decisions 01â€“35). Overrides informal proposals.
 
 Rank 7: Active Engineering Skills (.agents/skills/*)
         +-- Progressive procedural workflows. Overrides generic prompting.

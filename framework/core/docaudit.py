@@ -105,8 +105,10 @@ def extract_references_from_text(content: str, doc_rel_path: str = "") -> List[T
             # Strip line numbers like :L123 or :L10-20
             clean_candidate = candidate.split(":L")[0].split(":")[0]
 
-            # Ignore dynamic session planning artifacts
+            # Ignore dynamic session planning artifacts and target instance template paths
             if clean_candidate.lower() in {"implementation_plan.md", "walkthrough.md", "task.md"}:
+                continue
+            if clean_candidate.startswith((".antios/", "target/", "<", "$")) or clean_candidate == ".agents/skills/antios/SKILL.md":
                 continue
 
             ext = os.path.splitext(clean_candidate)[1].lower()

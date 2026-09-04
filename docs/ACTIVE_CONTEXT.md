@@ -1,40 +1,41 @@
 # Active Context (`docs/ACTIVE_CONTEXT.md`)
 
-**Mission**: AntiOS v1.0.0 Production Release & Ongoing Maintenance
-**Class**: RELEASE_MAINTENANCE | **Risk**: LOW
-**Stage**: COMPLETE | **Status**: RELEASED
-**Version**: 1.0.0 | **Mode**: MAINTENANCE
-**Active Subsystem**: Universal Core & Governance
+**Mission**: AntiOS 2.0 — Phases 43–48 Project Agent OS Foundation & Compilation
+**Class**: FEATURE_ARCHITECTURE | **Risk**: MEDIUM
+**Stage**: VERIFICATION | **Status**: PASS
+**Version**: 2.0.0-PROPOSAL | **Mode**: VERIFYING
+**Active Subsystem**: Universal Compiler, Lifecycle & Governance
 
 ## 1. Active Checklist
-- [x] Repository restructured: 4-tier model and docs/ architecture established
-- [x] Canonical documentation portal live at docs/INDEX.md
-- [x] Development history archived to reports/archive/phases/
-- [x] Research preserved in reports/archive/research/
-- [x] Zero broken documentation references verified across repository
-- [x] Zero-dependency test suite passing (447/447 tests, 100%)
-- [x] Same Change Set and security boundary policies intact
-- [x] Declarative project adapter verified against external targets
+- [x] Phase 43: Project Agent OS Specification (`docs/architecture/PROJECT_AGENT_OS.md`)
+- [x] Phase 44: Cryptographic Project Manifest (`framework/core/manifest.py`)
+- [x] Phase 45: Six-Phase Installation Lifecycle Engine (`framework/core/installation.py`)
+- [x] Phase 46: Universal Boundary Compiler (`framework/core/compiler.py`)
+- [x] Phase 47: Five-Tier Ownership & Provenance Model (`framework/core/provenance.py`)
+- [x] Phase 48: E2E Installation Certification across 7 Archetypal Fixtures
+- [x] Antigravity Orchestration Constitution (Wave lifecycle, bounds <=10/wave, <=20/mission)
+- [x] CLI Tooling (`framework/scripts/tools/install_project.py`) with all subcommands
+- [x] Canonical documentation portal & decision register updated (Decisions 36–42)
+- [x] Full test suite passing (480/480 tests, 100%) with 0 doc audit errors
 
 ## 2. Blockers & Invariants
-- Invariant: Locked 4-Tier architecture (Platform -> Core -> Adapter -> Target)
-- Invariant: Protected Zones Immutability (`framework/core/` and `.agents/`)
-- Invariant: Zero third-party dependencies (Python 3.8+ stdlib only)
-- Invariant: Shallow Delegation Depth: Subagent depth strictly <= 2
-- Invariant: Active Context strictly bounded <= 60 lines (currently 37 lines)
+- Invariant: 4-Boundary Demarcation (`SOURCE ≠ INSTANCE ≠ PROJECT ≠ ANTIGRAVITY`)
+- Invariant: Protected Zones Immutability (`framework/core/`, `.agents/`, `antios.config.json`)
+- Invariant: Zero third-party dependencies in Universal Core (Python 3.8+ stdlib only)
+- Invariant: Orchestration bounds: Active <= 10, Total <= 20, Depth <= 2, Mandatory wave collapse
+- Invariant: Active Context strictly bounded <= 60 lines (currently ~40 lines)
 
 ## 3. Changed Files & Verification State
-- Verification State: VERIFIED
-- Release Status: v1.0.0-GA Tag Ready
-- Test Suite: 447/447 passing in ~25s (tests/run_all.py)
-- Doc Audit: 0 broken references (framework/scripts/tools/audit_docs.py --all)
-- Verdict: PASS (Full Certification Rules C-01 to C-50 Validated)
+- Verification State: VERIFIED (480/480 passing in ~28s via `tests/run_all.py`)
+- Doc Audit: 0 broken references across 35 files (`framework/scripts/tools/audit_docs.py --all`)
+- Working Tree: All Phase 43–48 modules and tests integrated cleanly
+- Verdict: PASS (Phases 43–48 complete and certified)
 
 ## 4. Dead-End Memory & Validated Lessons
-- Historical phase reports are non-operational records; must remain in reports/archive/
-- DECISION_REGISTER.md is bound by memory.py:1000 and must remain at repository root
-- Path normalizer must strip file:/// schemes before validating absolute paths
-- All 8 CLI tools operate hermetically with Python standard library only
+- CRLF vs LF hash drift: compute_file_sha256 and file writers must enforce newline="\n"
+- Manifestless projects require deterministic fallback fingerprint derived from project identity
+- Target instance template paths (.antios/, /antios skill) are distinct from repo source docs
+- PreToolUse hooks run from .agents/ and must resolve scripts using robust path lookup
 
 ## 5. Next Immediate Action
-AntiOS v1.0.0 development phases complete. Operating in MAINTENANCE mode. Next action: Onboard projects via antios-adapt-project.
+Phase 43–48 complete. Finalizing independent Maker-Checker audit and structured executive report.
