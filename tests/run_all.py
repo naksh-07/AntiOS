@@ -79,6 +79,15 @@ import tests.test_golden_tasks as test_golden_tasks
 import tests.test_capability_adversarial as test_capability_adversarial
 import tests.test_capability_benchmark as test_capability_benchmark
 
+# Phase 34-36 Agent Topology & Specialist Layer test modules
+import tests.test_agent_role_model as test_agent_role_model
+import tests.test_agent_topology as test_agent_topology
+import tests.test_agent_router as test_agent_router
+import tests.test_golden_agent_routing as test_golden_agent_routing
+import tests.test_agent_negative as test_agent_negative
+import tests.test_agent_adversarial as test_agent_adversarial
+import tests.test_agent_benchmark as test_agent_benchmark
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -145,6 +154,14 @@ def build_suite() -> unittest.TestSuite:
         test_golden_tasks,
         test_capability_adversarial,
         test_capability_benchmark,
+        # Phase 34-36
+        test_agent_role_model,
+        test_agent_topology,
+        test_agent_router,
+        test_golden_agent_routing,
+        test_agent_negative,
+        test_agent_adversarial,
+        test_agent_benchmark,
     ]
 
     for mod in modules:

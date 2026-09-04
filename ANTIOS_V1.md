@@ -272,4 +272,26 @@ Phase 28–30 establishes the deterministic project knowledge layer enabling age
 - **Progressive Disclosure Engine (`ProgressiveDisclosureEngine`)**: 6 bounded layers (L0 to L5) enforcing strict mathematical line budgets ($L_0 \le 5$, $L_1 \le 15$, $L_2 \le 20$, $L_3 \le 25$, $L_4 \le 20$, $L_5$ JSON) to prevent agent context saturation.
 - **Certified Verification**: 308/308 tests passing in 18.9s (100% pass rate, 0 regressions).
 
+---
+
+## 25. Project Capability Layer (Phase 31–33)
+Phase 31–33 establishes the deterministic capability governance layer answering *"What capabilities should the agent use and why?"*:
+- **Capability Taxonomy & Domain Models (`framework/core/capability.py`)**: 8 canonical capability types (`SKILL`, `RULE`, `WORKFLOW`, `TOOL`, `VERIFIER`, `SPECIALIST`, `EXTERNAL_PROVIDER`, `MCP_PROVIDER`), 5 rule precedence ranks (`RulePrecedence`), and negative applicability evaluation.
+- **Deterministic Capability Registry (`framework/core/capability_registry.py`)**: In-memory registry with secondary indexing by type, subsystem, and task class; rule conflict resolution where core invariants strictly prevail over project guidance.
+- **Task-to-Capability Router (`framework/core/capability_router.py`)**: 9-stage resolution pipeline combining intent classification, wayfinding locality, negative applicability filtering, and MCP policy evaluation.
+- **Bounded Capability Pack (`framework/core/capability_pack.py`)**: Emits compact, token-bounded cards ($\le 25$ lines) with clear rationale and zero extraneous context.
+- **Certified Verification**: 354/354 tests passing in 21.3s (100% pass rate, 0 regressions).
+
+---
+
+## 26. Agent Topology & Project-Specific Specialist Layer (Phase 34–36)
+Phase 34–36 elevates AntiOS from capability identification to deterministic agent role governance:
+- **Canonical Agent Role Model (`framework/core/agent_role.py`)**: Establishes `AgentRole`, `AgentCapabilityBoundary`, and token-bounded `AgentHandoffContract`.
+- **Shallow Depth Law Invariant**: Strictly bounds nesting depth to $\le 2$ (Primary $\to$ Specialist / Checker); specialists are strictly forbidden from spawning child subagents (`can_delegate = False`).
+- **Deterministic Agent Router (`framework/core/agent_router.py`)**: Signal-based decision matrix evaluating specialization value vs. delegation cost, maintaining `NO_DELEGATION` (SOLO) as the efficient default, and preventing multi-agent swarms on cross-subsystem tasks.
+- **Agent Routing Pack (`framework/core/agent_routing_pack.py`)**: Emits token-bounded agent routing cards ($\le 25$ lines) detailing primary role, selected specialist, allowed/forbidden capabilities, verifiers, and why selected / why not others rationales.
+- **Project Adapter Topology (`framework/core/config.py`, `adapter.py`)**: Enables target projects to declare custom domain specialists in `antios.config.json` while `verify_adapter` constitutionally prevents depth violations, rogue delegation, or core invariant mutation.
+- **Certified Verification**: 402/402 tests passing in 21.4s (100% pass rate, 0 regressions).
+
+
 

@@ -75,6 +75,7 @@ def main() -> None:
     parser.add_argument("--capabilities", help="Target subsystem or file to inspect governing capabilities")
     parser.add_argument("--level", "-L", type=int, choices=[0, 1, 2, 3, 4, 5], default=None, help="Progressive context disclosure level (0 to 5)")
     parser.add_argument("--list", "-l", action="store_true", help="List all registered subsystems")
+    parser.add_argument("--agent-routing", action="store_true", help="Resolve agent role, delegation decision, boundaries, and handoff for task")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument("--repo-root", default=REPO_ROOT, help="Repository root directory")
 
@@ -127,6 +128,14 @@ def main() -> None:
         from framework.core.capability_router import CapabilityRouter
         target_files = args.impact or ([args.file] if args.file else [])
         router = CapabilityRouter(wayfinding_engine=engine, workspace_root=repo_root)
+        if args.agent_routing:
+            routing_pack = router.resolve_agent_routing(args.task, target_files=target_files)
+            if args.json:
+                print(routing_pack.to_json())
+            else:
+                print(routing_pack.format_card())
+            sys.exit(0)
+
         pack = router.resolve_capabilities(args.task, target_files=target_files)
         if args.json:
             print(pack.to_json())

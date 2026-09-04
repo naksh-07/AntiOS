@@ -67,6 +67,7 @@ Every capability identified across AntiOS Phase 1–11 outputs, Phase 12–15 fo
 | **14. Capability Layer** | **BUILT** | Phase 31–33 Project Capability Layer (`capability.py`, `registry.py`, `router.py`, `pack.py`). | Answers: Which capabilities should act on project knowledge? |
 | **15. Recovery** | **KEEP** | Clean git checkout/restore recovery and `ENVIRONMENT_UNAVAILABLE` runtime trapping are verified. | Retain fail-closed recovery and ambient environment diagnostic checks. |
 | **16. Self-Improvement** | **DEFER** | Autonomous self-modification of core governance scripts risks destabilizing loops. | Keep self-improvement human-in-the-loop: forensic audits and deliberate phase upgrades. |
+| **17. Agent Topology & Specialist Layer** | **BUILT** | Phase 34–36 Agent Topology Layer (`agent_role.py`, `agent_topology.py`, `agent_router.py`, `agent_routing_pack.py`). | Answers: Which agent role should perform which capability, under what scope, and when delegation is justified? |
 
 ---
 

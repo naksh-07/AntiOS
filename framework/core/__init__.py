@@ -171,6 +171,50 @@ from framework.core.knowledge import (
     ProgressiveDisclosureLevel,
     ProgressiveDisclosureEngine,
 )
+from framework.core.capability import (
+    Capability,
+    CapabilityType,
+    CapabilityScope,
+    RulePrecedence,
+    RuleConflictStatus,
+    VerifierType,
+    MCPStatus,
+    RuleCapability,
+    SpecialistCapability,
+    MCPDecision,
+)
+from framework.core.capability_registry import (
+    CapabilityRegistry,
+    build_default_registry,
+)
+from framework.core.capability_router import (
+    CapabilityRouter,
+    TaskIntent,
+)
+from framework.core.capability_pack import (
+    CapabilityPack,
+)
+from framework.core.agent_role import (
+    AgentRole,
+    AgentRoleType,
+    AgentCapabilityBoundary,
+    DelegationDecisionType,
+    EscalationPolicyType,
+    AgentHandoffContract,
+    SpecialistResultReport,
+    SpecialistCandidate,
+)
+from framework.core.agent_topology import (
+    AgentTopologyRegistry,
+    build_default_agent_topology,
+    SpecialistDiscoveryEngine,
+)
+from framework.core.agent_routing_pack import (
+    AgentRoutingPack,
+)
+from framework.core.agent_router import (
+    AgentRouter,
+)
 
 __all__ = [
     # Phase 12-15
@@ -308,4 +352,34 @@ __all__ = [
     "ChangeIntentAnalyzer",
     "ProgressiveDisclosureLevel",
     "ProgressiveDisclosureEngine",
+    # Phase 31-33: Project Capability Layer
+    "Capability",
+    "CapabilityType",
+    "CapabilityScope",
+    "RulePrecedence",
+    "RuleConflictStatus",
+    "VerifierType",
+    "MCPStatus",
+    "RuleCapability",
+    "SpecialistCapability",
+    "MCPDecision",
+    "CapabilityRegistry",
+    "build_default_registry",
+    "CapabilityRouter",
+    "TaskIntent",
+    "CapabilityPack",
+    # Phase 34-36: Agent Topology & Specialist Layer
+    "AgentRole",
+    "AgentRoleType",
+    "AgentCapabilityBoundary",
+    "DelegationDecisionType",
+    "EscalationPolicyType",
+    "AgentHandoffContract",
+    "SpecialistResultReport",
+    "SpecialistCandidate",
+    "AgentTopologyRegistry",
+    "build_default_agent_topology",
+    "SpecialistDiscoveryEngine",
+    "AgentRoutingPack",
+    "AgentRouter",
 ]

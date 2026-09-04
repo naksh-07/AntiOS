@@ -1,4 +1,4 @@
-[![Tests](https://img.shields.io/badge/tests-354%2F354%20passing-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-402%2F402%20passing-brightgreen)](#)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 [![Antigravity: Native](https://img.shields.io/badge/Antigravity-v4%20Native-purple.svg)](#)
@@ -87,13 +87,22 @@ Answers *"Given this project, this subsystem, this component, and this task, wha
 - **MCP Evaluation**: 3-Tier policy (Native > Script > Project Tool > MCP); rejects unauthorized MCP bloat.
 - Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --task "Change the login button" [--json]`.
 
-### 6. Staleguard Layer 1 Documentation Auditor (`framework/core/docaudit.py`)
+### 6. Agent Topology & Project-Specific Specialist Layer (`framework/core/agent_role.py`, `agent_topology.py`, `agent_router.py`)
+Answers *"Who should perform this work, what capabilities may they use, what are their boundaries, and when is delegation justified?"*:
+- **Canonical Agent Role Model**: Smallest useful contract (`role_id`, `responsibility`, `boundary`, `verifier`, `escalation_policy`).
+- **Explicit Capability Boundaries**: Strict gating (`ALLOWED`, `FORBIDDEN`, `INHERITED`, `REQUIRED`); authority is never inferred from role name.
+- **Deterministic Delegation Policy**: Signal matrix with `NO_DELEGATION` (SOLO) as the efficient default; prevents swarms on cross-subsystem tasks.
+- **Shallow Depth Law**: Max nesting depth $\le 2$ (Primary $\to$ Specialist / Checker); specialists/checkers cannot spawn children.
+- **Token-Bounded Agent Routing Packs**: Emits compact cards ($\le 25$ lines) with *why selected* and *why not others* rationales.
+- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --task "Change the login button" --agent-routing [--json]`.
+
+### 7. Staleguard Layer 1 Documentation Auditor (`framework/core/docaudit.py`)
 Zero-token, sub-second documentation reference integrity:
 - Audits markdown links, relative file paths, and test runner invocations against physical disk.
 - Guarantees 0% false positives and enforces Same Change Set documentation validity before task completion.
 - Accessible via CLI: `python framework/scripts/tools/audit_docs.py --all`.
 
-### 7. Lean, High-Value Skills (`.agents/skills/`)
+### 8. Lean, High-Value Skills (`.agents/skills/`)
 Avoids context saturation by enforcing a strict $\le 60$-line budget per skill:
 - **`antios-engineer`** (39 lines): 8-stage engineering lifecycle (`LOCATE FIRST`), safety boundaries, and Stop Gate ratchet.
 - **`antios-verifier`** (48 lines): Independent Checker verification contract and structured verdict emission.
@@ -170,7 +179,7 @@ Define your project's protected paths and test runners:
 
 ## 🧪 Testing
 
-AntiOS includes a comprehensive 308-test suite across 46 test files with **zero third-party dependencies**:
+AntiOS includes a comprehensive 402-test suite across 53 test files with **zero third-party dependencies**:
  
 ```bash
 # Run using standard library Python
@@ -180,7 +189,7 @@ python tests/run_all.py
 pytest tests/ -v
 ```
  
-All 308 tests execute in $\le 19$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, component wayfinding, knowledge graphs, ownership derivation, progressive disclosure, change intent, documentation reference audits, end-to-end scenarios, and performance benchmarks.
+All 402 tests execute in $\le 22$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, component wayfinding, knowledge graphs, ownership derivation, progressive disclosure, change intent, capability resolution, agent topology routing, documentation reference audits, end-to-end scenarios, and performance benchmarks.
 
 ---
 

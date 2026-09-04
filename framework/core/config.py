@@ -52,6 +52,7 @@ class AntiOSConfig:
     manifest_fingerprint: str = ""
     components: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     capabilities: Dict[str, Any] = field(default_factory=dict)
+    agent_topology: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         if isinstance(self.policies, dict):
@@ -122,6 +123,7 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             manifest_fingerprint=data.get("manifest_fingerprint", ""),
             components=data.get("components", {}),
             capabilities=data.get("capabilities", {}),
+            agent_topology=data.get("agent_topology", {}),
         )
     except Exception:
         return AntiOSConfig()

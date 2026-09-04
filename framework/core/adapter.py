@@ -504,6 +504,32 @@ def verify_adapter(
             if not any(d in prohibited_disables for d in dis):
                 passed.append(f"Capability configuration verified ({len(caps)} keys).")
 
+    # 6. Check Agent Topology policy if present
+    if hasattr(cfg, "agent_topology") and cfg.agent_topology:
+        atop = cfg.agent_topology
+        if isinstance(atop, dict):
+            specs = atop.get("specialists", {})
+            if isinstance(specs, list):
+                specs = {item.get("role_id", f"role:custom-{i}"): item for i, item in enumerate(specs)}
+            for s_id, s_data in specs.items():
+                if isinstance(s_data, dict):
+                    # Enforce Shallow Depth Law: max_depth <= 2
+                    m_depth = s_data.get("max_depth", 2)
+                    if m_depth > 2:
+                        issues.append(f"CONSTITUTIONAL VIOLATION: Specialist '{s_id}' declares max_depth {m_depth} > 2 (violates Shallow Depth Law).")
+                    # Enforce Shallow Depth Law: specialists cannot delegate
+                    r_type = str(s_data.get("role_type", "SPECIALIST")).upper()
+                    if r_type != "PRIMARY" and s_data.get("can_delegate", False):
+                        issues.append(f"CONSTITUTIONAL VIOLATION: Specialist '{s_id}' declares can_delegate=True (violates Shallow Depth Law).")
+                    # Check for forbidden core overrides
+                    raw_b = s_data.get("boundary", {})
+                    allowed = raw_b.get("allowed_capabilities", s_data.get("allowed_capabilities", []))
+                    for a in allowed:
+                        if "core-immutable:override" in a or "platform-hook:override" in a:
+                            issues.append(f"CONSTITUTIONAL VIOLATION: Specialist '{s_id}' attempts to claim override authority over immutable core rules.")
+            if not any("CONSTITUTIONAL VIOLATION: Specialist" in iss for iss in issues):
+                passed.append(f"Agent topology configuration verified ({len(specs)} specialists).")
+
     is_valid = len(issues) == 0
     return AdapterVerificationResult(
         is_valid=is_valid,

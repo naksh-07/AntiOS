@@ -31,6 +31,8 @@ from framework.core.lifecycle import RiskTier, TaskClass
 from framework.core.subsystem import SubsystemDeclaration
 from framework.core.wayfinding import LocalityResolution, WayfindingEngine
 from framework.core.workflow import WorkflowSpec, get_workflow
+from framework.core.agent_routing_pack import AgentRoutingPack
+from framework.core.agent_router import AgentRouter
 
 
 @dataclass
@@ -61,6 +63,17 @@ class CapabilityRouter:
         self.config_dict = config_dict or {}
         self.registry = registry or build_default_registry(workspace_root, self.config_dict)
         self.wayfinder = wayfinding_engine
+        self.agent_router = AgentRouter(project_name=self.project_name)
+
+    def resolve_agent_routing(
+        self,
+        task_intent: str,
+        target_files: Optional[List[str]] = None,
+        task_class_hint: Optional[Union[TaskClass, str]] = None,
+    ) -> AgentRoutingPack:
+        """Resolves capability pack and determines optimal agent role and delegation policy."""
+        pack = self.resolve_capabilities(task_intent, target_files, task_class_hint)
+        return self.agent_router.route_task(pack, target_files=target_files)
 
     def classify_task_intent(
         self,
