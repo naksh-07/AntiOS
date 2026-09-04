@@ -1,216 +1,151 @@
-[![Tests](https://img.shields.io/badge/tests-447%2F447%20passing-brightgreen)](#)
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
-[![Antigravity: Native](https://img.shields.io/badge/Antigravity-v4%20Native-purple.svg)](#)
+# AntiOS
 
-> **AntiOS** is a universal, production-grade agent-native engineering operating system, safety boundary, and deterministic capability resolution framework for autonomous AI coding agents (Google Antigravity, Gemini CLI, Claude Code).
->
-> It turns unconstrained AI coding assistants into disciplined, verifiable engineering systems with **zero hallucinated test passes**, **fail-closed boundary protection**, and **risk-tiered Maker-Checker verification**.
+**Universal, Domain-Agnostic Agent-Native Engineering OS for Google Antigravity**
 
----
-
-## 🌟 Why AntiOS?
-
-AI coding agents often:
-- Hallucinate test passes without executing real OS processes.
-- Speculatively patch core libraries, causing architectural drift.
-- Suffer from context degradation when instruction files are thousands of lines long.
-- Spawn unconstrained swarms of subagents, causing latency and cost explosion.
-
-**AntiOS solves this deterministically at the OS and tool layer.**
-
-```
-+--------------------------------------------------------------------------+
-| 1. AI Coding Platform (Antigravity / Gemini CLI)                         |
-|    - Subagent lifecycles, interactive planning UI, tool execution, logs  |
-+--------------------------------------------------------------------------+
-                                     |
-                                     v
-+--------------------------------------------------------------------------+
-| 2. AntiOS Governance Layer (This Repository)                             |
-|    - Fail-Closed PreToolUse Guard: Protects immutable cores & governance |
-|    - Physical Stop Gate Ratchet: Enforces OS Exit Code 0 test execution  |
-|    - Maker-Checker Protocol: Dispatches fresh-context verifiers on risk  |
-|    - Lean Skill Architecture: All skills strictly <= 60 lines            |
-|    - Bounded Working Context: ACTIVE_CONTEXT.md strictly <= 60 lines     |
-|    - Declarative Domain Adapter: antios.config.json (Node, Py, Rust, Go) |
-+--------------------------------------------------------------------------+
-                                     |
-                                     v
-+--------------------------------------------------------------------------+
-| 3. Target Application (Your Repository)                                  |
-|    - Your application code, schemas, domain models, and test suites      |
-+--------------------------------------------------------------------------+
-```
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Tests](https://img.shields.io/badge/tests-447%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
+[![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](ANTIOS_CONSTITUTION.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## 🚀 Key Capabilities
+## What is AntiOS?
 
-### 1. Fail-Closed Boundary Protection (`framework/core/guard.py`)
-Intercepts IDE tool calls (`write_to_file`, `replace_file_content`).
-- **Self-Protection**: Strictly prevents agents from tampering with governance files (`.agents/`, `framework/`).
-- **Domain Protection**: Protects configured upstream core libraries (e.g. `core/engine`, `shared_kernel`) from direct edits.
-- **8.3 Short Name & Canonicalization**: Uses `os.path.commonpath` and resolves Windows 8.3 aliases (`rslib~1`) to block path traversal bypasses.
-- **Fail-Closed**: Any unhandled exception or malformed payload returns `decision: deny`.
+Autonomous AI coding agents operating in software repositories frequently suffer from **context drift, boundary violations, unverified code claims, broken changesets, and tool sprawl**. 
 
-### 2. Physical Stop Gate Ratchet (`framework/core/gate.py`)
-Intercepts agent task conclusion (`Stop` event).
-- Automatically discovers and executes project test runners (`vitest:once`, `pytest`, `cargo test`, `go test`).
-- **Exit Code 0 Requirement**: The agent **cannot conclude** the turn unless all physical test processes exit with 0.
-- Captures compiler errors, stderr, and test assertion logs, returning them directly to the agent to force deterministic fixes.
-
-### 3. Maker-Checker Verification Protocol (`framework/core/verdict.py`)
-Eliminates self-rationalization on high-risk modifications:
-- **Low Risk** (docs, formatting, typos): Primary agent works solo.
-- **Medium Risk** (UI fixes, non-critical features): Primary agent self-verifies via native tests.
-- **High Risk** (state machines, persistence/schema, persistence/security hooks, packaging): **Mandatory Checker**.
-  - Primary agent spawns an independent verifier in a fresh context with `TypeName='self'`.
-  - The verifier audits `git diff`, executes physical tests, and returns a structured JSON verdict (`PASS`, `FAIL`, `BLOCK`).
-- **Shallow Depth Law**: Subagent nesting depth is strictly $\le 2$ (Parent $\to$ Child). Subagents never spawn grandchildren.
-
-### 4. Agent-Native Project Knowledge & Intelligent Wayfinding (`framework/core/knowledge.py`, `framework/core/wayfinding.py`)
-Answers *"Where should I look, what governs this area, what is affected, what capabilities should I use, and what must I verify before changing it?"*:
-- **Knowledge Graph**: In-memory, cycle-safe graph with 8 typed edge relations and BFS transitive blast-radius calculation.
-- **Ownership Derivation**: Multi-source extraction (`CODEOWNERS`, package manifests, `MAINTAINERS`) with git precedence and strict `UNKNOWN` (confidence `0.0`) fallback.
-- **Functional Doc Taxonomy**: Categorizes documentation into 6 tiers (`authoritative`, `architecture`, `component`, `setup`, `testing`, `contribution`).
-- **Change Intent & Blast Radius**: Formats bounded impact cards ($\le 25$ lines) aggregating downstream test commands.
-- **Progressive Disclosure**: 6 strictly bounded information layers (L0–L5) preventing context saturation.
-- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --file <path> --impact <path> --capabilities <path> --level <0-5>`.
-
-### 5. Project Capability Layer (`framework/core/capability.py`, `capability_registry.py`, `capability_router.py`)
-Answers *"Given this project, this subsystem, this component, and this task, what engineering capabilities should the agent use and why?"*:
-- **8 Canonical Capability Types**: `SKILL`, `RULE`, `WORKFLOW`, `TOOL`, `VERIFIER`, `SPECIALIST`, `EXTERNAL_PROVIDER`, `MCP_PROVIDER`.
-- **5-Rank Rule Precedence**: Platform Hook (1) > Core Invariant (2) > Adapter Policy (3) > Subsystem Invariant (4) > Project Guidance (5).
-- **Task-to-Capability Router**: Resolves intent into bounded Capability Packs ($\le 25$ lines card or full JSON).
-- **Negative Applicability**: Prevents irrelevant skills (e.g. debugging on doc tasks) from saturating agent context.
-- **MCP Evaluation**: 3-Tier policy (Native > Script > Project Tool > MCP); rejects unauthorized MCP bloat.
-- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --task "Change the login button" [--json]`.
-
-### 6. Agent Topology & Project-Specific Specialist Layer (`framework/core/agent_role.py`, `agent_topology.py`, `agent_router.py`)
-Answers *"Who should perform this work, what capabilities may they use, what are their boundaries, and when is delegation justified?"*:
-- **Canonical Agent Role Model**: Smallest useful contract (`role_id`, `responsibility`, `boundary`, `verifier`, `escalation_policy`).
-- **Explicit Capability Boundaries**: Strict gating (`ALLOWED`, `FORBIDDEN`, `INHERITED`, `REQUIRED`); authority is never inferred from role name.
-- **Deterministic Delegation Policy**: Signal matrix with `NO_DELEGATION` (SOLO) as the efficient default; prevents swarms on cross-subsystem tasks.
-- **Shallow Depth Law**: Max nesting depth $\le 2$ (Primary $\to$ Specialist / Checker); specialists/checkers cannot spawn children.
-- **Token-Bounded Agent Routing Packs**: Emits compact cards ($\le 25$ lines) with *why selected* and *why not others* rationales.
-- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --task "Change the login button" --agent-routing [--json]`.
-
-### 7. Tool, Provider & MCP Architecture (`framework/core/tool.py`, `provider.py`, `tool_registry.py`, `tool_policy.py`, `tool_pack.py`)
-Answers *"Given this capability, which concrete execution mechanism and provider should execute it, under what locality/cost/latency constraints, and when is an MCP provider strictly justified?"*:
-- **6-Tier Execution Hierarchy**: Native IDE (1) > Local Deterministic Script (2) > Project-Local Tool (3) > Standard External CLI (4) > External Service (5) > MCP Provider (6).
-- **Deterministic Tool Selector**: In-memory registry lookup with boundary authorization checks and offline fallback handling.
-- **Canonical 8-Question MCP Justification Engine**: Evaluates MCP proposals strictly; rejects unauthorized or gratuitous MCPs.
-- **Token-Bounded Tool Routing Packs**: Emits compact cards ($\le 25$ lines) with execution details and negative rationales.
-- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --task "..." --tool-selection [--json]`.
-
-### 8. Staleguard Layer 1 Documentation Auditor (`framework/core/docaudit.py`)
-Zero-token, sub-second documentation reference integrity:
-- Audits markdown links, relative file paths, and test runner invocations against physical disk.
-- Guarantees 0% false positives and enforces Same Change Set documentation validity before task completion.
-- Accessible via CLI: `python framework/scripts/tools/audit_docs.py --all`.
-
-### 9. Lean, High-Value Skills (`.agents/skills/`)
-Avoids context saturation by enforcing a strict $\le 60$-line budget per skill:
-- **`antios-engineer`** (39 lines): 8-stage engineering lifecycle (`LOCATE FIRST`), safety boundaries, and Stop Gate ratchet.
-- **`antios-verifier`** (48 lines): Independent Checker verification contract and structured verdict emission.
-- **`antios-debug`** (37 lines): Deterministic root-cause debugging protocol with wayfinding integration.
-- **`antios-adapt-project`** (≤60 lines): Universal project intelligence and adaptation procedure for unfamiliar repositories.
+**AntiOS** is an Agent-Native Engineering Operating System that wraps repository interactions with deterministic, compile-free, zero-dependency engineering governance. Operating seamlessly within Google Antigravity, AntiOS transforms autonomous LLM coding agents into disciplined, auditable, and reliable software engineers.
 
 ---
 
-## 📦 How to Use AntiOS on ANY Project
+## Key Capabilities
 
-AntiOS is domain-agnostic. You can drop it into any TypeScript, Python, Rust, Go, or mixed project:
+- **Fail-Closed Security Guards**: Native `PreToolUse` hook interception protects framework assets (`.agents/`, `framework/`) and project domain cores from unauthorized file modifications.
+- **Physical Process Stop Gate**: Agents cannot conclude tasks based on unverified assertions. The Stop Gate executes physical test runners and checks working tree hygiene before granting completion.
+- **Same Change Set Discipline**: Enforces that functional code changes are accompanied by tests and documentation within the same atomic change set.
+- **Maker-Checker Independent Verification**: High-risk tasks mandate independent audit by an unbiased, fresh-context verifier subagent.
+- **Universal Project Adapter**: Declarative `antios.config.json` configuration binds any software stack (Python, TypeScript, Rust, Go, polyglot) to AntiOS without modifying core code.
+- **Deterministic Repository Wayfinding**: Sub-millisecond navigation tool resolves task intent to owning subsystems, test suites, and blast radius.
+- **Strict 6-Tier Tooling & MCP Policy**: Prioritizes local, deterministic tools over unvetted Model Context Protocol servers.
+- **Zero Third-Party Dependencies**: Pure Python 3.8+ standard library. No pip install required.
 
-### Step 1: Copy Governance Assets
-Copy `.agents/` and `framework/` into your repository root:
-```text
-your-repo/
-├── .agents/
-│   ├── hooks.json
-│   └── skills/
-│       ├── antios-engineer/SKILL.md
-│       ├── antios-verifier/SKILL.md
-│       └── antios-debug/SKILL.md
-├── framework/
-│   ├── core/
-│   └── scripts/hooks/
-├── antios.config.json
-└── docs/
-    ├── AGENTS.md
-    └── ACTIVE_CONTEXT.md
+---
+
+## The 4-Tier Architecture
+
 ```
-
-### Step 2: Configure `antios.config.json`
-Define your project's protected paths and test runners:
-
-```json
-{
-  "version": "1.0",
-  "name": "MyProject-Adapter",
-  "protected_zones": [
-    ".agents",
-    "framework"
-  ],
-  "protected_domain_paths": [
-    "core/engine",
-    "shared_kernel"
-  ],
-  "forbidden_patterns": [
-    "core~*"
-  ],
-  "test_runners": [
-    {
-      "name": "typescript",
-      "manifest": "package.json",
-      "scripts": ["test:unit", "test"],
-      "default_command": ["npm", "test"],
-      "timeout_seconds": 60
-    },
-    {
-      "name": "python",
-      "manifest": "pyproject.toml",
-      "default_command": ["pytest"],
-      "timeout_seconds": 60
-    }
-  ],
-  "policies": {
-    "fail_closed": true,
-    "enforce_working_tree_cleanliness": true,
-    "enforce_same_change_set": true
-  }
-}
++-------------------------------------------------------------------------+
+| Tier 1: Antigravity Platform (Native Mechanisms)                        |
+|  - Agent execution, subagent lifecycles, and tool transport             |
+|  - Tool interception hooks (PreToolUse & Stop)                          |
+|  - Interactive Planning Mode UI & background task scheduler             |
++-------------------------------------------------------------------------+
+                                    |
+                                    v
++-------------------------------------------------------------------------+
+| Tier 2: AntiOS Core (Universal Engineering Operating System)             |
+|  - Fail-closed security guard & framework self-protection               |
+|  - Physical process verification gate & Stop hook ratchet               |
+|  - Same Change Set evaluator & git working tree conflict auditor        |
+|  - Subsystem wayfinding, tool routing, and memory distillation          |
++-------------------------------------------------------------------------+
+                                    |
+                                    v
++-------------------------------------------------------------------------+
+| Tier 3: Project Adapter (Declarative Workspace Bindings)                |
+|  - Declarative configuration file (antios.config.json)                  |
+|  - Declares protected zones, protected domain cores, and test runners   |
+|  - Configures tool routing preferences and workspace topology           |
++-------------------------------------------------------------------------+
+                                    |
+                                    v
++-------------------------------------------------------------------------+
+| Tier 4: Target Project Application (Target Codebase)                     |
+|  - Domain-specific source code, schemas, and assets                     |
+|  - Native test suites (pytest, vitest, cargo test, go test)             |
+|  - Domain application runtime and build pipelines                       |
++-------------------------------------------------------------------------+
 ```
 
 ---
 
-## 🧪 Testing
+## Quick Start: Adopting AntiOS
 
-AntiOS includes a comprehensive 447-test suite across 61 test files with **zero third-party dependencies**:
- 
+Adopting AntiOS for any repository takes under two minutes:
+
 ```bash
-# Run using standard library Python
+# 1. Inspect the target repository traits and runners
+python framework/scripts/tools/inspect_repo.py /path/to/repo
+
+# 2. Preview the proposed adapter configuration (dry run)
+python framework/scripts/tools/adapt_project.py /path/to/repo --dry-run
+
+# 3. Apply the adapter configuration (creates antios.config.json)
+python framework/scripts/tools/adapt_project.py /path/to/repo --apply
+
+# 4. Verify repository wayfinding and tool routing
+python framework/scripts/tools/navigate_repo.py --repo-root /path/to/repo --list
+
+# 5. Run the AntiOS test suite
 python tests/run_all.py
- 
-# Or run using pytest
-pytest tests/ -v
 ```
- 
-All 447 tests execute in $\le 20$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, component wayfinding, knowledge graphs, ownership derivation, progressive disclosure, change intent, capability resolution, agent topology routing, tool and provider hierarchies, MCP justification, documentation reference audits, end-to-end scenarios, and performance benchmarks.
+
+For detailed guidance, see the [Universal Project Adoption Guide](docs/guides/ADOPT_ANTIOS.md).
 
 ---
 
-## 📂 Repository Topology
+## Documentation System
 
-- **`.agents/`**: Platform discovery layer (`hooks.json`, skills).
-- **`framework/`**: Core governance implementation (`framework/core/`, `framework/scripts/hooks/`).
-- **`docs/`**: Active governance (`AGENTS.md`, `ACTIVE_CONTEXT.md`, `CAPABILITY_ARCHITECTURE.md`).
-- **`tests/`**: Automated test suite (`run_all.py`, `test_*.py`).
-- **`specs/` & Root**: Architecture specifications, phase reports, and decision registers.
+Explore the full documentation portal in [`docs/INDEX.md`](docs/INDEX.md):
+
+| Category | Document | Description |
+| :--- | :--- | :--- |
+| **Architecture** | [`docs/architecture/OVERVIEW.md`](docs/architecture/OVERVIEW.md) | 4-tier model, 7 subsystems, and 34-module model |
+| **Specifications** | [`ANTIOS_CONSTITUTION.md`](ANTIOS_CONSTITUTION.md) | Universal non-negotiable axioms and invariants |
+| **Specifications** | [`ANTIOS_SOURCE_OF_TRUTH.md`](ANTIOS_SOURCE_OF_TRUTH.md) | Definitive system source of truth |
+| **Specifications** | [`ANTIOS_CAPABILITY_MATRIX.md`](ANTIOS_CAPABILITY_MATRIX.md) | Core capability catalog and taxonomy |
+| **Specifications** | [`ANTIOS_CERTIFICATION_MATRIX.md`](ANTIOS_CERTIFICATION_MATRIX.md) | 50 canonical certification rules (C-01 to C-50) |
+| **Guides** | [`docs/guides/ADOPT_ANTIOS.md`](docs/guides/ADOPT_ANTIOS.md) | Step-by-step onboarding guide for any repo |
+| **Guides** | [`docs/guides/PROJECT_ADAPTER.md`](docs/guides/PROJECT_ADAPTER.md) | Deep guide on `antios.config.json` customization |
+| **Reference** | [`docs/reference/CLI.md`](docs/reference/CLI.md) | Complete reference for all 8 deterministic CLI tools |
+| **Reference** | [`docs/reference/CONFIGURATION.md`](docs/reference/CONFIGURATION.md) | Field-by-field `antios.config.json` schema reference |
+| **Operations** | [`docs/operations/TESTING.md`](docs/operations/TESTING.md) | Test suite catalog, running tests, benchmarks |
+| **Security** | [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model, hook interception, path safety |
 
 ---
 
-## 📄 License
+## Deterministic CLI Tools
 
-MIT License. See [LICENSE](LICENSE) for details.
+AntiOS provides 8 standard library CLI tools in `framework/scripts/tools/`:
+
+- `inspect_repo.py` — Inspect repository topology, manifests, and host toolchains.
+- `adapt_project.py` — Analyze adaptation requirements and generate `antios.config.json`.
+- `navigate_repo.py` — Wayfinding tool resolving task intent to subsystems and test suites.
+- `audit_docs.py` — Staleguard Layer 1 documentation reference auditor.
+- `check_changeset.py` — Same Change Set integrity evaluator (code + tests + docs).
+- `check_worktree.py` — Git working tree conflict inspector.
+- `distill_memory.py` — Cross-session lesson distillation and promotion tool.
+- `recover_session.py` — Session recovery and state contradiction resolver.
+
+---
+
+## Running Tests
+
+AntiOS includes 447 deterministic automated tests covering all 34 core modules:
+
+```bash
+python tests/run_all.py
+```
+
+```
+======================================================================
+AntiOS Master Test Suite
+Ran 447 tests in 18.2s
+OK (100% passed, 0 failures, 0 errors)
+======================================================================
+```
+
+---
+
+## License
+
+AntiOS is released under the [MIT License](LICENSE).

@@ -1,4 +1,4 @@
-﻿# AntiOS Capability Architecture & Governance Specification
+# AntiOS Capability Architecture & Governance Specification
 **Phases 12–15 Foundation** | **AntiOS v1 Frozen Baseline**  
 **Status**: ACTIVE | **Demarcation**: Platform $\leftrightarrow$ Governance $\leftrightarrow$ Domain
 
@@ -57,7 +57,7 @@ AntiOS strictly separates responsibilities into three distinct architectural tie
 - **`docs/` (Active Governance & Working State)**:
   - `docs/AGENTS.md`: Global constitution ($\le 80$ lines).
   - `docs/ACTIVE_CONTEXT.md`: Bounded working set memory ($\le 60$ lines).
-  - `docs/CAPABILITY_ARCHITECTURE.md`: This capability specification.
+  - `reports/archive/phases/CAPABILITY_ARCHITECTURE_PHASE12_15.md`: Historical capability specification.
 - **`tests/` (Deterministic Test Harness)**:
   - Unit and adversarial test suites validating AntiOS framework code, hook security, and skill contracts.
 - **`antios.config.json` (Root Domain Adapter)**:

@@ -1,18 +1,17 @@
-# AntiOS v1 Constitution Architecture (`ANTIOS_CONSTITUTION.md`)
+# AntiOS Master Constitution (`ANTIOS_CONSTITUTION.md`)
 
 **Date**: 2026-09-04  
-**Author**: AntiOS Architecture Team  
-**Objective**: Establish the canonical project constitution, defining exactly what belongs in prompt rules (`AGENTS.md`), what belongs in skills, what belongs in deterministic hooks, and what belongs in documentation.
+**Status**: Master Engineering Invariants (Universal GA Baseline)  
+**Objective**: Establish the canonical project constitution, defining the engineering invariants, boundary placement laws, and immutable rules governing all autonomous agent operations within AntiOS repositories.
 
 ---
 
 ## 1. The Rule-to-Enforcement Mapping Principle
 
-Empirical testing across Phases 7–10 proved that:
-> *Prompt rules without code-level enforcement are soft guidelines that LLMs routinely rationalize away during complex multi-step reasoning.*  
-> *Conversely, hooks cannot perform fuzzy semantic evaluations requiring human or LLM judgment.*
+> *"Prompt rules without code-level enforcement are soft guidelines that LLMs routinely rationalize away during complex multi-step reasoning.*  
+> *Conversely, hooks cannot perform fuzzy semantic evaluations requiring human or LLM judgment."*
 
-Therefore, AntiOS v1 establishes a strict **Enforcement Placement Law**:
+Therefore, AntiOS establishes a strict **Enforcement Placement Law**:
 
 ```text
 ┌─────────────────────────┬──────────────────────────────────────────────────┐
@@ -34,62 +33,24 @@ Therefore, AntiOS v1 establishes a strict **Enforcement Placement Law**:
 
 ---
 
-## 2. What Belongs Where?
+## 2. The Seven Constitutional Invariants
 
-### What Belongs in `docs/AGENTS.md` (Global Constitution)
-- **Token Budget**: Strictly $\le 80$ lines (~2,500 bytes). Must fit comfortably in initial context without displacing project reasoning.
-- **Core Directives**:
-  1. **Axiom of AntiOS**: Platform mechanism vs Project policy vs Domain truth.
-  2. **Upstream Immutability**: Absolute prohibition on modifying `rslib/`.
-  3. **Framework Self-Protection**: Prohibition on editing `.agents/` or AntiOS scripts.
-  4. **Working Tree Discipline**: Operate in designated sandboxes/worktrees; no destructive git commands.
-  5. **Same Change Set**: Synchronize code changes and documentation in the same commit/turn.
-  6. **Physical Process Ratchet**: Task completion requires OS test exit code 0.
-  7. **StudySourceCore Boundary**: Strictly out of scope.
+Every agent operating in an AntiOS repository is bound by seven immutable invariants:
 
-### What Belongs in Skills (`.agents/skills/`)
-- Procedural workflows that are activated only when relevant.
-- Risk-tiering heuristics (when to spawn Maker-Checker).
-- Subagent dispatch instructions (using `TypeName='self'`).
-- Test runner commands and environment diagnosis guidance.
-
-### What Belongs in Hooks (`framework/scripts/hooks/`)
-- Purely deterministic, binary checks that can be calculated in <100ms:
-  - `pre_tool_guard.py`: Canonical path resolution, prefix matching, denial reasons.
-  - `stop_gate.py`: Subprocess test execution, return code inspection, timeout enforcement.
-
-### What Belongs in Reference Documentation (`docs/`)
-- Full architecture specifications (`ANTIOS_V1_ARCHITECTURE.md`).
-- Decision registers and forensic reports.
-- Comprehensive security and verification models.
+1. **Platform Sovereignty**: If Google Antigravity natively provides an orchestration, execution, scheduling, or logging primitive $	o$ **USE THE PLATFORM**. Never reimplement native mechanisms.
+2. **Protected Zones Immutability**: Governance zones (`.agents/`, `framework/`, `antios.config.json`) and configured upstream protected domain paths are strictly immutable. Mutating actions are blocked fail-closed.
+3. **Toolchain Ground Truth**: If a native compiler, type checker, or test framework provides verification $	o$ **USE THE NATIVE TOOLCHAIN**. Never forge test results or replace compilers with brittle regex parsers.
+4. **Physical Stop Gate Ratchet**: An agent **cannot conclude** a task turn unless all physical test processes exit with returncode 0. Conversational self-certification ("Looks Good to Me") is rejected.
+5. **Same Change Set Policy**: Source code modifications and corresponding documentation/test updates must be delivered in the same change set. Code without tests or docs is rejected.
+6. **Shallow Depth Law**: Subagent nesting depth is strictly bounded to $\le 2$ ($	ext{Parent} 	o 	ext{Child}$). Recursive agent swarms are strictly prohibited.
+7. **Bounded Working Context**: Operational task state in `docs/ACTIVE_CONTEXT.md` is strictly bounded to $\le 60$ lines to eliminate context saturation and amnesia.
 
 ---
 
-## 3. Canonical `docs/AGENTS.md` Specification
+## 3. What Belongs in `docs/AGENTS.md` (Global Constitution Entrypoint)
 
-The authoritative content template of `docs/AGENTS.md` in AntiOS:
-
-```markdown
-# AntiOS Global Engineering Constitution
-
-You are an autonomous engineering agent operating within a project governed by **AntiOS**.
-
-## 1. Locked 4-Tier Architecture
-- **Platform (Antigravity)**: Host execution, tool transport, subagent lifecycle, planning UI.
-- **Governance (AntiOS Core)**: Safety guards, Stop Gate ratchet, task state machine, Maker-Checker policy.
-- **Project Adapter (Declarative Config)**: Project identity, scoped test runners, domain boundaries (`antios.config.json`).
-- **Domain Truth (Target Project)**: Native code, build manifests, schemas, and native test suites.
-
-## 2. Core Engineering Invariants
-1. **Core Self-Protection**: You MUST NOT modify `.agents/`, `framework/`, or `antios.config.json`. These are protected by deterministic hooks.
-2. **Domain Immutability**: You MUST NOT modify protected upstream or third-party paths declared in the Project Adapter.
-3. **Same Change Set**: Code changes MUST be accompanied by corresponding updates to tests and documentation in the same change set.
-4. **Independent Verification**: High and Medium risk tasks require Maker-Checker verification via `invoke_subagent(TypeName='self')`.
-5. **Physical Process Ratchet**: Task completion strictly requires verified OS process execution (exit code 0) across all scoped test runners.
-6. **Shallow Depth Law**: Subagent depth is strictly bounded to $\le 2$. Verifier subagents must NEVER spawn subagents.
-
-## 3. Operational Discipline
-- Maintain active task progress in `docs/ACTIVE_CONTEXT.md` (strictly $\le 60$ lines).
-- Record blockers and dead ends immediately to prevent amnesia across session resets.
-- Zero vector databases, external network daemons, or unverified claims.
-```
+- **Token Budget**: Strictly $\le 40$ lines. Bounded, pointer-oriented orientation.
+- **Content**: Directs the agent to:
+  - The 4 Architectural Axioms (Platform vs Core vs Adapter vs Target).
+  - The 7 Directives (Protected zones, test exit 0, Same Change Set, bounded context).
+  - Pointers to canonical architecture (`ANTIOS_V1.md`) and operational state (`docs/ACTIVE_CONTEXT.md`).

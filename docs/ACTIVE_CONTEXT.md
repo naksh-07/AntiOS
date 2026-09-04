@@ -1,48 +1,40 @@
 # Active Context (`docs/ACTIVE_CONTEXT.md`)
 
-**Mission**: AntiOS Phase 37–39: Tool, Provider & MCP Architecture
-**Class**: FEATURE | **Risk**: HIGH
-**Stage**: COMPLETE | **Status**: COMPLETED
-**Active Subsystem**: core
+**Mission**: AntiOS Phase 40–42: Final Consolidation, Architecture Reconciliation & Release Hardening
+**Class**: REFACTOR / AUDIT | **Risk**: HIGH
+**Stage**: COMPLETE | **Status**: READY_FOR_RELEASE
+**Active Subsystem**: root / documentation / core
 
 ## 1. Active Checklist
-- [x] Extended ToolTier and Canonical ToolDefinition model implemented (`tool.py`)
-- [x] Canonical ProviderDefinition and ProviderType abstraction implemented (`provider.py`)
-- [x] Deterministic Tool & Provider Registry with 6 secondary indices implemented (`tool_registry.py`)
-- [x] Unified MCPJustificationEngine answering 8 canonical questions implemented (`tool_policy.py`)
-- [x] Strict 6-Tier Tool Preference (NATIVE > SCRIPT > PROJECT > EXTERNAL > SERVICE > MCP) implemented
-- [x] Tool Authorization Enforcement against AgentCapabilityBoundary implemented (`tool_policy.py`)
-- [x] Bounded ToolRoutingPack data model (<= 25 lines) implemented (`tool_pack.py`)
-- [x] CLI repository navigation extended with `--tools`, `--providers`, `--tool-selection` (`navigate_repo.py`)
-- [x] 45 new tests implemented across unit, golden (12 tasks), negative, failure, & benchmark suites
-- [x] 447/447 tests passing in ~18.6s (100% pass rate, 0 regressions)
-- [x] Phase 37–39 architecture, tool model, provider model, ADR, matrix & report docs authored
+- [x] Forensics audit completed: core (34 modules) & tools (8 tools) 100% domain-agnostic
+- [x] Repository cleanup completed: foreign directories removed, 30+ phase reports archived
+- [x] Decision registers consolidated: root DECISION_REGISTER.md (ADRs 01–35) reconciled
+- [x] Canonical specifications reconciled: 10 root specs fully synchronized
+- [x] Professional documentation authored: docs/INDEX, architecture, guides, reference, ops, security
+- [x] Root README.md rewritten: professional product presentation and quick start
+- [x] Documentation reference audit: 0 broken references across all docs
+- [x] Deterministic test suite: 447/447 tests passing (100% pass rate)
+- [x] Independent verification: Maker-Checker verification audit completed
 
 ## 2. Blockers & Invariants
-- Invariant: Locked architecture: Platform -> Core -> Adapter -> Target
-- Invariant: Shallow depth law (depth <= 2; specialists/checkers never spawn children)
-- Invariant: Local Git CLI authoritative for local repo; GitHub MCP restricted to remote PRs
-- Invariant: No custom AntiOS MCP server; core scripts remain local deterministic tools
-- Invariant: Tool selection does NOT grant authority; governed by agent boundary & protected zones
-- Invariant: Active Context strictly bounded <= 60 lines (currently 47 lines)
-- Invariant: Zero third-party dependencies (Python 3.11 stdlib only)
+- Invariant: Locked 4-Tier architecture: Platform -> Core -> Adapter -> Target
+- Invariant: Zero third-party dependencies (Python 3.8+ stdlib only)
+- Invariant: AntiOS Core 100% universal and domain-agnostic
+- Invariant: Shallow Depth Law: Subagent depth strictly <= 2
+- Invariant: Active Context strictly bounded <= 60 lines (currently 42 lines)
 
 ## 3. Changed Files & Verification State
 - Verification State: VERIFIED
-- Active Subsystem: core
-- Key Modules Added/Updated:
-  - framework/core/tool.py, provider.py, tool_registry.py, tool_policy.py, tool_pack.py, __init__.py
-  - framework/scripts/tools/navigate_repo.py
-  - tests/test_provider_model.py, test_tool_registry.py, test_tool_policy.py, test_tool_pack.py
-  - tests/test_golden_tool_routing.py, test_tool_negative.py, test_tool_failure.py, test_tool_benchmark.py
-  - tests/run_all.py, docs/architecture/PHASE37_39_*.md
-- Verdict: PASS (447/447 tests passing in ~18.6s)
+- Key Changes: Root specifications, docs/ system, reports/archive/, README.md
+- Test Suite: 447/447 passing in ~18s (tests/run_all.py)
+- Doc Audit: 0 broken references (framework/scripts/tools/audit_docs.py --all)
+- Verdict: PASS
 
 ## 4. Dead-End Memory & Validated Lessons
-- Wildcard capability matching must check `endswith("*")` to prevent prefix false-positives
-- Available candidates must be sorted before unavailable candidates regardless of tier preference
-- Provider declaration does not grant authority; agent role boundary must be checked at selection time
-- Sub-millisecond lookup (<0.1ms) achieved in-memory with zero external database or runtime daemons
+- Intermediate phase reports contain speculative dummy links; must live in reports/archive/phases/
+- DECISION_REGISTER.md is bound by memory.py:1000 and must remain at repository root
+- Path normalizer must strip file:/// schemes before validating absolute paths
+- All 8 CLI tools operate hermetically with standard library only
 
 ## 5. Next Immediate Action
-AntiOS Phase 37–39 certified and complete. Stop at Phase 37–39 boundary. Ready for Phase 40–42.
+Phase 40–42 consolidation complete. Framework hardened, reconciled, and declared release-ready.

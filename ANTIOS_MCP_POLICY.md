@@ -1,38 +1,67 @@
-# AntiOS v1 MCP Policy (`ANTIOS_MCP_POLICY.md`)
+# AntiOS Tool, Provider & MCP Policy (`ANTIOS_MCP_POLICY.md`)
 
 **Date**: 2026-09-04  
-**Author**: AntiOS Architecture Team  
-**Objective**: Audit and establish a disciplined, evidence-based policy for Model Context Protocol (MCP) server usage within AntiOS, classifying candidates into strict operational tiers and eliminating architectural bloat.
+**Status**: Canonical Tool, Provider & MCP Policy (Phases 1–42 Consolidated)  
+**Objective**: Establish a disciplined, evidence-based policy for tool selection, provider abstractions, and Model Context Protocol (MCP) server usage within AntiOS repositories.
 
 ---
 
-## 1. Governance Axiom for MCP Integrations
+## 1. Governance Axiom for Tools & MCP
 
 > *"Do not add or call MCP servers simply because they are configured in the platform environment.*  
-> *If a native CLI or standard tool executes faster, offline, and with zero token overhead $\to$ PREFER NATIVE TOOLING.*  
+> *If a native CLI or standard tool executes faster, offline, and with zero token overhead $	o$ PREFER NATIVE TOOLING.*  
 > *An MCP server earns a place in the AntiOS workflow only when it provides unique, irreplaceable capabilities that materially improve engineering quality or safety."*
 
 ---
 
-## 2. MCP Candidate Classification Matrix
+## 2. Six-Tier Tool Preference Hierarchy
 
-| MCP Server Name | Primary Capabilities | Classification | AntiOS v1 Operational Policy |
-| :--- | :--- | :---: | :--- |
-| **`chrome-devtools-mcp`** | Deep browser DOM inspection, accessibility trees, console errors, visual snapshots. | **`USEFUL`** | Permitted for StudyLab Svelte frontend layout inspection, webview debugging, and visual regression auditing. |
-| **`playwright` / `playwright-mcp-server`** | End-to-end headless browser automation, UI flow testing, click/fill interaction. | **`USEFUL`** | Permitted for automated verification of StudyLab interactive review flows and e2e test execution. |
-| **`gemini-api-docs`** | Official upstream Gemini SDK and API documentation search and chunk retrieval. | **`USEFUL`** | Permitted for validating model integration APIs, SDK schemas, and preventing API hallucinations. |
-| **`github-mcp-server`** | Remote repository operations: PR creation, remote branch listing, issue tracking. | **`OPTIONAL`** | **STRICT BOUNDARY**: Local repository operations (commit, diff, status, checkout, branch) MUST use local `git` CLI via `run_command`. GitHub MCP is restricted strictly to remote PR workflows if requested by the user. |
-| **`docker-mcp`** | Container lifecycle management, isolated environments. | **`OPTIONAL`** | Permitted only for isolated Linux containerized builds or reproduction of environment-specific bugs. |
-| **`studysource-core`** | StudySourceCore domain tools (`validate_artifact`, `export_anki_package`). | **`REJECTED`** | **STRICTLY OUT OF SCOPE**. Formally rejected in Phase 8 (`DECISION_REGISTER.md:L60`) and reinforced by User Directive. Zero integration permitted. |
-| **`notion-mcp-server`** | Notion page and database manipulation. | **`REDUNDANT`** | **NOT PERMITTED**. AntiOS strictly maintains project state and documentation in version-controlled local markdown files. |
-| **`postman-mcp-server`** | REST API testing and collection management. | **`REDUNDANT`** | **NOT PERMITTED**. StudyLab is a native desktop application with SQLite storage, not a distributed HTTP REST microservice. |
-| **`posthog`** | Product analytics queries and tracking. | **`REDUNDANT`** | **NOT PERMITTED**. Telemetry and analytics inspection are out of scope for AntiOS engineering governance. |
+AntiOS enforces a strict 6-tier preference ordering across all tool selection decisions:
+
+```text
+┌──────────────┬────────────────────────────────────────────────────────────────┐
+│ TIER         │ SELECTION PREFERENCE & RATIONALE                               │
+├──────────────┼────────────────────────────────────────────────────────────────┤
+│ 1. NATIVE    │ Platform primitives (run_command, view_file, write_to_file).   │
+│              │ Instant execution, zero protocol overhead, platform supported. │
+├──────────────┼────────────────────────────────────────────────────────────────┤
+│ 2. SCRIPT    │ AntiOS deterministic CLI scripts (navigate_repo, audit_docs).  │
+│              │ Fast (<100ms), offline, zero token cost, reproducible.         │
+├──────────────┼────────────────────────────────────────────────────────────────┤
+│ 3. PROJECT   │ Project-local build/test tools (pytest, vitest, cargo, go).   │
+│              │ Ground-truth application compilers and runners.               │
+├──────────────┼────────────────────────────────────────────────────────────────┤
+│ 4. EXTERNAL  │ Standard system CLI utilities (git, curl, tar, grep).          │
+│              │ Operating system utilities executed via run_command.           │
+├──────────────┼────────────────────────────────────────────────────────────────┤
+│ 5. MCP       │ Authorized, lazily-loaded MCP servers with justified need.     │
+│              │ Unique capabilities (browser automation, live DOM, SDK docs).  │
+├──────────────┼────────────────────────────────────────────────────────────────┤
+│ 6. REJECTED  │ Formally prohibited MCP servers and duplicate external tools.   │
+│              │ Redundant, ungrounded, or security-violating tools.            │
+└──────────────┴────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 3. The Local Git vs GitHub MCP Rule
+## 3. MCP Candidate Classification Matrix
 
-A critical lesson from Phases 8 and 10:
+| MCP Server Name | Primary Capabilities | Classification | AntiOS Operational Policy |
+| :--- | :--- | :---: | :--- |
+| **`chrome-devtools-mcp`** | Live browser DOM inspection, a11y trees, console errors, performance auditing. | **`AUTHORIZED`** | Permitted for web frontend layout inspection, webview debugging, and visual regression auditing. |
+| **`playwright` / `playwright-mcp-server`** | Headless browser automation, UI flow testing, click/fill interaction. | **`AUTHORIZED`** | Permitted for automated e2e browser automation and UI verification flows. |
+| **`gemini-api-docs`** | Official upstream Gemini SDK and API documentation search and chunk retrieval. | **`AUTHORIZED`** | Permitted for validating model integration APIs and SDK schemas. |
+| **`github-mcp-server`** | Remote repository operations: PR creation, remote branch listing, issue tracking. | **`RESTRICTED`** | **STRICT BOUNDARY**: Local repository operations (commit, diff, status, checkout, branch) MUST use local `git` CLI via `run_command`. GitHub MCP is restricted strictly to remote PR workflows. |
+| **`docker-mcp`** | Container lifecycle management, isolated environments. | **`RESTRICTED`** | Permitted only for isolated containerized builds or reproduction of environment-specific bugs. |
+| **`studysource-core`** | Out-of-scope domain tools (`validate_artifact`, `export_anki_package`). | **`REJECTED`** | **100% OUT OF SCOPE**. Formally rejected; zero integration permitted. |
+| **`notion-mcp-server`** | Remote page and database manipulation. | **`REJECTED`** | **PROHIBITED**. State is maintained in version-controlled local markdown files. |
+| **`postman-mcp-server`** | REST API testing and collection management. | **`REJECTED`** | **PROHIBITED**. Redundant with local test runners and native curl/requests. |
+| **`posthog`** | Product analytics queries and tracking. | **`REJECTED`** | **PROHIBITED**. Telemetry queries out of scope for repository engineering governance. |
+
+---
+
+## 4. The Local Git vs GitHub MCP Rule
+
 ```text
 ┌──────────────────────────────────────┬──────────────────────────────────────┐
 │ LOCAL GIT CLI (Native run_command)   │ GITHUB MCP SERVER (Remote Transport) │
@@ -47,54 +76,16 @@ A critical lesson from Phases 8 and 10:
 └──────────────────────────────────────┴──────────────────────────────────────┘
 ```
 
-AntiOS v1 mandates that all local repository inspections (`git status`, `git diff`, `git log`, `git checkout`) execute via local git CLI. Agents must never call GitHub MCP to inspect uncommitted local working trees.
-
 ---
 
-## 4. MCP Operational Hygiene Rules
+## 5. Canonical MCP Justification Authority
 
-1. **Lazy Loading**: All permitted MCP servers must remain lazily loaded. Tools are queried only when the active task explicitly demands browser automation or documentation lookup.
-2. **Payload Restraint**: When querying `gemini-api-docs`, agents must request single chunks without unnecessary context expansion to conserve context window budgets.
-3. **Zero Contamination**: Sandboxes and production code must contain zero import statements, wrapper classes, or dependencies tying application logic to MCP servers.
-
----
-
-## 5. Phase 16–18 MCP Integration Decision
-
-**Decision**: **DEFER** (with partial REJECT for anti-patterns)
-
-### Reasoning
-
-| Criterion | Assessment |
-| :--- | :--- |
-| **Does AntiOS Core need a custom MCP server?** | **No.** All governance, enforcement, and tool interfaces in Phase 16–18 are fully served by deterministic Python scripts invoked via `run_command`. Zero MCP gap exists. |
-| **Would wrapping existing scripts in MCP add value?** | **No.** It would add JSON-RPC overhead, runtime complexity, and a dependency on MCP transport for operations that execute in < 50ms locally. |
-| **Is there a future MCP integration surface?** | **Yes — DEFERRED.** The `ToolTier.MCP` tier in `framework/core/tool.py` reserves the extensibility surface. When a genuine need arises (e.g., remote CI integration, cross-repo verification), MCP can be adopted through the existing `ToolSelectionPolicy` without architectural changes. |
-| **What is explicitly REJECTED?** | Building a custom MCP server merely to wrap `inspect_repo.py`, `check_changeset.py`, or `check_worktree.py`. Building MCP wrappers for git CLI operations. Adding MCP dependencies to any core module. |
-
-### Formal Policy Statement
-
-> AntiOS Phase 16–18 does NOT build, register, or depend on any new MCP server.
-> The `ToolTier` enum reserves `MCP` as a third tier for future needs.
-> The `ToolSelectionPolicy.select_tool_tier()` method ensures MCP is only selected
-> when both native and script tiers are unavailable.
-> This decision can be revisited in a future phase if a concrete, irreplaceable
-> MCP capability is identified.
-
----
-
-## 6. Phase 37–39 Operationalization & Canonical Justification Authority
-
-In Phase 37–39, MCP selection was formalized into a canonical, single-authority architecture:
-1. **Canonical Authority**: `MCPJustificationEngine` (`framework/core/tool_policy.py`) is the sole authority evaluating whether an MCP server is justified.
-2. **The 8 Canonical Questions**: Every MCP evaluation must answer:
-   - Is MCP needed?
-   - Which provider?
-   - Why?
-   - Is it permitted?
-   - What local/native alternatives exist?
-   - Why are those alternatives insufficient?
-   - What fallback exists?
-   - What happens if the provider is unavailable?
-3. **Availability & Fail-Closed**: Unavailable MCPs return status `UNAVAILABLE` without silent fallback altering semantics.
-4. **No Custom MCP Server**: Deterministic scripts (`navigate_repo.py`, `audit_docs.py`, etc.) remain local scripts; AntiOS refuses to introduce an MCP server to wrap local tools.
+All MCP provider evaluations execute through `MCPJustificationEngine` (`framework/core/tool_policy.py`), answering 8 canonical architectural questions:
+1. Is there a native or local script alternative available?
+2. Does the task require capabilities outside the local filesystem?
+3. Is network connectivity required and permitted?
+4. Does the MCP provider expose sensitive credentials or tokens?
+5. Does the MCP provider alter local filesystem state outside git tracking?
+6. Can the operation be verified by an independent local test?
+7. Is the provider officially authorized in the capability matrix?
+8. Does the execution benefit justify the JSON-RPC latency overhead?
