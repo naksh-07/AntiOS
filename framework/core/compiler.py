@@ -215,6 +215,18 @@ class ProjectBoundaryCompiler:
             if p.startswith(".agents/workflows"):
                 del compiled_files[p]
 
+        # Phase 61-66: Project Learning Stores
+        compiled_files[".antios/learning_observations.json"] = json.dumps({
+            "schema_version": "2.0.0",
+            "total_observations": 0,
+            "observations": [],
+        }, indent=2)
+        compiled_files[".antios/learning_proposals.json"] = json.dumps({
+            "schema_version": "2.0.0",
+            "total_proposals": 0,
+            "proposals": [],
+        }, indent=2)
+
         # 10. Build Artifact Records & Project Manifest
         now_ts = datetime.now(timezone.utc).isoformat()
         managed_paths: Dict[str, ArtifactRecord] = {}
@@ -242,6 +254,8 @@ class ProjectBoundaryCompiler:
             ".antios/knowledge.json",
             ".antios/agent_topology.json",
             ".antios/tool_policy.json",
+            ".antios/learning_observations.json",
+            ".antios/learning_proposals.json",
             ".agents/skills/antios/SKILL.md",
         }
         for gsp in generated_skill_paths:

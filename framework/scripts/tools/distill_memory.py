@@ -91,11 +91,27 @@ def main() -> int:
     lessons = parse_lessons(lessons_path)
     task_evidence = extract_task_evidence_from_history(repo_root)
 
+    # Standard distillation
     updated_lessons, result = LessonDistillationEngine.distill(
         lessons=lessons,
         task_evidence=task_evidence,
         min_recurrences=args.min_recurrences
     )
+
+    # Phase 61-66 Project Learning Engine integration
+    learning_proposals = []
+    decay_report_data = {}
+    try:
+        from framework.core.learning import LearningEngine, CandidateLesson
+        engine = LearningEngine(repo_root)
+        cand_lessons = [CandidateLesson.from_lesson_record(l) for l in updated_lessons]
+        cand_lessons, proposals, decay = engine.distill_and_promote(existing_lessons=cand_lessons)
+        learning_proposals = [p.to_dict() for p in proposals]
+        decay_report_data = decay.to_dict()
+        # Merge any updated candidates back into updated_lessons
+        updated_lessons = [c.to_lesson_record() for c in cand_lessons]
+    except Exception:
+        pass
 
     if args.promote and result.promoted_lessons:
         sync_lessons(updated_lessons, repo_root)
@@ -109,6 +125,8 @@ def main() -> int:
             "conflicts_count": len(result.conflicts_detected),
             "distillation": result.to_dict(),
             "applied": bool(args.promote and result.promoted_lessons),
+            "learning_proposals": learning_proposals,
+            "decay_report": decay_report_data,
         }
         print(json.dumps(output_payload, indent=2))
         return 0

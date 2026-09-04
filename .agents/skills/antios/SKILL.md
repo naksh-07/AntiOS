@@ -26,7 +26,7 @@ This skill is your **single authoritative control plane** (`/antios`). Follow th
 6. `SELECT WORKFORCE`: Evaluate Gate A (Pre-Planning) and Gate B (Execution Dispatch).
 7. `EXECUTE`: Controlled single writer or disjoint parallel workers (`Workspace='branch'`).
 8. `VERIFY`: Physical test suite (exit code 0) + Maker-Checker audit via `antios-verifier`.
-9. `REMEMBER`: Record dead ends and distill active progress in `docs/ACTIVE_CONTEXT.md`.
+9. `REMEMBER`: Record observations, distill lessons via learning engine, update `docs/ACTIVE_CONTEXT.md`.
 *CLI Helper*: `python framework/scripts/tools/dispatch_task.py "<task summary>" [--json]`
 
 ## 3. Adaptive Workforce Sizing & Constitutional Limits

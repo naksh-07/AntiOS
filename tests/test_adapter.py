@@ -28,7 +28,7 @@ def test_analyze_adaptation_proposal_creation():
     proposal = analyze_adaptation(profile)
 
     assert len(proposal.items) >= 1
-    assert proposal.repo_root == str(python_dir)
+    assert os.path.normcase(proposal.repo_root) == os.path.normcase(str(python_dir))
     assert not proposal.has_core_changes
     # All items for python_project should be PROJECT_LOCAL
     for item in proposal.items:

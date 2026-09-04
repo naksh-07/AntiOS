@@ -9,13 +9,14 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Master Source of Truth](../ANTIOS_SOURCE_OF_TRUTH.md) — Canonical authority hierarchy and precedence model (Phases 1–42 consolidated).
 - [Universal Constitution](../ANTIOS_CONSTITUTION.md) — The 7 non-negotiable engineering invariants (Protected zones, Same Change Set, etc.).
 - [Master Architecture Specification (v1.0.0-GA)](../ANTIOS_V1.md) — Canonical 4-tier model, 7 subsystems, 34 core modules.
-- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-50).
+- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-52).
 - [Project Agent OS Specification (AntiOS 2.0)](architecture/PROJECT_AGENT_OS.md) - Universal boundary compiler, 5-tier artifact model, lifecycle engine, and orchestration limits.
 - [Contributing Guide](../CONTRIBUTING.md) — Engineering standards, Same Change Set policy, and test validation.
 
 ## 2. Architecture & Subsystems (`docs/architecture/`)
 - [System Architecture Overview](architecture/OVERVIEW.md) — High-level system architecture, subsystem interaction map, and data flows.
 - [Project Agent OS Architecture](architecture/PROJECT_AGENT_OS.md) - Boundary demarcation (SOURCE ≠ INSTANCE ≠ PROJECT), manifest provenance, and orchestration constitution.
+- [Project Learning & Evolution Model](architecture/PROJECT_LEARNING.md) — Epistemic segregation, evidence promotion ladder, safe evolution proposals, and knowledge decay.
 - [Adaptive Mission Orchestration Model](architecture/ORCHESTRATION_MODEL.md) — Sizing modes (SOLO to MAX), wave lifecycle, dual dispatch gates, and resource ledger.
 - [AntiOS Primary Skill Architecture](architecture/ANTIOS_SKILL_MODEL.md) — Single `/antios` control plane specification and progressive disclosure.
 - [Canonical Component Model](architecture/COMPONENT_MODEL.md) — 34 core Python modules across all 7 subsystems.

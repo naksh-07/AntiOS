@@ -280,6 +280,48 @@ from framework.core.orchestration import (
     WaveManager,
 )
 
+# Phase 55-60: Project Anatomy & Intelligence Synthesis
+from framework.core.anatomy import (
+    ProjectArchetype,
+    ProjectAnatomy,
+    ProjectAnatomyCompiler,
+)
+from framework.core.component_intelligence import (
+    ComponentIntelligenceReport,
+    ComponentIntelligenceResolver,
+)
+from framework.core.skill_generator import (
+    SkillGenerator,
+)
+from framework.core.specialist_generator import (
+    SpecialistGenerator,
+)
+from framework.core.intelligence_verifier import (
+    IntelligenceVerificationStatus,
+    IntelligenceIssue,
+    IntelligenceVerificationVerdict,
+    IntelligenceVerifier,
+)
+
+# Phase 61-66: Project Learning & Safe Intelligence Evolution
+from framework.core.learning import (
+    EpistemicSource,
+    ObservationType,
+    KnowledgeState,
+    Observation,
+    ObservationStore,
+    CandidateLesson,
+    LessonDistiller,
+    EvidencePromotionEngine,
+    ProposalType,
+    EvolutionProposal,
+    EvolutionProposalEngine,
+    DecayReport,
+    KnowledgeDecayEngine,
+    LearningSafetyGate,
+    LearningEngine,
+)
+
 __all__ = [
     # Phase 12-15
     "AntiOSConfig",
@@ -489,4 +531,32 @@ __all__ = [
     "OrchestrationBudget",
     "Wave",
     "WaveManager",
+    # Phase 55-60: Project Anatomy & Intelligence Synthesis
+    "ProjectArchetype",
+    "ProjectAnatomy",
+    "ProjectAnatomyCompiler",
+    "ComponentIntelligenceReport",
+    "ComponentIntelligenceResolver",
+    "SkillGenerator",
+    "SpecialistGenerator",
+    "IntelligenceVerificationStatus",
+    "IntelligenceIssue",
+    "IntelligenceVerificationVerdict",
+    "IntelligenceVerifier",
+    # Phase 61-66: Project Learning & Safe Intelligence Evolution
+    "EpistemicSource",
+    "ObservationType",
+    "KnowledgeState",
+    "Observation",
+    "ObservationStore",
+    "CandidateLesson",
+    "LessonDistiller",
+    "EvidencePromotionEngine",
+    "ProposalType",
+    "EvolutionProposal",
+    "EvolutionProposalEngine",
+    "DecayReport",
+    "KnowledgeDecayEngine",
+    "LearningSafetyGate",
+    "LearningEngine",
 ]

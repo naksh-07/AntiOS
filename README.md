@@ -80,7 +80,7 @@ Explore the full documentation portal in [`docs/INDEX.md`](docs/INDEX.md):
 | **Architecture** | [`docs/architecture/CERTIFICATION_MATRIX.md`](docs/architecture/CERTIFICATION_MATRIX.md) | 50 canonical certification rules (C-01 to C-50) |
 | **Governance** | [`ANTIOS_CONSTITUTION.md`](ANTIOS_CONSTITUTION.md) | Universal non-negotiable axioms and invariants |
 | **Governance** | [`ANTIOS_SOURCE_OF_TRUTH.md`](ANTIOS_SOURCE_OF_TRUTH.md) | Definitive system source of truth |
-| **Decisions** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Architectural Decision Register (ADR 01–35) |
+| **Decisions** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Architectural Decision Register (ADR 01-35) |
 | **Operations** | [`.agents/skills/`](.agents/skills/antios-engineer/SKILL.md) | Canonical agent skills (`antios-engineer`, `antios-verifier`, etc.) |
 | **Guides** | [`docs/guides/ADOPT_ANTIOS.md`](docs/guides/ADOPT_ANTIOS.md) | Step-by-step onboarding guide for any repo |
 | **Guides** | [`docs/guides/PROJECT_ADAPTER.md`](docs/guides/PROJECT_ADAPTER.md) | Guide on `antios.config.json` customization |
@@ -96,14 +96,14 @@ Explore the full documentation portal in [`docs/INDEX.md`](docs/INDEX.md):
 
 AntiOS provides 8 standard library CLI tools in `framework/scripts/tools/`:
 
-- `inspect_repo.py` — Inspect repository topology, manifests, and host toolchains.
-- `adapt_project.py` — Analyze adaptation requirements and generate `antios.config.json`.
-- `navigate_repo.py` — Wayfinding tool resolving task intent to subsystems and test suites.
-- `audit_docs.py` — Staleguard Layer 1 documentation reference auditor.
-- `check_changeset.py` — Same Change Set integrity evaluator (code + tests + docs).
-- `check_worktree.py` — Git working tree conflict inspector.
-- `distill_memory.py` — Cross-session lesson distillation and promotion tool.
-- `recover_session.py` — Session recovery and state contradiction resolver.
+- `inspect_repo.py` â€” Inspect repository topology, manifests, and host toolchains.
+- `adapt_project.py` â€” Analyze adaptation requirements and generate `antios.config.json`.
+- `navigate_repo.py` â€” Wayfinding tool resolving task intent to subsystems and test suites.
+- `audit_docs.py` â€” Staleguard Layer 1 documentation reference auditor.
+- `check_changeset.py` â€” Same Change Set integrity evaluator (code + tests + docs).
+- `check_worktree.py` â€” Git working tree conflict inspector.
+- `distill_memory.py` â€” Cross-session lesson distillation and promotion tool.
+- `recover_session.py` â€” Session recovery and state contradiction resolver.
 
 ---
 

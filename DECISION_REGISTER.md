@@ -504,3 +504,23 @@
 - **CONSEQUENCES**: Emitted specialists are non-delegating leaf workers; legacy `.agents/workflows/` are strictly blocked; all emitted files are tracked in `.antios/manifest.json`.
 - **REVERSIBILITY**: High.
 
+---
+
+## DECISION 51: Deterministic Project Learning and Epistemic Segregation
+- **DECISION**: Implement `LearningEngine`, `ObservationStore`, and `LessonDistiller` under the core law: *"Learning is evidence accumulation, not memory mutation."* Observations are captured deterministically across 13 types and 4 epistemic sources (`OBSERVED_FACT` weight 1.0, `USER_ASSERTION` 0.9, `DERIVED_INFERENCE` 0.7, `AGENT_INTERPRETATION` 0.3). Lessons undergo a multi-tier evidence promotion lifecycle (`OBSERVED` -> `CANDIDATE` -> `VALIDATED` -> `DURABLE`). An agent's interpretation or LLM belief alone is strictly prohibited from promoting lessons.
+- **EVIDENCE**: Uncontrolled LLM agent self-reflection creates echo chambers of false beliefs and corrupted memory state. Weight-based epistemic source validation and multi-task recurrence requirements guarantee that only empirical, reproducible truths become durable knowledge.
+- **ALTERNATIVES**: Unfiltered memory append, vector database embedding stores, or prompt-based self-reflection loops.
+- **WHY SELECTED**: Enforces scientific evidence rigor in autonomous agents while remaining completely zero-dependency and deterministic.
+- **CONSEQUENCES**: Project learnings are grounded in test failures, verifier verdicts, and explicit user corrections stored in `.antios/learning_observations.json`.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 52: Learning Safety Gate, Safe Evolution Proposals, and Knowledge Decay Lifecycle
+- **DECISION**: Learning artifacts never perform silent codebase or skill mutations. All evolutionary improvements must be emitted as reviewable `EvolutionProposal` records in `.antios/learning_proposals.json`. `LearningSafetyGate` enforces 10 non-bypassable invariants, including prompt injection filtering, denial of core framework/constitution mutation (`CORE != ADAPTER`), prohibition of specialist self-promotion (`can_delegate=False`), and prevention of unconfigured MCP privilege escalation. `KnowledgeDecayEngine` detects drift and missing referenced files, transitioning stale knowledge through `ACTIVE` -> `STALE` -> `SUPERSEDED` -> `INVALIDATED` -> `RETIRED` while strictly preserving historical provenance audit trails.
+- **EVIDENCE**: Autonomous agents given unconstrained self-modification capabilities inevitably introduce vulnerabilities, hallucinated capabilities, or privilege escalation. Structured proposal schemas and automated decay audits protect repository integrity.
+- **ALTERNATIVES**: Silent in-place skill rewriting or unmonitored agent prompt modification.
+- **WHY SELECTED**: Guarantees repository safety, human oversight over autonomous changes, and deterministic staleness mitigation.
+- **CONSEQUENCES**: Evolution proposals require human approval; attacks attempting core modification or prompt injection are blocked and logged; stale lessons decay safely.
+- **REVERSIBILITY**: High.
+

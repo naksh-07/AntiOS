@@ -121,6 +121,13 @@ import tests.test_workflow_retirement as test_workflow_retirement
 import tests.test_intelligence_verification as test_intelligence_verification
 import tests.test_phase55_60_fixtures as test_phase55_60_fixtures
 
+# Phase 61-66 Project Learning & Safe Intelligence Evolution
+import tests.test_learning_observations as test_learning_observations
+import tests.test_learning_distillation_promotion as test_learning_distillation_promotion
+import tests.test_learning_evolution_proposals as test_learning_evolution_proposals
+import tests.test_learning_decay_staleness as test_learning_decay_staleness
+import tests.test_learning_safety_gate_adversarial as test_learning_safety_gate_adversarial
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -224,6 +231,12 @@ def build_suite() -> unittest.TestSuite:
         test_workflow_retirement,
         test_intelligence_verification,
         test_phase55_60_fixtures,
+        # Phase 61-66
+        test_learning_observations,
+        test_learning_distillation_promotion,
+        test_learning_evolution_proposals,
+        test_learning_decay_staleness,
+        test_learning_safety_gate_adversarial,
     ]
 
     loader = unittest.defaultTestLoader

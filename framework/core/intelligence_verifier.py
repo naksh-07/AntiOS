@@ -165,6 +165,9 @@ class IntelligenceVerifier:
         # 6. Audit Tool Runner Availability
         self._audit_tool_runners(issues)
 
+        # 7. Audit Project Learning State (.antios/learning_*.json) [Phases 61-66]
+        self._audit_learning_state(issues)
+
         # Determine overall status
         status = IntelligenceVerificationStatus.VALID
         remediation_cmd = ""
@@ -403,3 +406,69 @@ class IntelligenceVerifier:
                         ))
         except Exception:
             pass
+
+    def _audit_learning_state(self, issues: List[IntelligenceIssue]) -> None:
+        """Audits project-local learning state (.antios/learning_observations.json & learning_proposals.json)."""
+        obs_file = self.repo_root / ".antios" / "learning_observations.json"
+        if obs_file.is_file():
+            try:
+                if obs_file.stat().st_size > 250_000:
+                    issues.append(IntelligenceIssue(
+                        issue_type="LEARNING_STORAGE_BOUND_EXCEEDED",
+                        path=".antios/learning_observations.json",
+                        description="Observation storage file exceeds 250KB bound.",
+                        severity="WARNING",
+                        recommended_action="Run: python framework/scripts/tools/distill_memory.py . --audit to prune stale observations.",
+                    ))
+                with open(obs_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                observations = data.get("observations", [])
+                if len(observations) > 120:
+                    issues.append(IntelligenceIssue(
+                        issue_type="OBSERVATION_COUNT_BOUND_EXCEEDED",
+                        path=".antios/learning_observations.json",
+                        description=f"Observation count ({len(observations)}) exceeds max bound (100).",
+                        severity="WARNING",
+                        recommended_action="Prune old or unconfirmed observations.",
+                    ))
+                from framework.core.learning import LearningSafetyGate, Observation
+                for obs_dict in observations:
+                    try:
+                        obs_obj = Observation.from_dict(obs_dict)
+                        is_safe, denial_reason = LearningSafetyGate.validate_observation(obs_obj)
+                        if not is_safe:
+                            issues.append(IntelligenceIssue(
+                                issue_type="POISONED_LEARNING_OBSERVATION",
+                                path=f".antios/learning_observations.json:{obs_obj.observation_id}",
+                                description=f"Observation [{obs_obj.observation_id}] violates safety gate: {denial_reason}",
+                                severity="BLOCKING",
+                                recommended_action="Remove poisoned observation immediately.",
+                            ))
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        prop_file = self.repo_root / ".antios" / "learning_proposals.json"
+        if prop_file.is_file():
+            try:
+                with open(prop_file, "r", encoding="utf-8") as f:
+                    pdata = json.load(f)
+                proposals = pdata.get("proposals", [])
+                from framework.core.learning import LearningSafetyGate, EvolutionProposal
+                for p_dict in proposals:
+                    try:
+                        prop_obj = EvolutionProposal.from_dict(p_dict)
+                        is_safe, denial_reason = LearningSafetyGate.validate_proposal(prop_obj, self.repo_root)
+                        if not is_safe:
+                            issues.append(IntelligenceIssue(
+                                issue_type="ILLEGAL_EVOLUTION_PROPOSAL",
+                                path=f".antios/learning_proposals.json:{prop_obj.proposal_id}",
+                                description=f"Proposal [{prop_obj.proposal_id}] violates safety gate: {denial_reason}",
+                                severity="BLOCKING",
+                                recommended_action="Reject and delete illegal proposal.",
+                            ))
+                    except Exception:
+                        pass
+            except Exception:
+                pass
