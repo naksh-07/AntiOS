@@ -215,6 +215,32 @@ from framework.core.agent_routing_pack import (
 from framework.core.agent_router import (
     AgentRouter,
 )
+from framework.core.tool import (
+    ExecutionMode,
+    Locality,
+    ProviderAvailability,
+    CostHint,
+    LatencyHint,
+    ToolPolicyStatus,
+    ToolDefinition,
+)
+from framework.core.provider import (
+    ProviderType,
+    ProviderPolicyStatus,
+    ProviderDefinition,
+)
+from framework.core.tool_registry import (
+    ToolRegistry,
+    build_default_tool_registry,
+)
+from framework.core.tool_policy import (
+    MCPJustificationReport,
+    MCPJustificationEngine,
+    DeterministicToolSelector,
+)
+from framework.core.tool_pack import (
+    ToolRoutingPack,
+)
 
 __all__ = [
     # Phase 12-15
@@ -382,4 +408,21 @@ __all__ = [
     "SpecialistDiscoveryEngine",
     "AgentRoutingPack",
     "AgentRouter",
+    # Phase 37-39: Tool, Provider & MCP Architecture
+    "ExecutionMode",
+    "Locality",
+    "ProviderAvailability",
+    "CostHint",
+    "LatencyHint",
+    "ToolPolicyStatus",
+    "ToolDefinition",
+    "ProviderType",
+    "ProviderPolicyStatus",
+    "ProviderDefinition",
+    "ToolRegistry",
+    "build_default_tool_registry",
+    "MCPJustificationReport",
+    "MCPJustificationEngine",
+    "DeterministicToolSelector",
+    "ToolRoutingPack",
 ]

@@ -293,5 +293,15 @@ Phase 34–36 elevates AntiOS from capability identification to deterministic ag
 - **Project Adapter Topology (`framework/core/config.py`, `adapter.py`)**: Enables target projects to declare custom domain specialists in `antios.config.json` while `verify_adapter` constitutionally prevents depth violations, rogue delegation, or core invariant mutation.
 - **Certified Verification**: 402/402 tests passing in 21.4s (100% pass rate, 0 regressions).
 
+---
 
-
+## 27. Tool, Provider & MCP Architecture (Phase 37–39)
+Phase 37–39 completes the execution mechanism selection architecture:
+- **Canonical Tool Model (`framework/core/tool.py`)**: Extends `ToolTier` (`NATIVE`, `SCRIPT`, `PROJECT`, `EXTERNAL`, `MCP`), introduces operational enums (`ExecutionMode`, `Locality`, `ProviderAvailability`, `CostHint`, `LatencyHint`, `ToolPolicyStatus`), and canonical `ToolDefinition`.
+- **Canonical Provider Abstraction (`framework/core/provider.py`)**: Establishes `ProviderDefinition` and `ProviderType` separating execution transport from capability definitions.
+- **6-Tier Tool Preference Hierarchy**: Strictly enforces `NATIVE (1) -> SCRIPT (2) -> PROJECT (3) -> EXTERNAL (4) -> SERVICE (5) -> MCP (6)`.
+- **Canonical MCP Justification Authority (`MCPJustificationEngine`)**: Answers the 8 canonical questions, strictly enforcing Local Git CLI over GitHub MCP for all local operations, and rejecting unpermitted or redundant MCP servers.
+- **Tool Authorization Enforcement**: Tool selection does not grant permission; strictly verifies against `AgentCapabilityBoundary` and protected core zones.
+- **Bounded Tool Routing Pack (`framework/core/tool_pack.py`)**: Token-bounded cards ($\le 25$ lines) and summaries ($\le 15$ lines) with complete JSON serialization.
+- **CLI Integration (`navigate_repo.py`)**: Adds `--tools`, `--providers`, and `--tool-selection` with structured JSON output.
+- **Certified Verification**: 447/447 tests passing in ~18.6s (100% pass rate, 0 regressions).

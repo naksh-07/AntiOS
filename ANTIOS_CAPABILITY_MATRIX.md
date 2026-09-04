@@ -47,7 +47,7 @@ Every capability identified across AntiOS Phase 1–11 outputs, Phase 12–15 fo
 
 ---
 
-## 2. Universal Capability Layers: 16-Layer Disposition
+## 2. Universal Capability Layers: 18-Layer Disposition
 
 | Layer | Disposition | Evidence & Rationale | Action for Universal Architecture |
 | :--- | :---: | :--- | :--- |
@@ -68,6 +68,7 @@ Every capability identified across AntiOS Phase 1–11 outputs, Phase 12–15 fo
 | **15. Recovery** | **KEEP** | Clean git checkout/restore recovery and `ENVIRONMENT_UNAVAILABLE` runtime trapping are verified. | Retain fail-closed recovery and ambient environment diagnostic checks. |
 | **16. Self-Improvement** | **DEFER** | Autonomous self-modification of core governance scripts risks destabilizing loops. | Keep self-improvement human-in-the-loop: forensic audits and deliberate phase upgrades. |
 | **17. Agent Topology & Specialist Layer** | **BUILT** | Phase 34–36 Agent Topology Layer (`agent_role.py`, `agent_topology.py`, `agent_router.py`, `agent_routing_pack.py`). | Answers: Which agent role should perform which capability, under what scope, and when delegation is justified? |
+| **18. Tool, Provider & MCP Layer** | **BUILT** | Phase 37–39 Tool, Provider & MCP Architecture (`tool.py`, `provider.py`, `tool_registry.py`, `tool_policy.py`, `tool_pack.py`). | Answers: Which concrete tool and provider should execute a capability, under what cost/latency/locality tier, and when MCP is strictly justified? |
 
 ---
 

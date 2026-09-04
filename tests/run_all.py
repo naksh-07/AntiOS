@@ -88,6 +88,16 @@ import tests.test_agent_negative as test_agent_negative
 import tests.test_agent_adversarial as test_agent_adversarial
 import tests.test_agent_benchmark as test_agent_benchmark
 
+# Phase 37-39 Tool, Provider & MCP Architecture test modules
+import tests.test_provider_model as test_provider_model
+import tests.test_tool_registry as test_tool_registry
+import tests.test_tool_policy as test_tool_policy
+import tests.test_tool_pack as test_tool_pack
+import tests.test_golden_tool_routing as test_golden_tool_routing
+import tests.test_tool_negative as test_tool_negative
+import tests.test_tool_failure as test_tool_failure
+import tests.test_tool_benchmark as test_tool_benchmark
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -162,6 +172,15 @@ def build_suite() -> unittest.TestSuite:
         test_agent_negative,
         test_agent_adversarial,
         test_agent_benchmark,
+        # Phase 37-39
+        test_provider_model,
+        test_tool_registry,
+        test_tool_policy,
+        test_tool_pack,
+        test_golden_tool_routing,
+        test_tool_negative,
+        test_tool_failure,
+        test_tool_benchmark,
     ]
 
     for mod in modules:

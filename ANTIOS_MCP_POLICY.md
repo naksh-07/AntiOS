@@ -80,3 +80,21 @@ AntiOS v1 mandates that all local repository inspections (`git status`, `git dif
 > when both native and script tiers are unavailable.
 > This decision can be revisited in a future phase if a concrete, irreplaceable
 > MCP capability is identified.
+
+---
+
+## 6. Phase 37–39 Operationalization & Canonical Justification Authority
+
+In Phase 37–39, MCP selection was formalized into a canonical, single-authority architecture:
+1. **Canonical Authority**: `MCPJustificationEngine` (`framework/core/tool_policy.py`) is the sole authority evaluating whether an MCP server is justified.
+2. **The 8 Canonical Questions**: Every MCP evaluation must answer:
+   - Is MCP needed?
+   - Which provider?
+   - Why?
+   - Is it permitted?
+   - What local/native alternatives exist?
+   - Why are those alternatives insufficient?
+   - What fallback exists?
+   - What happens if the provider is unavailable?
+3. **Availability & Fail-Closed**: Unavailable MCPs return status `UNAVAILABLE` without silent fallback altering semantics.
+4. **No Custom MCP Server**: Deterministic scripts (`navigate_repo.py`, `audit_docs.py`, etc.) remain local scripts; AntiOS refuses to introduce an MCP server to wrap local tools.
