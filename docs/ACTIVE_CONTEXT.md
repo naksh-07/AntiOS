@@ -1,40 +1,40 @@
 # Active Context (`docs/ACTIVE_CONTEXT.md`)
 
-**Mission**: AntiOS Phase 40–42: Final Consolidation, Architecture Reconciliation & Release Hardening
-**Class**: REFACTOR / AUDIT | **Risk**: HIGH
-**Stage**: COMPLETE | **Status**: READY_FOR_RELEASE
-**Active Subsystem**: root / documentation / core
+**Mission**: AntiOS v1.0.0 Production Release & Ongoing Maintenance
+**Class**: RELEASE_MAINTENANCE | **Risk**: LOW
+**Stage**: COMPLETE | **Status**: RELEASED
+**Version**: 1.0.0 | **Mode**: MAINTENANCE
+**Active Subsystem**: Universal Core & Governance
 
 ## 1. Active Checklist
-- [x] Forensics audit completed: core (34 modules) & tools (8 tools) 100% domain-agnostic
-- [x] Repository cleanup completed: foreign directories removed, 30+ phase reports archived
-- [x] Decision registers consolidated: root DECISION_REGISTER.md (ADRs 01–35) reconciled
-- [x] Canonical specifications reconciled: 10 root specs fully synchronized
-- [x] Professional documentation authored: docs/INDEX, architecture, guides, reference, ops, security
-- [x] Root README.md rewritten: professional product presentation and quick start
-- [x] Documentation reference audit: 0 broken references across all docs
-- [x] Deterministic test suite: 447/447 tests passing (100% pass rate)
-- [x] Independent verification: Maker-Checker verification audit completed
+- [x] Repository restructured: 4-tier model and docs/ architecture established
+- [x] Canonical documentation portal live at docs/INDEX.md
+- [x] Development history archived to reports/archive/phases/
+- [x] Research preserved in reports/archive/research/
+- [x] Zero broken documentation references verified across repository
+- [x] Zero-dependency test suite passing (447/447 tests, 100%)
+- [x] Same Change Set and security boundary policies intact
+- [x] Declarative project adapter verified against external targets
 
 ## 2. Blockers & Invariants
-- Invariant: Locked 4-Tier architecture: Platform -> Core -> Adapter -> Target
+- Invariant: Locked 4-Tier architecture (Platform -> Core -> Adapter -> Target)
+- Invariant: Protected Zones Immutability (`framework/core/` and `.agents/`)
 - Invariant: Zero third-party dependencies (Python 3.8+ stdlib only)
-- Invariant: AntiOS Core 100% universal and domain-agnostic
-- Invariant: Shallow Depth Law: Subagent depth strictly <= 2
-- Invariant: Active Context strictly bounded <= 60 lines (currently 42 lines)
+- Invariant: Shallow Delegation Depth: Subagent depth strictly <= 2
+- Invariant: Active Context strictly bounded <= 60 lines (currently 37 lines)
 
 ## 3. Changed Files & Verification State
 - Verification State: VERIFIED
-- Key Changes: Root specifications, docs/ system, reports/archive/, README.md
-- Test Suite: 447/447 passing in ~18s (tests/run_all.py)
+- Release Status: v1.0.0-GA Tag Ready
+- Test Suite: 447/447 passing in ~25s (tests/run_all.py)
 - Doc Audit: 0 broken references (framework/scripts/tools/audit_docs.py --all)
-- Verdict: PASS
+- Verdict: PASS (Full Certification Rules C-01 to C-50 Validated)
 
 ## 4. Dead-End Memory & Validated Lessons
-- Intermediate phase reports contain speculative dummy links; must live in reports/archive/phases/
+- Historical phase reports are non-operational records; must remain in reports/archive/
 - DECISION_REGISTER.md is bound by memory.py:1000 and must remain at repository root
 - Path normalizer must strip file:/// schemes before validating absolute paths
-- All 8 CLI tools operate hermetically with standard library only
+- All 8 CLI tools operate hermetically with Python standard library only
 
 ## 5. Next Immediate Action
-Phase 40–42 consolidation complete. Framework hardened, reconciled, and declared release-ready.
+AntiOS v1.0.0 development phases complete. Operating in MAINTENANCE mode. Next action: Onboard projects via antios-adapt-project.

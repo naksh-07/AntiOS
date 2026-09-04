@@ -27,22 +27,22 @@ AntiOS registers a native `PreToolUse` hook in `.agents/hooks.json` mapped to `f
 
 If any boundary check fails, the guard returns `PERMISSION_DENIED` and immediately aborts the tool invocation.
 
-### B. Path Normalization Engine (`path_normalizer.py`)
-To prevent path traversal bypasses, all file paths pass through `normalize_path()`:
+### B. Path Canonicalization & Confinement Engine (`framework/core/guard.py`)
+To prevent path traversal bypasses, all file paths pass through strict canonicalization in `guard.py`:
 - Resolution of relative dot segments (`..`, `.`)
 - Canonicalization of Windows drive letters and case
 - Normalization of forward and backward slashes
 - Rejection of null bytes (`\0`) and control characters
 - Resolution of symlinks to their physical on-disk targets
-- Blocking of UNC paths (`\\server\share`)
+- Confinement verification strictly within repository boundary (`os.path.commonpath`)
 
-### C. Shell Safety & Command Filtering (`security.py`)
-CLI tools and runners pass through `evaluate_shell_command()`:
+### C. Shell Safety & Command Filtering (`framework/core/guard.py`)
+CLI executions pass through deterministic boundary evaluation:
 - Deterministic tokenization of shell command lines.
-- Rejection of piped command chains containing destructive primitives.
+- Rejection of piped command chains attempting to write to protected zones.
 - Execution within explicit working directories with hard timeouts.
 
-### D. 6-Tier Tool Preference & MCP Policy (`tool_policy.py`)
+### D. 6-Tier Tool Preference & MCP Policy (`framework/core/tool_policy.py`)
 AntiOS restricts external tool invocation using a strict 6-tier hierarchy:
 $$\text{NATIVE} > \text{SCRIPT} > \text{PROJECT} > \text{EXTERNAL} > \text{SERVICE} > \text{MCP}$$
-MCP servers are relegated to Tier 6 and require passing the 8 canonical justification criteria defined in `ANTIOS_MCP_POLICY.md`.
+MCP servers are relegated to Tier 6 and require passing the 8 canonical justification criteria defined in [docs/reference/MCP_POLICY.md](reference/MCP_POLICY.md).

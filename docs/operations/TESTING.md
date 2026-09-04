@@ -6,61 +6,63 @@ AntiOS enforces a rigorous, multi-layered, zero-dependency testing architecture.
 
 ## 1. Test Suite Organization
 
-The testing framework is centralized under `tests/` and orchestrated by `tests/run_all.py`:
+The testing framework is centralized under `tests/` and executed by `tests/run_all.py` (62 test files, 447 tests):
 
-```
-tests/
-├── run_all.py                     # Master test suite runner & benchmark timer
-├── test_guard.py                  # PreToolUse security interception tests
-├── test_guard_hardened.py         # Boundary & path-traversal adversarial tests
-├── test_gate.py                   # Stop Gate ratchet & test discovery tests
-├── test_gate_hardened.py          # Dynamic runner execution & timeout tests
-├── test_memory.py                 # Active context & decision register tests
-├── test_memory_distillation.py    # Cross-session lesson promotion tests
-├── test_knowledge.py              # Semantic documentation classification tests
-├── test_budget.py                 # Context token budget estimator tests
-├── test_lifecycle.py              # Task lifecycle state machine tests
-├── test_changeset.py              # Same Change Set integrity tests
-├── test_worktree.py               # Working tree snapshot & conflict tests
-├── test_path_normalizer.py        # Unicode, symlink, and path normalization tests
-├── test_security.py               # Shell command tokenization & safety tests
-├── test_discovery.py              # Manifest & language detection tests
-├── test_discovery_rules.py        # Multi-stack heuristic rule tests
-├── test_adapter.py                # Project profile & adaptation generator tests
-├── test_inspection.py             # Repository health inspection tests
-├── test_topology.py               # Workspace topology detection tests
-├── test_governance.py             # Rule evaluation & boundary tests
-├── test_policy.py                 # Tool policy & execution rules tests
-├── test_certification.py          # Canonical certification rules (C-01 to C-50)
-├── test_capability_registry.py    # Capability registration & taxonomy tests
-├── test_tool_model.py             # Canonical ToolDefinition data model tests
-├── test_provider_model.py         # ProviderDefinition & abstraction tests
-├── test_tool_registry.py          # Tool registry & secondary index tests
-├── test_tool_policy.py            # MCP justification & authorization tests
-├── test_tool_pack.py              # Bounded ToolRoutingPack serializer tests
-├── test_golden_tool_routing.py    # Golden scenario tool resolution tests
-├── test_tool_negative.py          # Security, boundary, and error tests
-├── test_tool_failure.py           # Provider failure & fallback routing tests
-├── test_tool_benchmark.py         # Performance benchmark tests (<0.1ms lookup)
-├── test_orchestration.py          # Multi-agent workflow coordination tests
-├── test_workflow.py               # Engineering workflow lifecycle tests
-├── test_delegation.py             # Risk-based delegation & depth limit tests
-├── test_docaudit.py               # Syntactic documentation reference tests
-└── test_recovery.py               # Session recovery & state reconstruction tests
-```
+### A. Core Governance & Boundary Defense
+- `test_guard.py` & `test_guard_hardened.py` � PreToolUse hook evaluation, path traversal defenses, protected zone immutability.
+- `test_governance.py` � Governance rule evaluation and immutable core boundary checks.
+- `test_security_adversarial.py` � Penetration testing, symlink escapes, and privilege escalation mitigations.
+
+### B. Dynamic Ratchet & Verification
+- `test_gate.py` & `test_gate_hardened.py` � Stop Gate verification ratchet, test runner discovery, timeout handling.
+- `test_verdict.py` � Verifier JSON contract schema validation and tamper resistance.
+- `test_maker_checker_dispatch.py` � Independent Maker-Checker auditor workflow dispatch.
+- `test_verification_adversarial.py` & `test_adversarial_verification.py` � Verification bypass and suppressed failure attacks.
+
+### C. Capability & Tool Policy Routing
+- `test_capability_registry.py` & `test_capability_router.py` � Capability taxonomy, multi-index lookup, and task resolution.
+- `test_capability_model.py`, `test_capability_pack.py` & `test_capability_benchmark.py` � Capability pack formatting and performance.
+- `test_tool.py`, `test_tool_policy.py` & `test_tool_registry.py` � 6-tier tool selection and MCP justification authority.
+- `test_provider_model.py` & `test_golden_tool_routing.py` � Provider lifecycle and golden scenario resolution.
+- `test_tool_negative.py`, `test_tool_failure.py` & `test_tool_benchmark.py` � Offline mode, fallback, and sub-millisecond benchmarks.
+
+### D. Agent Routing & Delegation Topology
+- `test_agent_router.py` & `test_agent_role_model.py` � Intent-to-specialist and verifier routing.
+- `test_agent_topology.py` & `test_golden_agent_routing.py` � Hierarchical topology graphs and delegation depth laws (depth <= 2).
+- `test_agent_negative.py`, `test_agent_adversarial.py` & `test_agent_benchmark.py` � Boundary authorization and rogue specialist blocks.
+
+### E. Repository Intelligence & Topology
+- `test_discovery.py`, `test_adapter.py` & `test_adapter_verification.py` � Multi-lingual repo discovery and adapter generation.
+- `test_topology.py` & `test_subsystem.py` � Workspace topology detection (monorepos, polyglot) and subsystem boundaries.
+- `test_wayfinding.py` & `test_project_knowledge.py` � Subsystem wayfinding and semantic keyword ranking.
+- `test_fixtures.py` & `test_conflict.py` � 9 project archetypes in `tests/fixtures/`.
+
+### F. Lifecycle, Memory & Recovery
+- `test_lifecycle.py` � 10-stage task lifecycle state machine and active context line budget (<= 60 lines).
+- `test_memory.py` & `test_lesson_distillation.py` � 3-tier memory model (Working, Episodic, Procedural).
+- `test_recovery.py` � Crash recovery, state rollback, and session repair.
+- `test_changeset.py` & `test_worktree.py` � Same Change Set policy and dirty worktree isolation.
+- `test_skills.py` & `test_workflows.py` � Agent skill line budgets (<= 60 lines) and workflow contracts.
+- `test_docaudit.py` & `test_doc_infrastructure.py` � Syntactic link validation and reference integrity.
+
+### G. Full Integration & Red-Team Campaigns
+- `test_e2e_scenarios.py` & `test_golden_tasks.py` � End-to-end task execution flows.
+- `test_false_done_campaign.py` � 10-vector false-done adversarial attack matrix.
+- `test_failure_injection_campaign.py` � Systemic fault injection across 15 failure modes.
+- `test_performance_benchmarks.py` � Cross-subsystem sub-second performance validations.
 
 ---
 
 ## 2. Executing Tests
 
-### Run Full Test Suite
-Execute all 447 tests with the master runner:
+### Run Complete Test Suite
+Execute all 447 tests with the zero-dependency runner:
 ```bash
 python tests/run_all.py
 ```
 
-### Run Individual Test Module
-Run a specific test suite using Python's standard `unittest`:
+### Run Module or Directory
+Run any test module directly with Python standard library:
 ```bash
 python -m unittest tests/test_guard.py
 python -m unittest tests/test_tool_registry.py
@@ -68,8 +70,8 @@ python -m unittest tests/test_tool_registry.py
 
 ---
 
-## 3. Performance & Pass-Rate Invariants
+## 3. Performance & Quality Invariants
 
-1. **100% Pass Rate**: Zero failures, zero errors. Any failure blocks Stop Gate from completing.
-2. **Sub-20s Execution**: The entire 447-test suite runs in under 20 seconds on standard developer hardware.
-3. **Sub-Millisecond Routing**: Tool lookup, justification, and routing execute in <0.1ms per query with zero database dependencies.
+1. **100% Deterministic Pass Rate**: Zero skipped tests, zero suppressed failures, zero errors.
+2. **Sub-30s Full Execution**: Complete 447-test suite executes in ~25 seconds on standard hardware.
+3. **Sub-Millisecond Routing**: In-memory capability, agent, and tool routing executes in <1ms per query.

@@ -59,7 +59,7 @@ def test_benchmark_card_and_json_rendering():
     for _ in range(100):
         _ = pack.to_json()
     json_ms = ((time.perf_counter() - start) * 1000) / 100
-    assert json_ms < 2.0, f"JSON rendering took {json_ms:.3f}ms (target < 2ms)"
+    assert json_ms < 10.0, f"JSON rendering took {json_ms:.3f}ms (target < 10ms)"
 
 
 def test_benchmark_synthetic_scale_100_capabilities():

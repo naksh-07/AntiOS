@@ -1,4 +1,4 @@
-﻿{
+{
   "antios-guard": {
     "PreToolUse": [
       {
@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python -c \"import os,runpy; runpy.run_path('framework/scripts/hooks/pre_tool_guard.py' if os.path.exists('framework/scripts/hooks/pre_tool_guard.py') else '../framework/scripts/hooks/pre_tool_guard.py', run_name='__main__')\""
+            "command": "python framework/scripts/hooks/pre_tool_guard.py"
           }
         ]
       }
@@ -14,7 +14,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "python -c \"import os,runpy; runpy.run_path('framework/scripts/hooks/stop_gate.py' if os.path.exists('framework/scripts/hooks/stop_gate.py') else '../framework/scripts/hooks/stop_gate.py', run_name='__main__')\""
+        "command": "python framework/scripts/hooks/stop_gate.py"
       }
     ]
   }

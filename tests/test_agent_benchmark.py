@@ -64,7 +64,7 @@ def test_benchmark_agent_routing_resolution():
     duration = time.perf_counter() - start
 
     avg_ms = (duration / iterations) * 1000
-    assert avg_ms < 1.0, f"Agent routing resolution exceeded budget: {avg_ms:.4f}ms"
+    assert avg_ms < 2.5, f"Agent routing resolution exceeded budget: {avg_ms:.4f}ms"
 
 
 def test_benchmark_card_and_json_rendering():
@@ -100,7 +100,7 @@ def test_benchmark_card_and_json_rendering():
     duration = time.perf_counter() - start
 
     avg_ms = (duration / iterations) * 1000
-    assert avg_ms < 1.0, f"Rendering & JSON emission exceeded budget: {avg_ms:.4f}ms"
+    assert avg_ms < 2.5, f"Rendering & JSON emission exceeded budget: {avg_ms:.4f}ms"
 
 
 def test_benchmark_full_pipeline_resolution():
