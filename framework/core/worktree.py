@@ -151,7 +151,6 @@ def find_conflict_markers_in_untracked(repo_root: str) -> List[str]:
     if ret != 0 or not out:
         return conflicts
 
-    conflict_tokens = [b"<<<<<<< ", b"=======", b">>>>>>> "]
     for rel_path in out.splitlines():
         rel_path = rel_path.strip()
         if not rel_path:
@@ -166,10 +165,26 @@ def find_conflict_markers_in_untracked(repo_root: str) -> List[str]:
                 continue
             with open(full_path, "rb") as f:
                 content = f.read()
-                for token in conflict_tokens:
-                    if token in content:
-                        conflicts.append(f"Untracked file '{rel_path}' contains conflict marker '{token.decode()}'")
-                        break
+                has_conflict = False
+                token = b""
+                if b"<<<<<<< " in content:
+                    has_conflict = True
+                    token = b"<<<<<<< "
+                elif b">>>>>>> " in content:
+                    has_conflict = True
+                    token = b">>>>>>> "
+                elif (
+                    b"\n=======\n" in content
+                    or b"\r\n=======\r\n" in content
+                    or b"\n=======\r\n" in content
+                    or content.startswith(b"=======\n")
+                    or content.startswith(b"=======\r\n")
+                ):
+                    has_conflict = True
+                    token = b"======="
+
+                if has_conflict:
+                    conflicts.append(f"Untracked file '{rel_path}' contains conflict marker '{token.decode()}'")
         except Exception:
             pass
 

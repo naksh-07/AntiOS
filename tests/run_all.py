@@ -106,6 +106,12 @@ import tests.test_installation_lifecycle as test_installation_lifecycle
 import tests.test_orchestration_constitution as test_orchestration_constitution
 import tests.test_installation_certification_e2e as test_installation_certification_e2e
 
+# Phase 49-54 Main antios Skill, Native Orchestration & Dispatch Pipeline
+import tests.test_main_antios_skill as test_main_antios_skill
+import tests.test_orchestration_adaptive as test_orchestration_adaptive
+import tests.test_dispatch_pipeline as test_dispatch_pipeline
+import tests.test_orchestration_adversarial as test_orchestration_adversarial
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -196,6 +202,11 @@ def build_suite() -> unittest.TestSuite:
         test_installation_lifecycle,
         test_orchestration_constitution,
         test_installation_certification_e2e,
+        # Phase 49-54
+        test_main_antios_skill,
+        test_orchestration_adaptive,
+        test_dispatch_pipeline,
+        test_orchestration_adversarial,
     ]
 
     loader = unittest.defaultTestLoader

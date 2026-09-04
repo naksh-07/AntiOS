@@ -54,8 +54,17 @@ def test_workflow_step_validation():
     assert validate_workflow_step(TaskClass.BUG, TaskStage.TEST) is True
 
 
-def test_workflow_markdown_files_exist():
-    assert os.path.isdir(WORKFLOWS_DIR)
+LEGACY_WORKFLOWS_ARCHIVE = os.path.join(REPO_ROOT, "reports", "archive", "legacy_workflows")
+ACTIVE_WORKFLOWS_DIR = os.path.join(REPO_ROOT, ".agents", "workflows")
+
+
+def test_legacy_workflows_retired_to_archive():
+    """Verifies legacy .agents/workflows/ are retired and preserved in reports/archive/."""
+    # Active runtime MUST NOT have .agents/workflows directory
+    assert not os.path.exists(ACTIVE_WORKFLOWS_DIR), ".agents/workflows/ must be retired from active runtime"
+
+    # Historical archive MUST preserve all 7 legacy workflow documents
+    assert os.path.isdir(LEGACY_WORKFLOWS_ARCHIVE), f"Archive missing: {LEGACY_WORKFLOWS_ARCHIVE}"
     expected_files = [
         "README.md",
         "FEATURE.md",
@@ -66,5 +75,5 @@ def test_workflow_markdown_files_exist():
         "RELEASE_MAINTENANCE.md",
     ]
     for filename in expected_files:
-        filepath = os.path.join(WORKFLOWS_DIR, filename)
-        assert os.path.isfile(filepath), f"Workflow file missing: {filepath}"
+        filepath = os.path.join(LEGACY_WORKFLOWS_ARCHIVE, filename)
+        assert os.path.isfile(filepath), f"Archived legacy workflow file missing: {filepath}"

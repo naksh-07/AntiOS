@@ -22,6 +22,8 @@
 | **Engineering Invariants & Constitution** | AntiOS Master Constitution | `ANTIOS_CONSTITUTION.md` | **CONSTITUTION** | Highest architectural policy; defines invariants, boundaries, and immutable rules. |
 | **System Architecture** | AntiOS Master Architecture Specification | `ANTIOS_V1.md` | **PRIMARY SPEC** | Comprehensive system specification: 4-tier model, 7 subsystems, 34 core modules. |
 | **Project Agent OS Architecture** | AntiOS 2.0 Project Agent OS Specification | `docs/architecture/PROJECT_AGENT_OS.md` | **PRIMARY SPEC** | Compilation contract, 5-tier ownership, 6-phase lifecycle, and orchestration limits. |
+| **Adaptive Mission Orchestration** | AntiOS Adaptive Orchestration Model | `docs/architecture/ORCHESTRATION_MODEL.md` | **PRIMARY SPEC** | Adaptive workforce sizing (SOLO to MAX), wave lifecycle, dual dispatch gates, resource ledger. |
+| **Primary Skill Control Plane** | AntiOS Primary Skill Architecture | `docs/architecture/ANTIOS_SKILL_MODEL.md` | **PRIMARY SPEC** | Authoritative control plane specification for `/antios` skill and progressive disclosure. |
 | **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
 | **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–35) recording why decisions were made. |
 | **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 447 certified tests. |

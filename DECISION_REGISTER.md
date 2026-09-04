@@ -423,3 +423,63 @@
 - **WHY SELECTED**: Minimizes cognitive overhead and conforms 100% to Google Antigravity skill discovery conventions.
 - **CONSEQUENCES**: Developers and agents use `/antios` as the primary operational gateway in any adapted project.
 - **REVERSIBILITY**: High.
+
+---
+
+## DECISION 43: Single User-Facing Entrypoint & Control Plane Architecture
+- **DECISION**: AntiOS establishes `.agents/skills/antios/SKILL.md` as the single authoritative user-facing entrypoint (`/antios`) and control plane. It coordinates wayfinding, capability routing, workforce sizing, execution, and verification through progressive disclosure rather than monolithic instruction bloat.
+- **EVIDENCE**: Phase 49–54 Architectural Audit proved that forcing agents or users to manually coordinate dozens of lower-level subsystems leads to fragmented execution, cognitive overload, and instruction drift.
+- **ALTERNATIVES**: Requiring users to memorize and manually invoke individual specialist skills and routing scripts.
+- **WHY SELECTED**: Provides an intuitive, universal operational gateway across any adapted repository while keeping token consumption bounded.
+- **CONSEQUENCES**: All target projects operate under a unified `/antios` interface.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 44: Antigravity-Native Adaptive Mission Orchestration & Canonical Dispatch Pipeline
+- **DECISION**: Implement the canonical 9-stage dispatch pipeline (`USER TASK` -> `CLASSIFIER` -> `WAYFINDING` -> `CAPABILITIES` -> `AGENT ROUTING` -> `ORCHESTRATOR` -> `TOOL POLICY` -> `EXECUTE` -> `VERIFY` -> `MEMORY`) without creating a competing runtime, daemon, or message broker.
+- **EVIDENCE**: Google Antigravity already natively provides robust subagent execution (`invoke_subagent`, `manage_subagents`), tool interception, and planning modes. AntiOS acts purely as the governance and policy layer.
+- **ALTERNATIVES**: Build custom multi-agent execution runtimes, socket servers, or background worker daemons.
+- **WHY SELECTED**: Conforms strictly to Platform Sovereignty (Constitutional Invariant 1); zero redundant framework bloat.
+- **CONSEQUENCES**: Orchestration is lightweight, fast, and 100% standard-library compliant.
+- **REVERSIBILITY**: Irreversible core foundation.
+
+---
+
+## DECISION 45: Tree-Aware Global Workforce Bounds & Quota Reservation
+- **DECISION**: Orchestration enforces hard constitutional ceilings across the entire mission tree: maximum 10 active subagents per wave, maximum 20 lifetime launches per mission, and maximum nesting depth $\le 2$. Coordinators receive bounded child quotas ($N \le 4$) from Root that revert upon termination.
+- **EVIDENCE**: Uncontrolled hierarchical subagent spawning causes combinatorial credit exhaustion and sibling race conditions. Tree-aware budgeting guarantees budget containment regardless of hierarchy depth.
+- **ALTERNATIVES**: Granting coordinators independent budgets or unbounded child spawning authority.
+- **WHY SELECTED**: Guarantees credit and token safety while preserving focused parallelism.
+- **CONSEQUENCES**: Missions never run away or exceed constitutional ceilings.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 46: Wave Lifecycle with Mandatory State Consolidation and Worker Collapse
+- **DECISION**: Multi-agent missions execute in bounded waves (`RECONNAISSANCE` -> `PLANNING` -> `IMPLEMENTATION` -> `VERIFICATION` -> `DELIVERY`). Advancing to the next wave requires that all active workers from the previous wave are terminated (active total = 0) and state is consolidated.
+- **EVIDENCE**: Persistent, idle subagents consume context and generate prompt confusion. Mandatory collapse ensures the team shrinks as the problem narrows.
+- **ALTERNATIVES**: Allowing workers to persist indefinitely across task phases.
+- **WHY SELECTED**: Prevents context rot, eliminates orphan subagents, and enforces barrier synchronization.
+- **CONSEQUENCES**: Waves are cleanly decoupled; new waves spawn fresh, targeted workers within the global 20-launch budget.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 47: Read-Parallel and Controlled Single-Writer Execution Policy
+- **DECISION**: AntiOS enforces unrestricted parallelism for read-only tasks (reconnaissance, symbol search, log analysis), but strictly controlled execution for writes. Overlapping concurrent writers on the same file are strictly prohibited. Multi-worker writing mandates disjoint file boundaries and isolated worktree branches (`Workspace='branch'`).
+- **EVIDENCE**: Concurrent writes to identical files cause merge conflicts, silent overwrites, and state corruption.
+- **ALTERNATIVES**: Optimistic concurrent writing with post-hoc merge conflict resolution.
+- **WHY SELECTED**: Eliminates write hazards at the scheduling level.
+- **CONSEQUENCES**: High reliability and clean diffs across parallel workstreams.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 48: Deprecation and Retirement of Legacy `.agents/workflows/`
+- **DECISION**: Standalone legacy workflow files (`.agents/workflows/*.md`) are permanently retired and archived to `reports/archive/legacy_workflows/`. Task class lifecycle contracts are codified in Python standard library (`framework/core/workflow.py`).
+- **EVIDENCE**: Antigravity has unified around Skills (`.agents/skills/*/SKILL.md`) with slash command bindings. Maintaining duplicate, unversioned procedural markdown files in `.agents/workflows/` violates the Single Authority Governance Law.
+- **ALTERNATIVES**: Maintain two competing workflow systems in parallel.
+- **WHY SELECTED**: Eliminates architectural ambiguity and aligns AntiOS with native platform conventions.
+- **CONSEQUENCES**: Active `.agents/` contains only Skills, Rules, and Hooks.
+- **REVERSIBILITY**: High.

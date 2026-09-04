@@ -16,6 +16,8 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 ## 2. Architecture & Subsystems (`docs/architecture/`)
 - [System Architecture Overview](architecture/OVERVIEW.md) — High-level system architecture, subsystem interaction map, and data flows.
 - [Project Agent OS Architecture](architecture/PROJECT_AGENT_OS.md) - Boundary demarcation (SOURCE ≠ INSTANCE ≠ PROJECT), manifest provenance, and orchestration constitution.
+- [Adaptive Mission Orchestration Model](architecture/ORCHESTRATION_MODEL.md) — Sizing modes (SOLO to MAX), wave lifecycle, dual dispatch gates, and resource ledger.
+- [AntiOS Primary Skill Architecture](architecture/ANTIOS_SKILL_MODEL.md) — Single `/antios` control plane specification and progressive disclosure.
 - [Canonical Component Model](architecture/COMPONENT_MODEL.md) — 34 core Python modules across all 7 subsystems.
 - [Responsibility Boundary Matrix](architecture/RESPONSIBILITY_BOUNDARY.md) — 4-tier demarcation (Platform vs. Core vs. Adapter vs. Target).
 - [Core vs. Adapter Demarcation](architecture/CORE_VS_ADAPTER.md) — Universal framework core invariants vs. project-specific configuration.
@@ -32,17 +34,19 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Active Context Ledger](ACTIVE_CONTEXT.md) — Bounded working memory tracking active status and next actions (<= 60 lines).
 - [Validated Project Lessons](LESSONS.md) — Cross-session lessons and distilled procedural memory.
 - **Canonical Agent Skills** (`.agents/skills/`):
+  - [antios](../.agents/skills/antios/SKILL.md) — Universal project-native control plane and primary `/antios` entrypoint.
   - [antios-engineer](../.agents/skills/antios-engineer/SKILL.md) — Universal engineering workflow policy skill (Plan, Act, Consolidate).
   - [antios-verifier](../.agents/skills/antios-verifier/SKILL.md) — Maker-Checker independent verification audit contract.
   - [antios-debug](../.agents/skills/antios-debug/SKILL.md) — 5-step systematic root-cause debugging procedure.
   - [antios-adapt-project](../.agents/skills/antios-adapt-project/SKILL.md) — Universal project discovery and adapter configuration.
-- **Standard Operating Workflows** (`.agents/workflows/`):
-  - [Workflows SOP Catalog](../.agents/workflows/README.md) — Lifecycle mapping and workflow selection matrix.
-  - [FEATURE](../.agents/workflows/FEATURE.md) | [BUG](../.agents/workflows/BUG.md) | [REFACTOR](../.agents/workflows/REFACTOR.md) | [INVESTIGATION](../.agents/workflows/INVESTIGATION.md) | [DOCUMENTATION](../.agents/workflows/DOCUMENTATION.md) | [RELEASE_MAINTENANCE](../.agents/workflows/RELEASE_MAINTENANCE.md)
+- **Archived Legacy Workflows** (`reports/archive/legacy_workflows/`):
+  - [Legacy Workflows Archive](../reports/archive/legacy_workflows/README.md) — Historical SOP catalog retired to archive; active lifecycle contracts codified in `framework/core/workflow.py`.
 
 ## 4. Technical Reference & Guides
 - [Universal Project Adoption Guide](guides/ADOPT_ANTIOS.md) — Step-by-step onboarding of unfamiliar repositories into AntiOS governance.
 - [Project Adapter Guide](guides/PROJECT_ADAPTER.md) — Declarative adapter configuration schema (`antios.config.json`).
+- [Orchestration Policy & Invariants](reference/ORCHESTRATION_POLICY.md) — Constitutional workforce limits, wave collapse rules, and write safety policies.
+- [Agent Dispatch Reference](reference/AGENT_DISPATCH.md) — Canonical 8-stage task dispatch pipeline and CLI reference.
 - [Command Line Interface Reference](reference/CLI.md) — Reference for all 8 deterministic CLI tools in `framework/scripts/tools/`.
 - [Configuration Reference](reference/CONFIGURATION.md) — Complete specification of `antios.config.json` options.
 - [Tool, Provider & MCP Policy](reference/MCP_POLICY.md) — 6-tier preference hierarchy and 8 canonical MCP justification rules.

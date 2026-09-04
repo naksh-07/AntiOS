@@ -3,7 +3,7 @@
 Formalizes the architectural distinctions between:
 - RULE: High-level cognitive directive and behavioral invariant (prompt text in docs/AGENTS.md)
 - SKILL: Procedural capability guidance ("HOW") in .agents/skills/
-- WORKFLOW: Declarative stage sequence ("WHEN + SEQUENCE") in .agents/workflows/ and framework/core/workflow.py
+- WORKFLOW: Declarative stage sequence ("WHEN + SEQUENCE") in framework/core/workflow.py (legacy .agents/workflows/ retired)
 - HOOK: Deterministic process interceptor outside LLM context in .agents/hooks.json and framework/scripts/hooks/
 - TOOL: Executable capability primitive (Antigravity native, local script, or external MCP)
 - ADAPTER: Project-specific declarative binding in antios.config.json
@@ -71,7 +71,7 @@ GOVERNANCE_TAXONOMY: Dict[GovernancePrimitiveType, GovernancePrimitiveDefinition
     GovernancePrimitiveType.WORKFLOW: GovernancePrimitiveDefinition(
         primitive_type=GovernancePrimitiveType.WORKFLOW,
         definition="Declarative temporal sequence specifying WHEN stages occur and how skills compose.",
-        physical_location=".agents/workflows/*.md & framework/core/workflow.py",
+        physical_location="framework/core/workflow.py (codified contracts; legacy .agents/workflows/*.md retired to archive)",
         execution_context="Lifecycle state engine and operational orchestration",
         invariants=[
             "Governs ordered progression through the 10-step lifecycle.",
