@@ -229,6 +229,7 @@ class ProjectProfile:
     topology: WorkspaceTopology = WorkspaceTopology.STANDALONE
     workspace_members: List[WorkspaceMember] = field(default_factory=list)
     manifest_fingerprint: str = ""
+    subsystems: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
     def add_observed(self, path: str, selector: str, value: Any, witness_type: str = "FILE_CONTENT", description: str = "") -> None:
         self.observed_facts.append(EvidenceFact(path, selector, value, witness_type, description))
@@ -266,6 +267,7 @@ class ProjectProfile:
             "risk_zones": self.risk_zones,
             "protected_paths": self.protected_paths,
             "forbidden_patterns": self.forbidden_patterns,
+            "subsystems": self.subsystems,
         }
 
     def to_json(self, indent: int = 2) -> str:

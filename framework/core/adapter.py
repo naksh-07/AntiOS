@@ -211,6 +211,21 @@ def analyze_adaptation(profile: ProjectProfile, current_config: Optional[AntiOSC
                 is_automated_safe=False,
             )
         )
+    # Propose components registration for wayfinding
+    if hasattr(profile, "subsystems") and profile.subsystems:
+        proposal.items.append(
+            AdaptationProposalItem(
+                action=ActionType.CONFIGURE,
+                target=ChangeTarget.PROJECT_LOCAL,
+                component="components",
+                description=f"Register {len(profile.subsystems)} discovered project subsystems for wayfinding and locality indexing.",
+                reason="Enables deterministic component wayfinding and scoped test resolution.",
+                source_evidence=list(profile.subsystems.keys()),
+                risk=ProposalRisk.LOW,
+                verification_required="Verify component root paths exist on disk",
+                is_automated_safe=True,
+            )
+        )
 
     return proposal
 
@@ -255,6 +270,10 @@ def generate_adapter_config(profile: ProjectProfile, proposal: AdaptationProposa
     for rz in profile.risk_zones:
         if rz not in config.protected_domain_paths:
             config.protected_domain_paths.append(rz)
+
+    # Add components registry
+    if hasattr(profile, "subsystems") and profile.subsystems:
+        config.components = dict(profile.subsystems)
 
     return config
 
@@ -359,6 +378,13 @@ def apply_project_adaptation(repo_root: str, proposal: AdaptationProposal, dry_r
         },
     }
 
+    # Add components registry
+    new_components = dict(current_config.components if current_config and hasattr(current_config, "components") else {})
+    if "discovered" in locals() and hasattr(discovered, "subsystems") and discovered.subsystems:
+        new_components.update(discovered.subsystems)
+    if new_components:
+        config_dict["components"] = new_components
+
     if dry_run:
         return True, f"[DRY RUN] Would write adapter configuration to '{target_config_path}':\n" + json.dumps(config_dict, indent=2)
 
@@ -451,6 +477,20 @@ def verify_adapter(
                 passed.append(f"Manifest fingerprint computed ({current_fingerprint[:8]}...).")
         except Exception as e:
             passed.append(f"Fingerprint check bypassed: {e}")
+
+    # 4. Check components if present
+    if hasattr(cfg, "components") and cfg.components:
+        comp_issues = 0
+        for sub_id, data in cfg.components.items():
+            if isinstance(data, dict):
+                root_paths = data.get("root_paths", [])
+                for rp in root_paths:
+                    abs_rp = os.path.join(repo_root, rp)
+                    if not os.path.exists(abs_rp):
+                        issues.append(f"Component '{sub_id}' root path '{rp}' not found on disk.")
+                        comp_issues += 1
+        if comp_issues == 0:
+            passed.append(f"Component registry verified ({len(cfg.components)} components).")
 
     is_valid = len(issues) == 0
     return AdapterVerificationResult(

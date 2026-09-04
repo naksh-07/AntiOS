@@ -308,7 +308,7 @@ def evaluate_stop_gate(
 
         # 2. Same Change Set Evaluation
         if config.policies.enforce_same_change_set and config.changeset.enabled:
-            cs_eval = evaluate_changeset(repo_root, policy=config.changeset)
+            cs_eval = evaluate_changeset(repo_root, changed_files=touched_files, policy=config.changeset)
             if not cs_eval.is_valid:
                 return "continue", f"AntiOS Stop Gate: {cs_eval.summary} Details: {'; '.join(cs_eval.violations)}"
 

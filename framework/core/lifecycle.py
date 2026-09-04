@@ -80,6 +80,7 @@ class TaskState:
     changed_files: List[str] = field(default_factory=list)
     verification_state: str = "UNVERIFIED"
     target_member: Optional[str] = None
+    active_subsystem: Optional[str] = None
     pending_decisions: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -94,6 +95,7 @@ def create_task(
     changed_files: Optional[List[str]] = None,
     verification_state: str = "UNVERIFIED",
     pending_decisions: Optional[List[str]] = None,
+    active_subsystem: Optional[str] = None,
 ) -> TaskState:
     """Initializes a new task state at INTAKE stage."""
     return TaskState(
@@ -105,6 +107,7 @@ def create_task(
         active_checklist=checklist or [],
         next_action=next_action or "Understand boundaries and constraints.",
         target_member=target_member,
+        active_subsystem=active_subsystem,
         changed_files=changed_files or [],
         verification_state=verification_state,
         pending_decisions=pending_decisions or [],
@@ -220,6 +223,8 @@ def sync_to_active_context(state: TaskState, repo_root: str) -> str:
     ]
     if state.target_member:
         header_lines.append(f"**Target Member**: {state.target_member}")
+    if state.active_subsystem:
+        header_lines.append(f"**Subsystem**: {state.active_subsystem}")
 
     # 1. Active Checklist (capped to 8 items to stay within budget)
     checklist_items = state.active_checklist[:8] if state.active_checklist else ["[ ] Initial task execution"]
@@ -327,6 +332,13 @@ def parse_active_context(repo_root: str) -> Optional[TaskState]:
             if val and val.lower() != "none":
                 target_member = val
 
+        subsystem_match = re.search(r"\*\*Subsystem\*\*:\s*([^\n]+)", text)
+        active_subsystem = None
+        if subsystem_match:
+            val = subsystem_match.group(1).strip()
+            if val and val.lower() != "none":
+                active_subsystem = val
+
         # Verification state
         verif_state_match = re.search(r"(?:-\s*Verification State|\*\*Verification State\*\*):\s*([A-Z_]+)", text, re.IGNORECASE)
         verification_state = verif_state_match.group(1).strip() if verif_state_match else "UNVERIFIED"
@@ -430,6 +442,7 @@ def parse_active_context(repo_root: str) -> Optional[TaskState]:
             changed_files=changed_files,
             verification_state=verification_state,
             target_member=target_member,
+            active_subsystem=active_subsystem,
             pending_decisions=pending_decisions,
         )
     except Exception:

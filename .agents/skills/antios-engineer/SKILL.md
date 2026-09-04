@@ -25,14 +25,11 @@ Assess the risk tier before implementing:
   - Verifier uses the `antios-verifier` skill and returns a structured JSON verdict.
   - **Shallow Depth Law**: Subagent depth must never exceed 2 (Parent -> Child). Subagents must NEVER spawn children.
 
-## 3. Workflow & Lifecycle Sequences
-AntiOS organizes work into 6 standard engineering workflows (see `.agents/workflows/`):
-- `FEATURE`: Ingest -> Plan -> Guarded Edit -> Test -> Verify -> Consolidate.
-- `BUG`: Minimal reproduce (`antios-debug`) -> Hypothesize -> Patch -> Regress-check.
-- `REFACTOR`: Baseline test -> Behavior-preserving edit -> Full regression audit.
-- `INVESTIGATION`: Read-only exploration -> Evidence acquisition -> Report.
-- `DOCUMENTATION`: Fact check -> Doc authoring -> Same Change Set sync.
-- `RELEASE`: Dependency audit -> Version bump -> Full matrix verification.
+## 3. The 8-Stage Engineering Lifecycle
+Always proceed through:
+`UNDERSTAND -> LOCATE -> PLAN -> ACT -> TEST -> VERIFY -> REMEMBER -> RECOVER`.
+- **LOCATE FIRST**: Before exploring files or writing plans, run `python framework/scripts/tools/navigate_repo.py --query "<intent>"` to resolve the owning subsystem, entrypoints, invariants, and covering tests.
+- Standard workflows (`FEATURE`, `BUG`, `REFACTOR`, `INVESTIGATION`, `DOCUMENTATION`, `RELEASE`) govern the operational sequence. Never guess file locations.
 
 ## 4. The Stop Gate Ratchet
 Task completion triggers the AntiOS Stop hook, which dynamically discovers and executes configured or manifest-detected test runners.

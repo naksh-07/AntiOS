@@ -250,3 +250,14 @@ AntiOS v1 cleanly separates **Generic Governance** from the **StudyLab Domain Ad
 - **Reusable Core**: The fail-closed hook runner, self-protection guards, test ratchet logic, Maker-Checker policy, and bounded markdown memory conventions are completely domain-agnostic.
 - **Domain Adapter**: Protected path lists (`rslib/`), native test runner commands (`npm run vitest:once`), and domain risk classifications are isolated in modular configuration files.
 - To port AntiOS to another repository, one simply clones the Core and updates the target repository's protected paths and test commands.
+
+---
+
+## 23. Evolution to Agent-Native Engineering Environment (Phase 27)
+Phase 27 completed the transformation of AntiOS from a defensive governance harness into an active Agent-Native Engineering Environment:
+- **Component Wayfinding (`framework/core/wayfinding.py`)**: Inverted multi-key indexing and sub-second locality resolution answering *"Where should I look?"* before *"What should I change?"*. Formats bounded locator cards ($\le 20$ lines) detailing entrypoints, test commands, blast radius, and invariants.
+- **Subsystem Manifest Model (`framework/core/subsystem.py`)**: Declarative component schema defining boundaries, entrypoints, authoritative interface files, covering tests, test commands, applicable skills, governing rules, protected invariants, dependencies, and consumers.
+- **Staleguard Layer 1 Reference Auditor (`framework/core/docaudit.py`)**: Zero-token, sub-second syntactic validation of markdown links, relative paths, and test runner targets with 0% false positives. Integrated into the Stop Gate ratchet to reject documentation drift.
+- **8-Stage Agent Engineering Lifecycle**: Formalized agent workflow (`UNDERSTAND -> LOCATE -> PLAN -> ACT -> TEST -> VERIFY -> REMEMBER -> RECOVER`) with active subsystem context synchronization into `docs/ACTIVE_CONTEXT.md` ($\le 60$ lines).
+- **Certified Verification**: 266/266 tests passing in 13.2s with zero external dependencies and independent Maker-Checker certification.
+

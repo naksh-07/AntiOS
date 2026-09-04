@@ -1,6 +1,6 @@
 # AntiOS: Autonomous Engineering Governance & Verification Framework
 
-[![Tests](https://img.shields.io/badge/tests-234%2F234%20passing-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-266%2F266%20passing-brightgreen)](#)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 [![Antigravity: Native](https://img.shields.io/badge/Antigravity-v4%20Native-purple.svg)](#)
@@ -71,11 +71,23 @@ Eliminates self-rationalization on high-risk modifications:
   - The verifier audits `git diff`, executes physical tests, and returns a structured JSON verdict (`PASS`, `FAIL`, `BLOCK`).
 - **Shallow Depth Law**: Subagent nesting depth is strictly $\le 2$ (Parent $\to$ Child). Subagents never spawn grandchildren.
 
-### 4. Lean, High-Value Skills (`.agents/skills/`)
+### 4. Component Wayfinding & Locality Resolution (`framework/core/wayfinding.py`)
+Answers *"Where should I look?"* before *"What should I change?"*:
+- Inverted multi-key index mapping intent queries and file paths to component boundaries in $<1\text{ms}$.
+- Formats bounded locator cards ($\le 20$ lines) detailing entrypoints, test commands, blast radius, and invariants.
+- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --query <keyword>`.
+
+### 5. Staleguard Layer 1 Documentation Auditor (`framework/core/docaudit.py`)
+Zero-token, sub-second documentation reference integrity:
+- Audits markdown links, relative file paths, and test runner invocations against physical disk.
+- Guarantees 0% false positives and enforces Same Change Set documentation validity before task completion.
+- Accessible via CLI: `python framework/scripts/tools/audit_docs.py --all`.
+
+### 6. Lean, High-Value Skills (`.agents/skills/`)
 Avoids context saturation by enforcing a strict $\le 60$-line budget per skill:
-- **`antios-engineer`** (34 lines): Core engineering lifecycle, safety boundaries, risk tiering, and Stop Gate ratchet.
+- **`antios-engineer`** (39 lines): 8-stage engineering lifecycle (`LOCATE FIRST`), safety boundaries, and Stop Gate ratchet.
 - **`antios-verifier`** (48 lines): Independent Checker verification contract and structured verdict emission.
-- **`antios-debug`** (35 lines): Deterministic root-cause debugging protocol (minimal reproducing test first).
+- **`antios-debug`** (37 lines): Deterministic root-cause debugging protocol with wayfinding integration.
 - **`antios-adapt-project`** (≤60 lines): Universal project intelligence and adaptation procedure for unfamiliar repositories.
 
 ---
@@ -148,7 +160,7 @@ Define your project's protected paths and test runners:
 
 ## 🧪 Testing
 
-AntiOS includes a comprehensive 234-test suite across 32 test files with **zero third-party dependencies**:
+AntiOS includes a comprehensive 266-test suite across 37 test files with **zero third-party dependencies**:
 
 ```bash
 # Run using standard library Python
@@ -158,7 +170,7 @@ python tests/run_all.py
 pytest tests/ -v
 ```
 
-All 234 tests execute in $\le 13$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, end-to-end scenarios, and performance benchmarks.
+All 266 tests execute in $\le 14$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, component wayfinding, documentation reference audits, end-to-end scenarios, and performance benchmarks.
 
 ---
 

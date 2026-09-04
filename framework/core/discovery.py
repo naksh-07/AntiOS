@@ -124,6 +124,7 @@ class ProjectDiscoveryEngine:
         self.protected_paths: Set[str] = set()
         self.forbidden_patterns: Set[str] = set()
         self.risk_zones: Set[str] = set()
+        self.subsystems: Dict[str, Dict[str, Any]] = {}
 
     def discover(self) -> ProjectProfile:
         """Execute full read-only discovery and return a canonical ProjectProfile."""
@@ -188,10 +189,13 @@ class ProjectDiscoveryEngine:
                 )
             )
 
+        # 5. Discover project subsystems & components for wayfinding
+        self._discover_subsystems()
+
         # Compute deterministic manifest_fingerprint
         manifest_fingerprint = self._compute_manifest_fingerprint()
 
-        # 5. Assemble and return canonical ProjectProfile
+        # 6. Assemble and return canonical ProjectProfile
         identity = ProjectIdentity(
             name=repo_name,
             root_path=str(self.repo_root),
@@ -217,6 +221,7 @@ class ProjectDiscoveryEngine:
             topology=self.topology or WorkspaceTopology.STANDALONE,
             workspace_members=self.workspace_members,
             manifest_fingerprint=manifest_fingerprint,
+            subsystems=self.subsystems,
         )
 
     def _record_workspace_facts(self) -> None:
@@ -1045,6 +1050,99 @@ class ProjectDiscoveryEngine:
                     winning_source="CI_WORKFLOW_OR_MTIME",
                 )
             )
+
+    def _discover_subsystems(self) -> None:
+        """Heuristically discovers project subsystems, component directories, entrypoints, and tests."""
+        standard_dirs = ["src", "lib", "packages", "apps", "services", "modules", "pkg", "internal", "framework"]
+        tool_names = [t.name for t in self.tools]
+
+        # 1. Monorepo workspace members
+        for member in self.workspace_members:
+            mem_path = member.relative_path.replace("\\", "/").strip("/")
+            sub_id = member.name.replace("@", "").replace("/", "-").lower()
+            entrypoints = []
+            covering_tests = []
+            test_commands = []
+
+            abs_mem = self.repo_root / member.relative_path
+            for candidate in ["index.ts", "index.js", "main.ts", "main.js", "src/index.ts", "src/main.ts", "lib.rs", "main.go", "setup.py", "__init__.py"]:
+                if (abs_mem / candidate).exists():
+                    entrypoints.append(f"{mem_path}/{candidate}")
+                    break
+
+            for t_candidate in [f"tests/{sub_id}", f"{mem_path}/tests", f"{mem_path}/test"]:
+                if (self.repo_root / t_candidate).exists():
+                    covering_tests.append(t_candidate)
+                    break
+
+            self.subsystems[sub_id] = {
+                "subsystem_id": sub_id,
+                "name": member.name,
+                "description": f"Workspace package {member.name}",
+                "area": "monorepo_member",
+                "root_paths": [mem_path],
+                "entrypoints": entrypoints or [mem_path],
+                "authoritative_files": entrypoints or [mem_path],
+                "covering_tests": covering_tests,
+                "test_commands": [f"npm test --prefix {mem_path}"] if getattr(member, "package_type", "") in ("typescript", "javascript", "npm") else [],
+                "applicable_skills": ["antios-engineer"],
+                "applicable_workflows": ["FEATURE", "BUG"],
+                "governing_rules": [],
+                "protected_invariants": [],
+                "dependencies": member.dependencies,
+                "consumers": [],
+                "documentation_paths": [f"{mem_path}/README.md"] if (abs_mem / "README.md").exists() else [],
+                "keywords": [sub_id, member.name.lower()],
+            }
+
+        # 2. Standard directory scan
+        for s_dir in standard_dirs:
+            abs_dir = self.repo_root / s_dir
+            if abs_dir.is_dir():
+                try:
+                    for child in abs_dir.iterdir():
+                        if child.is_dir() and not child.name.startswith((".", "_")):
+                            sub_name = child.name.lower()
+                            rel_child = f"{s_dir}/{child.name}"
+
+                            entrypoints = []
+                            for ep in ["__init__.py", "service.py", "index.ts", "index.js", "main.go", "lib.rs", "mod.rs", "app.py"]:
+                                if (child / ep).exists():
+                                    entrypoints.append(f"{rel_child}/{ep}")
+
+                            covering_tests = []
+                            test_commands = []
+                            for tc in [f"tests/test_{sub_name}.py", f"tests/test_{sub_name}.ts", f"tests/{sub_name}", f"test/{sub_name}", f"{rel_child}/tests"]:
+                                if (self.repo_root / tc).exists():
+                                    covering_tests.append(tc)
+                                    if "pytest" in tool_names:
+                                        test_commands.append(f"pytest {tc}")
+                                    elif "npm" in tool_names or "vitest" in tool_names:
+                                        test_commands.append(f"npm test -- {tc}")
+
+                            sub_id = f"{s_dir}-{sub_name}" if s_dir in ["apps", "services"] else sub_name
+                            if sub_id not in self.subsystems:
+                                self.subsystems[sub_id] = {
+                                    "subsystem_id": sub_id,
+                                    "name": f"{sub_name.capitalize()} Subsystem",
+                                    "description": f"Component at {rel_child}",
+                                    "area": s_dir,
+                                    "root_paths": [rel_child],
+                                    "entrypoints": entrypoints or [rel_child],
+                                    "authoritative_files": entrypoints or [rel_child],
+                                    "covering_tests": covering_tests,
+                                    "test_commands": test_commands,
+                                    "applicable_skills": ["antios-engineer"],
+                                    "applicable_workflows": ["FEATURE", "BUG"],
+                                    "governing_rules": [],
+                                    "protected_invariants": [],
+                                    "dependencies": [],
+                                    "consumers": [],
+                                    "documentation_paths": [f"docs/subsystems/{sub_name}.md"] if (self.repo_root / f"docs/subsystems/{sub_name}.md").exists() else [],
+                                    "keywords": [sub_name, s_dir],
+                                }
+                except Exception:
+                    pass
 
     def get_test_runners(self) -> List[ToolFact]:
         return [t for t in self.tools if t.category == ToolCategory.TEST_RUNNER]

@@ -52,6 +52,13 @@ import tests.test_false_done_campaign as test_false_done_campaign
 import tests.test_failure_injection_campaign as test_failure_injection_campaign
 import tests.test_performance_benchmarks as test_performance_benchmarks
 
+# Phase 27 Agent-Native Engineering Environment test modules
+import tests.test_subsystem as test_subsystem
+import tests.test_wayfinding as test_wayfinding
+import tests.test_docaudit as test_docaudit
+import tests.test_wayfinding_adversarial as test_wayfinding_adversarial
+import tests.test_phase27_integration as test_phase27_integration
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -94,6 +101,12 @@ def build_suite() -> unittest.TestSuite:
         test_false_done_campaign,
         test_failure_injection_campaign,
         test_performance_benchmarks,
+        # Phase 27
+        test_subsystem,
+        test_wayfinding,
+        test_docaudit,
+        test_wayfinding_adversarial,
+        test_phase27_integration,
     ]
 
     for mod in modules:

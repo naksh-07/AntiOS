@@ -32,6 +32,7 @@ class ChangesetPolicy:
     require_tests_on_code_change: bool = True
     require_docs_on_code_change: bool = False
     require_state_on_code_change: bool = False
+    audit_documentation_references: bool = True
 
 
 @dataclass
@@ -212,6 +213,21 @@ def evaluate_changeset(
                 f"Same Change Set Violation: Code files were modified, but active task state "
                 f"was not synchronized in the change set."
             )
+
+    # Staleguard Layer 1: Audit modified documentation files for dead links or broken paths
+    if docs_changed and policy.audit_documentation_references:
+        try:
+            from framework.core.docaudit import audit_documentation_references
+            for df in doc_files:
+                abs_df = os.path.join(repo_root, df) if not os.path.isabs(df) else df
+                if os.path.exists(abs_df) and df.endswith(".md"):
+                    audit_res = audit_documentation_references(df, repo_root)
+                    if not audit_res.is_clean:
+                        violations.append(
+                            f"Documentation Reference Drift: '{df}' contains {audit_res.broken_count} dead link(s) or invalid path reference(s)."
+                        )
+        except Exception:
+            pass
 
     is_valid = len(violations) == 0
     summary = (

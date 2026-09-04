@@ -142,6 +142,20 @@ from framework.core.telemetry import (
     load_telemetry,
     summarize_telemetry,
 )
+from framework.core.subsystem import (
+    SubsystemDeclaration,
+    validate_subsystem_declaration,
+)
+from framework.core.wayfinding import (
+    WayfindingEngine,
+    LocalityResolution,
+)
+from framework.core.docaudit import (
+    DocReference,
+    DocAuditResult,
+    audit_documentation_references,
+    audit_all_documentation,
+)
 
 __all__ = [
     # Phase 12-15
@@ -256,4 +270,13 @@ __all__ = [
     "record_telemetry",
     "load_telemetry",
     "summarize_telemetry",
+    # Phase 27: Wayfinding, Subsystems & Doc Audit
+    "SubsystemDeclaration",
+    "validate_subsystem_declaration",
+    "WayfindingEngine",
+    "LocalityResolution",
+    "DocReference",
+    "DocAuditResult",
+    "audit_documentation_references",
+    "audit_all_documentation",
 ]

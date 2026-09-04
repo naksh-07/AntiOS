@@ -17,9 +17,10 @@ Follow this deterministic protocol to prevent speculative patching and regressio
 - **Evidence Hierarchy**: A bug is only fixed when demonstrated by a passing test execution (Exit Code 0).
 
 ## 2. Five-Step Debugging Procedure
-1. **Reproduce Deterministically**:
-   - Run the relevant test suite via `run_command` to observe the failure directly.
-   - If no test reproduces the bug, author a minimal reproducing unit/integration test case before altering implementation.
+1. **Locate & Reproduce Deterministically**:
+   - Run `python framework/scripts/tools/navigate_repo.py --query "<bug/error>"` to resolve the responsible subsystem and covering tests.
+   - Run the covering test suite via `run_command` to observe the physical failure directly.
+   - If no existing test reproduces the bug, author a minimal reproducing test case before altering code.
 2. **Formulate Explicit Hypothesis**:
    - Inspect stack traces, exit codes, and variable states.
    - Write down the hypothesized root cause before modifying code.
