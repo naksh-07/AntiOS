@@ -261,3 +261,15 @@ Phase 27 completed the transformation of AntiOS from a defensive governance harn
 - **8-Stage Agent Engineering Lifecycle**: Formalized agent workflow (`UNDERSTAND -> LOCATE -> PLAN -> ACT -> TEST -> VERIFY -> REMEMBER -> RECOVER`) with active subsystem context synchronization into `docs/ACTIVE_CONTEXT.md` ($\le 60$ lines).
 - **Certified Verification**: 266/266 tests passing in 13.2s with zero external dependencies and independent Maker-Checker certification.
 
+---
+
+## 24. Agent-Native Project Knowledge & Intelligent Wayfinding (Phase 28–30)
+Phase 28–30 establishes the deterministic project knowledge layer enabling agents to navigate unfamiliar repositories without blind file scanning:
+- **Knowledge Graph (`framework/core/knowledge.py`)**: Cycle-safe, in-memory directed graph indexing 8 canonical edge types (`DEPENDS_ON`, `CONSUMED_BY`, `TESTED_BY`, `GOVERNED_BY`, `REQUIRES_SKILL`, `IMPLEMENTED_THROUGH`, `OWNED_BY`, `DOCUMENTED_BY`) with bidirectional lookups and BFS reachability.
+- **Deterministic Ownership Derivation (`OwnershipDeriver`)**: Waterfall extraction (`CODEOWNERS` $\to$ manifests $\to$ `MAINTAINERS`) with git glob wildcard resolution and strict `UNKNOWN` (confidence `0.0`) fallback.
+- **Functional Doc Classification (`DocKnowledgeClassifier`)**: Functional categorization into 6 tiers (`authoritative`, `architecture`, `component`, `setup`, `testing`, `contribution`) with stale reference tracking.
+- **Change Intent & Blast Radius (`ChangeIntentAnalyzer`)**: Evaluates proposed file modifications against upstream dependencies and downstream consumers, derives transitive blast radius, and aggregates covering tests into a bounded card ($\le 25$ lines).
+- **Progressive Disclosure Engine (`ProgressiveDisclosureEngine`)**: 6 bounded layers (L0 to L5) enforcing strict mathematical line budgets ($L_0 \le 5$, $L_1 \le 15$, $L_2 \le 20$, $L_3 \le 25$, $L_4 \le 20$, $L_5$ JSON) to prevent agent context saturation.
+- **Certified Verification**: 308/308 tests passing in 18.9s (100% pass rate, 0 regressions).
+
+

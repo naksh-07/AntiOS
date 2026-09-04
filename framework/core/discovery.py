@@ -1056,6 +1056,10 @@ class ProjectDiscoveryEngine:
         standard_dirs = ["src", "lib", "packages", "apps", "services", "modules", "pkg", "internal", "framework"]
         tool_names = [t.name for t in self.tools]
 
+        from framework.core.knowledge import OwnershipDeriver
+        owner_deriver = OwnershipDeriver(str(self.repo_root))
+        owner_deriver.scan()
+
         # 1. Monorepo workspace members
         for member in self.workspace_members:
             mem_path = member.relative_path.replace("\\", "/").strip("/")
@@ -1075,6 +1079,8 @@ class ProjectDiscoveryEngine:
                     covering_tests.append(t_candidate)
                     break
 
+            own_res = owner_deriver.resolve_path(mem_path)
+
             self.subsystems[sub_id] = {
                 "subsystem_id": sub_id,
                 "name": member.name,
@@ -1093,6 +1099,14 @@ class ProjectDiscoveryEngine:
                 "consumers": [],
                 "documentation_paths": [f"{mem_path}/README.md"] if (abs_mem / "README.md").exists() else [],
                 "keywords": [sub_id, member.name.lower()],
+                "purpose": f"Workspace package {member.name}",
+                "authoritative_interfaces": entrypoints or [mem_path],
+                "risk_tier": "HIGH" if len(member.dependencies) > 3 else "MEDIUM",
+                "owner": own_res.owner,
+                "owner_source": own_res.source,
+                "owner_confidence": own_res.confidence,
+                "epistemic_state": "OBSERVED",
+                "documentation_categories": {"component": [f"{mem_path}/README.md"]} if (abs_mem / "README.md").exists() else {},
             }
 
         # 2. Standard directory scan
@@ -1122,6 +1136,9 @@ class ProjectDiscoveryEngine:
 
                             sub_id = f"{s_dir}-{sub_name}" if s_dir in ["apps", "services"] else sub_name
                             if sub_id not in self.subsystems:
+                                own_res = owner_deriver.resolve_path(rel_child)
+                                doc_p = f"docs/subsystems/{sub_name}.md"
+                                has_doc = (self.repo_root / doc_p).exists()
                                 self.subsystems[sub_id] = {
                                     "subsystem_id": sub_id,
                                     "name": f"{sub_name.capitalize()} Subsystem",
@@ -1138,8 +1155,16 @@ class ProjectDiscoveryEngine:
                                     "protected_invariants": [],
                                     "dependencies": [],
                                     "consumers": [],
-                                    "documentation_paths": [f"docs/subsystems/{sub_name}.md"] if (self.repo_root / f"docs/subsystems/{sub_name}.md").exists() else [],
+                                    "documentation_paths": [doc_p] if has_doc else [],
                                     "keywords": [sub_name, s_dir],
+                                    "purpose": f"Core component for {sub_name} under {s_dir}",
+                                    "authoritative_interfaces": entrypoints or [rel_child],
+                                    "risk_tier": "MEDIUM",
+                                    "owner": own_res.owner,
+                                    "owner_source": own_res.source,
+                                    "owner_confidence": own_res.confidence,
+                                    "epistemic_state": "INFERRED",
+                                    "documentation_categories": {"component": [doc_p]} if has_doc else {},
                                 }
                 except Exception:
                     pass

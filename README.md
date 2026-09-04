@@ -1,6 +1,6 @@
 # AntiOS: Autonomous Engineering Governance & Verification Framework
 
-[![Tests](https://img.shields.io/badge/tests-266%2F266%20passing-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-308%2F308%20passing-brightgreen)](#)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 [![Antigravity: Native](https://img.shields.io/badge/Antigravity-v4%20Native-purple.svg)](#)
@@ -71,11 +71,14 @@ Eliminates self-rationalization on high-risk modifications:
   - The verifier audits `git diff`, executes physical tests, and returns a structured JSON verdict (`PASS`, `FAIL`, `BLOCK`).
 - **Shallow Depth Law**: Subagent nesting depth is strictly $\le 2$ (Parent $\to$ Child). Subagents never spawn grandchildren.
 
-### 4. Component Wayfinding & Locality Resolution (`framework/core/wayfinding.py`)
-Answers *"Where should I look?"* before *"What should I change?"*:
-- Inverted multi-key index mapping intent queries and file paths to component boundaries in $<1\text{ms}$.
-- Formats bounded locator cards ($\le 20$ lines) detailing entrypoints, test commands, blast radius, and invariants.
-- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --query <keyword>`.
+### 4. Agent-Native Project Knowledge & Intelligent Wayfinding (`framework/core/knowledge.py`, `framework/core/wayfinding.py`)
+Answers *"Where should I look, what governs this area, what is affected, what capabilities should I use, and what must I verify before changing it?"*:
+- **Knowledge Graph**: In-memory, cycle-safe graph with 8 typed edge relations and BFS transitive blast-radius calculation.
+- **Ownership Derivation**: Multi-source extraction (`CODEOWNERS`, package manifests, `MAINTAINERS`) with git precedence and strict `UNKNOWN` (confidence `0.0`) fallback.
+- **Functional Doc Taxonomy**: Categorizes documentation into 6 tiers (`authoritative`, `architecture`, `component`, `setup`, `testing`, `contribution`).
+- **Change Intent & Blast Radius**: Formats bounded impact cards ($\le 25$ lines) aggregating downstream test commands.
+- **Progressive Disclosure**: 6 strictly bounded information layers (L0–L5) preventing context saturation.
+- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --file <path> --impact <path> --capabilities <path> --level <0-5>`.
 
 ### 5. Staleguard Layer 1 Documentation Auditor (`framework/core/docaudit.py`)
 Zero-token, sub-second documentation reference integrity:
@@ -160,17 +163,17 @@ Define your project's protected paths and test runners:
 
 ## 🧪 Testing
 
-AntiOS includes a comprehensive 266-test suite across 37 test files with **zero third-party dependencies**:
-
+AntiOS includes a comprehensive 308-test suite across 46 test files with **zero third-party dependencies**:
+ 
 ```bash
 # Run using standard library Python
 python tests/run_all.py
-
+ 
 # Or run using pytest
 pytest tests/ -v
 ```
-
-All 266 tests execute in $\le 14$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, component wayfinding, documentation reference audits, end-to-end scenarios, and performance benchmarks.
+ 
+All 308 tests execute in $\le 19$ seconds, covering security guards, stop gate ratchets, verdict parsing, adversarial false-done attacks, failure injection, subsystem contracts, component wayfinding, knowledge graphs, ownership derivation, progressive disclosure, change intent, documentation reference audits, end-to-end scenarios, and performance benchmarks.
 
 ---
 

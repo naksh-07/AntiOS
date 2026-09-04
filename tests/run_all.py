@@ -59,6 +59,17 @@ import tests.test_docaudit as test_docaudit
 import tests.test_wayfinding_adversarial as test_wayfinding_adversarial
 import tests.test_phase27_integration as test_phase27_integration
 
+# Phase 28-30 Agent-Native Project Knowledge & Wayfinding test modules
+import tests.test_project_knowledge as test_project_knowledge
+import tests.test_change_intent as test_change_intent
+import tests.test_progressive_disclosure as test_progressive_disclosure
+import tests.test_ownership_derivation as test_ownership_derivation
+import tests.test_doc_infrastructure as test_doc_infrastructure
+import tests.test_knowledge_wayfinding as test_knowledge_wayfinding
+import tests.test_knowledge_adversarial as test_knowledge_adversarial
+import tests.test_performance_phase28_30 as test_performance_phase28_30
+import tests.test_phase28_30_integration as test_phase28_30_integration
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -107,6 +118,16 @@ def build_suite() -> unittest.TestSuite:
         test_docaudit,
         test_wayfinding_adversarial,
         test_phase27_integration,
+        # Phase 28-30
+        test_project_knowledge,
+        test_change_intent,
+        test_progressive_disclosure,
+        test_ownership_derivation,
+        test_doc_infrastructure,
+        test_knowledge_wayfinding,
+        test_knowledge_adversarial,
+        test_performance_phase28_30,
+        test_phase28_30_integration,
     ]
 
     for mod in modules:

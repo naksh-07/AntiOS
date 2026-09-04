@@ -12,6 +12,14 @@ import re
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from framework.core.subsystem import SubsystemDeclaration
+from framework.core.knowledge import (
+    KnowledgeGraph,
+    ChangeIntentAnalyzer,
+    ChangeIntent,
+    OwnershipDeriver,
+    ProgressiveDisclosureEngine,
+    ProgressiveDisclosureLevel,
+)
 
 
 @dataclass(frozen=True)
@@ -35,6 +43,14 @@ class LocalityResolution:
     consumers: List[str]
     documentation_paths: List[str]
     blast_radius_summary: str
+    # Phase 28-30 Canonical Knowledge Extensions (with backward-compatible defaults)
+    purpose: str = ""
+    risk_tier: str = "MEDIUM"
+    owner: Optional[str] = None
+    owner_source: str = "UNKNOWN"
+    owner_confidence: float = 0.0
+    epistemic_state: str = "INFERRED"
+    transitive_consumers: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """Converts resolution to dictionary."""
@@ -49,14 +65,30 @@ class WayfindingEngine:
         self._subsystems: Dict[str, SubsystemDeclaration] = {}
         self._path_to_subsystem: List[Tuple[str, str]] = []  # (prefix, subsystem_id) sorted by length desc
         self._keyword_index: Dict[str, Set[str]] = {}
+        self.knowledge_graph = KnowledgeGraph()
+        self.ownership_deriver = OwnershipDeriver(self.workspace_root)
+        self.change_analyzer = ChangeIntentAnalyzer(self.knowledge_graph, self)
 
     def register_subsystem(self, decl: SubsystemDeclaration) -> None:
-        """Registers a subsystem declaration and updates inverted indices."""
+        """Registers a subsystem declaration and updates inverted indices and knowledge graph."""
         sub_id = decl.subsystem_id.lower()
-        self._subsystems[sub_id] = decl
+        
+        # Derive ownership if not already declared
+        final_decl = decl
+        if (not decl.owner or decl.owner_source == "UNKNOWN") and self.workspace_root and decl.root_paths:
+            own_res = self.ownership_deriver.resolve_path(decl.root_paths[0])
+            if own_res.owner:
+                data = decl.to_dict()
+                data["owner"] = own_res.owner
+                data["owner_source"] = own_res.source
+                data["owner_confidence"] = own_res.confidence
+                final_decl = SubsystemDeclaration.from_dict(data)
+
+        self._subsystems[sub_id] = final_decl
+        self.knowledge_graph.add_component(final_decl)
 
         # Register root paths and specific files
-        all_paths = decl.root_paths + decl.entrypoints + decl.authoritative_files + decl.covering_tests
+        all_paths = final_decl.root_paths + final_decl.entrypoints + final_decl.authoritative_files + final_decl.covering_tests
         for p in all_paths:
             norm_p = p.replace("\\", "/").lower().strip("/")
             if norm_p:
@@ -66,12 +98,12 @@ class WayfindingEngine:
         self._path_to_subsystem.sort(key=lambda x: len(x[0]), reverse=True)
 
         # Index keywords
-        all_tokens = set(decl.keywords)
-        all_tokens.add(decl.subsystem_id.lower())
-        all_tokens.add(decl.name.lower())
-        all_tokens.add(decl.area.lower())
-        # Add words from description
-        desc_words = re.findall(r"\b[a-zA-Z0-9_\-]{3,}\b", decl.description.lower())
+        all_tokens = set(final_decl.keywords)
+        all_tokens.add(final_decl.subsystem_id.lower())
+        all_tokens.add(final_decl.name.lower())
+        all_tokens.add(final_decl.area.lower())
+        # Add words from description and purpose
+        desc_words = re.findall(r"\b[a-zA-Z0-9_\-]{3,}\b", (final_decl.description + " " + final_decl.purpose).lower())
         all_tokens.update(desc_words)
 
         for token in all_tokens:
@@ -186,15 +218,11 @@ class WayfindingEngine:
         self, query: str, decl: SubsystemDeclaration, confidence: float
     ) -> LocalityResolution:
         """Constructs a LocalityResolution from a matched SubsystemDeclaration."""
-        # Calculate blast radius summary
-        deps_count = len(decl.dependencies)
-        cons_count = len(decl.consumers)
-        if cons_count > 3:
-            blast = f"CRITICAL: {cons_count} downstream consumers ({', '.join(decl.consumers[:3])}...)"
-        elif cons_count > 0:
-            blast = f"MODERATE: {cons_count} downstream consumers ({', '.join(decl.consumers)})"
-        else:
-            blast = "ISOLATED: Leaf component with 0 downstream consumers"
+        # Calculate downstream blast radius via knowledge graph
+        blast_info = self.knowledge_graph.calculate_blast_radius(decl.subsystem_id)
+        transitive_cons = blast_info["transitive_consumers"]
+        risk_tier = decl.risk_tier if hasattr(decl, "risk_tier") and decl.risk_tier != "MEDIUM" else blast_info["risk_tier"]
+        blast_summary = blast_info["blast_radius_summary"]
 
         return LocalityResolution(
             query=query,
@@ -214,8 +242,73 @@ class WayfindingEngine:
             dependencies=decl.dependencies,
             consumers=decl.consumers,
             documentation_paths=decl.documentation_paths,
-            blast_radius_summary=blast,
+            blast_radius_summary=blast_summary,
+            purpose=decl.purpose if hasattr(decl, "purpose") and decl.purpose else decl.description,
+            risk_tier=risk_tier,
+            owner=decl.owner if hasattr(decl, "owner") else None,
+            owner_source=decl.owner_source if hasattr(decl, "owner_source") else "UNKNOWN",
+            owner_confidence=decl.owner_confidence if hasattr(decl, "owner_confidence") else 0.0,
+            epistemic_state=decl.epistemic_state if hasattr(decl, "epistemic_state") else "INFERRED",
+            transitive_consumers=transitive_cons,
         )
+
+    def resolve_component(self, component_id: str) -> Optional[LocalityResolution]:
+        """Resolves directly by component or subsystem ID."""
+        if not component_id or not isinstance(component_id, str):
+            return None
+        clean_id = component_id.strip().lower()
+        decl = self._subsystems.get(clean_id)
+        if decl:
+            return self._build_resolution(query=component_id, decl=decl, confidence=1.0)
+        return None
+
+    def analyze_change(self, target_files: List[str]) -> ChangeIntent:
+        """Performs deterministic change intent and systemic blast radius analysis."""
+        return self.change_analyzer.analyze_change(target_files)
+
+    def get_capabilities(self, target: str) -> Dict[str, Any]:
+        """Returns skills, rules, and workflows governing a subsystem or file."""
+        res = self.resolve_file(target) if ("/" in target or "\\" in target or "." in target) else self.resolve_component(target)
+        if not res:
+            res = self.locate(target)
+        if not res:
+            return {
+                "target": target,
+                "skills": ["antios-engineer"],
+                "rules": [],
+                "workflows": ["FEATURE", "BUG"],
+                "covering_tests": [],
+                "test_commands": [],
+            }
+        return {
+            "target": target,
+            "subsystem_id": res.matched_subsystem_id,
+            "skills": res.applicable_skills,
+            "rules": res.governing_rules,
+            "workflows": res.applicable_workflows,
+            "covering_tests": res.covering_tests,
+            "test_commands": res.test_commands,
+        }
+
+    def get_blast_radius(self, subsystem_id: str) -> Dict[str, Any]:
+        """Returns comprehensive blast radius analysis for a subsystem."""
+        return self.knowledge_graph.calculate_blast_radius(subsystem_id)
+
+    def locate_progressive(
+        self, query: str, level: ProgressiveDisclosureLevel = ProgressiveDisclosureLevel.L1
+    ) -> Tuple[Optional[LocalityResolution], str]:
+        """Resolves query and renders context according to requested progressive disclosure level."""
+        res = self.locate(query)
+        if not res:
+            return None, f"AntiOS Wayfinding: No subsystem matched for query '{query}'."
+        rendered = ProgressiveDisclosureEngine.render(level, res, self.knowledge_graph)
+        return res, rendered
+
+    def format_progressive_card(
+        self, resolution: LocalityResolution, level: ProgressiveDisclosureLevel = ProgressiveDisclosureLevel.L1
+    ) -> str:
+        """Renders resolution according to requested progressive disclosure level."""
+        return ProgressiveDisclosureEngine.render(level, resolution, self.knowledge_graph)
 
     def format_locator_card(self, resolution: LocalityResolution) -> str:
         """Renders a compact, high-density <= 20 line summary for agent context injection."""

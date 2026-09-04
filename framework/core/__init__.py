@@ -156,6 +156,21 @@ from framework.core.docaudit import (
     audit_documentation_references,
     audit_all_documentation,
 )
+from framework.core.knowledge import (
+    KnowledgeEpistemicTier,
+    RelationshipType,
+    KnowledgeEdge,
+    KnowledgeGraph,
+    OwnershipResolution,
+    OwnershipDeriver,
+    DocCategory,
+    DocArtifactFact,
+    DocKnowledgeClassifier,
+    ChangeIntent,
+    ChangeIntentAnalyzer,
+    ProgressiveDisclosureLevel,
+    ProgressiveDisclosureEngine,
+)
 
 __all__ = [
     # Phase 12-15
@@ -279,4 +294,18 @@ __all__ = [
     "DocAuditResult",
     "audit_documentation_references",
     "audit_all_documentation",
+    # Phase 28-30: Project Knowledge & Wayfinding
+    "KnowledgeEpistemicTier",
+    "RelationshipType",
+    "KnowledgeEdge",
+    "KnowledgeGraph",
+    "OwnershipResolution",
+    "OwnershipDeriver",
+    "DocCategory",
+    "DocArtifactFact",
+    "DocKnowledgeClassifier",
+    "ChangeIntent",
+    "ChangeIntentAnalyzer",
+    "ProgressiveDisclosureLevel",
+    "ProgressiveDisclosureEngine",
 ]

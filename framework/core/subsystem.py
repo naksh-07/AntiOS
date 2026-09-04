@@ -31,6 +31,15 @@ class SubsystemDeclaration:
     consumers: List[str]                    # Subsystem IDs depending on this
     documentation_paths: List[str]          # e.g. ["docs/subsystems/auth.md"]
     keywords: List[str]                     # Search keywords for intent matching
+    # Phase 28-30 Canonical Knowledge Extensions (with backward-compatible defaults)
+    purpose: str = ""                       # Concise functional purpose
+    authoritative_interfaces: List[str] = field(default_factory=list) # Authoritative interfaces / contracts
+    risk_tier: str = "MEDIUM"               # "LOW", "MEDIUM", "HIGH", "CRITICAL"
+    owner: Optional[str] = None             # Derived owner (e.g. "@team-security")
+    owner_source: str = "UNKNOWN"           # "CODEOWNERS", "MANIFEST", "GIT", "UNKNOWN"
+    owner_confidence: float = 0.0           # 0.0 - 1.0 confidence rating
+    epistemic_state: str = "INFERRED"       # "OBSERVED", "INFERRED", "UNKNOWN"
+    documentation_categories: Dict[str, List[str]] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """Converts declaration to a JSON-serializable dictionary."""
@@ -64,6 +73,14 @@ class SubsystemDeclaration:
             consumers=list(data.get("consumers", [])),
             documentation_paths=list(data.get("documentation_paths", [])),
             keywords=list(data.get("keywords", [])),
+            purpose=str(data.get("purpose", "")).strip(),
+            authoritative_interfaces=list(data.get("authoritative_interfaces", [])),
+            risk_tier=str(data.get("risk_tier", "MEDIUM")).strip().upper(),
+            owner=str(data["owner"]).strip() if data.get("owner") else None,
+            owner_source=str(data.get("owner_source", "UNKNOWN")).strip().upper(),
+            owner_confidence=float(data.get("owner_confidence", 0.0)),
+            epistemic_state=str(data.get("epistemic_state", "INFERRED")).strip().upper(),
+            documentation_categories=dict(data.get("documentation_categories", {})),
         )
 
 
