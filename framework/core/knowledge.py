@@ -870,14 +870,17 @@ class ProgressiveDisclosureEngine:
 
     @classmethod
     def _render_l4(cls, resolution: Any) -> str:
-        """Level 4: Capabilities, rules, and workflows (<= 20 lines)."""
-        skills_str = ", ".join(resolution.applicable_skills) if resolution.applicable_skills else "antios-engineer"
-        wf_str = ", ".join(resolution.applicable_workflows) if resolution.applicable_workflows else "FEATURE"
-        rules_str = "; ".join(resolution.governing_rules[:3]) if resolution.governing_rules else "None specified"
+        """Level 4: Capabilities, rules, and workflows (<= 25 lines)."""
+        if hasattr(resolution, "format_card"):
+            return resolution.format_card(max_lines=25)
+        skills_str = ", ".join(resolution.applicable_skills) if hasattr(resolution, "applicable_skills") and resolution.applicable_skills else "antios-engineer"
+        wf_str = ", ".join(resolution.applicable_workflows) if hasattr(resolution, "applicable_workflows") and resolution.applicable_workflows else "FEATURE"
+        rules_str = "; ".join(resolution.governing_rules[:3]) if hasattr(resolution, "governing_rules") and resolution.governing_rules else "None specified"
+        sub_id = getattr(resolution, "matched_subsystem_id", getattr(resolution, "subsystem_id", "UNKNOWN"))
 
         return "\n".join([
             "=== ANTIOS L4 CAPABILITIES & GOVERNANCE ===",
-            f"Subsystem:    {resolution.matched_subsystem_id}",
+            f"Subsystem:    {sub_id}",
             f"Skills:       {skills_str}",
             f"Workflows:    {wf_str}",
             f"Rules:        {rules_str}",

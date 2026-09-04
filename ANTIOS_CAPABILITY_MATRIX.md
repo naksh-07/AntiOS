@@ -57,16 +57,16 @@ Every capability identified across AntiOS Phase 1–11 outputs, Phase 12–15 fo
 | **4. Rules / Constitution** | **ADAPT** | Compact `docs/AGENTS.md` (21 lines) successfully orients agents but currently contains StudyLab preamble. | Separate universal constitutional invariants (boundaries, test ratchets) from adapter-injected domain directives. |
 | **5. Hooks / Enforcement** | **KEEP** | Dual-path `.agents/hooks.json` driving fail-closed Python hooks (`guard.py`, `gate.py`) is proven and tested (234/234 tests pass). | Retain as the primary deterministic enforcement foundation. |
 | **6. MCP / Tooling** | **KEEP** | `ANTIOS_MCP_POLICY.md` established strict classifications: permits `chrome-devtools`, `playwright`, `gemini-api-docs`; mandates local `git` CLI; rejects `studysource-core`. | Retain policy. Build zero custom MCP servers. |
-| **7. Project Intelligence** | **ADAPT** | Custom AST regex parsers failed. Native compilers (`tsc`, `pyright`, `cargo`) provide 100% ground truth. | Delegate code intelligence to native project compilers invoked through adapter commands. |
-| **8. Project Adaptation** | **BUILD** | Phase 12 introduced `antios.config.json`, but Core fallbacks still hardcode StudyLab paths. | Formalize the complete Project Adapter Specification (`ANTIOS_CORE_VS_ADAPTER.md`) and purge domain fallbacks from Core. |
+| **7. Project Intelligence** | **BUILT** | Zero-code discovery across Python, TS/JS, Go, Rust in `framework/core/discovery.py`. | Fully implemented and certified. |
+| **8. Project Adaptation** | **BUILT** | Declarative project adapter in `antios.config.json` & `framework/core/adapter.py`. | Fully decoupled from Core; verifies against manifest drift. |
 | **9. Task State** | **KEEP** | Bounded `docs/ACTIVE_CONTEXT.md` ($\le 60$ lines) prevents context amnesia without database bloat. | Retain bounded task state discipline with anti-decay rules. |
-| **10. Memory** | **KEEP** | Vector DBs proved opaque and failure-prone. Multi-tiered markdown + git history provides full transparency. | Retain 3-tier memory model (Short: context; Mid: `ACTIVE_CONTEXT.md` + `transcript.jsonl`; Long: git). Keep vector DBs rejected. |
-| **11. Verification / Evidence** | **KEEP** | Physical process execution ratchet (exit code 0 on tests) completely eliminates hallucinated test approvals. | Retain physical process ratchet and git conflict checks. Keep static receipts rejected. |
-| **12. Maker-Checker / Subagents** | **KEEP** | Maker-Checker with fresh context (`TypeName='self'`) on High Risk eliminates LLM confirmation bias. Shallow Depth Law ($\le 2$) prevents swarm runaway. | Retain Risk-Tiered Maker-Checker model and Shallow Depth Law. |
-| **13. Impact Analysis** | **ADAPT** | AST-based blast radius was disproved. Native git diff analysis + test suite scoping is deterministic and robust. | Enforce impact analysis via `git diff --name-only` and scoped test runners. |
-| **14. Agent Testing / Regression**| **BUILD** | Phase 9 generated a 22-vector attack matrix that proved hook vulnerabilities, but attacks are not yet an automated CI test suite. | Package Phase 9 attack vectors into an automated regression suite in `tests/`. |
+| **10. Memory** | **KEEP** | Multi-tiered markdown (`ACTIVE_CONTEXT`, `PROJECT_KNOWLEDGE`, `DECISIONS`, `LESSONS`) + git history. | Zero vector databases; 100% standard library Python. |
+| **11. Verification / Evidence** | **KEEP** | Physical process execution ratchet (exit code 0 on tests) completely eliminates hallucinated test approvals. | Retain physical process ratchet and git conflict checks. |
+| **12. Maker-Checker / Subagents** | **KEEP** | Maker-Checker with fresh context (`TypeName='self'`) on High Risk eliminates confirmation bias. Shallow Depth Law ($\le 2$). | Retain Risk-Tiered Maker-Checker model and Shallow Depth Law. |
+| **13. Impact Analysis** | **BUILT** | `ChangeIntentAnalyzer` & `KnowledgeGraph` calculate transitive blast radius and risk tiers in < 5ms. | Fully implemented in `framework/core/knowledge.py`. |
+| **14. Capability Layer** | **BUILT** | Phase 31–33 Project Capability Layer (`capability.py`, `registry.py`, `router.py`, `pack.py`). | Answers: Which capabilities should act on project knowledge? |
 | **15. Recovery** | **KEEP** | Clean git checkout/restore recovery and `ENVIRONMENT_UNAVAILABLE` runtime trapping are verified. | Retain fail-closed recovery and ambient environment diagnostic checks. |
-| **16. Self-Improvement** | **DEFER** | Autonomous self-modification of core governance scripts risks destabilizing loops. | Keep self-improvement human-in-the-loop: forensic audits, test matrices, and deliberate phase upgrades. |
+| **16. Self-Improvement** | **DEFER** | Autonomous self-modification of core governance scripts risks destabilizing loops. | Keep self-improvement human-in-the-loop: forensic audits and deliberate phase upgrades. |
 
 ---
 

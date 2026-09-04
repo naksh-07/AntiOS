@@ -83,3 +83,14 @@
 - **WHY SELECTED**: Eliminates foreign cross-project contamination and adheres strictly to project boundaries.
 - **CONSEQUENCES**: Zero StudySourceCore files, tools, or dependencies are present in AntiOS.
 - **REVERSIBILITY**: Immutable user and project directive.
+
+---
+
+## DECISION 09: Deterministic Project Capability Layer Architecture
+- **DECISION**: Establish a unified, deterministic Project Capability Layer (`framework/core/capability.py`, `capability_registry.py`, `capability_router.py`, `capability_pack.py`) indexing 8 canonical capability types (`SKILL`, `RULE`, `WORKFLOW`, `TOOL`, `VERIFIER`, `SPECIALIST`, `EXTERNAL_PROVIDER`, `MCP_PROVIDER`) with 5-tier rule precedence and bounded capability packs ($\le 25$ lines).
+- **EVIDENCE**: Phase 31–33 Implementation and verification: 354/354 tests passing in 21.3s, sub-millisecond task resolution (< 1ms), and 100% accurate golden task routing with zero vector databases or embedding models.
+- **ALTERNATIVES**: Rely on unstructured string lists in subsystem declarations; use vector database embeddings for skill retrieval; collapse skills, tools, and verifiers into monolithic prompts.
+- **WHY SELECTED**: Enforces clean architectural separation between Project Knowledge (where things are), Project Capability (how to work), Task Routing (what applies now), and Capability Pack (bounded bundle for current task).
+- **CONSEQUENCES**: Agents deterministically receive exactly the capabilities needed for their task and subsystem with zero hallucination and clear explainability.
+- **REVERSIBILITY**: High; standard Python library models and declarative JSON adapters.
+

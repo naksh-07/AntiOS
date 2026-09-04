@@ -51,6 +51,7 @@ class AntiOSConfig:
     changeset: ChangesetPolicy = field(default_factory=ChangesetPolicy)
     manifest_fingerprint: str = ""
     components: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    capabilities: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         if isinstance(self.policies, dict):
@@ -120,6 +121,7 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             changeset=cs_policy,
             manifest_fingerprint=data.get("manifest_fingerprint", ""),
             components=data.get("components", {}),
+            capabilities=data.get("capabilities", {}),
         )
     except Exception:
         return AntiOSConfig()

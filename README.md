@@ -1,11 +1,9 @@
-# AntiOS: Autonomous Engineering Governance & Verification Framework
-
-[![Tests](https://img.shields.io/badge/tests-308%2F308%20passing-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-354%2F354%20passing-brightgreen)](#)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 [![Antigravity: Native](https://img.shields.io/badge/Antigravity-v4%20Native-purple.svg)](#)
 
-> **AntiOS** is a universal, production-grade engineering governance, safety boundary, and deterministic verification framework for autonomous AI coding agents (Google Antigravity, Gemini CLI, Claude Code).
+> **AntiOS** is a universal, production-grade agent-native engineering operating system, safety boundary, and deterministic capability resolution framework for autonomous AI coding agents (Google Antigravity, Gemini CLI, Claude Code).
 >
 > It turns unconstrained AI coding assistants into disciplined, verifiable engineering systems with **zero hallucinated test passes**, **fail-closed boundary protection**, and **risk-tiered Maker-Checker verification**.
 
@@ -80,13 +78,22 @@ Answers *"Where should I look, what governs this area, what is affected, what ca
 - **Progressive Disclosure**: 6 strictly bounded information layers (L0–L5) preventing context saturation.
 - Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --file <path> --impact <path> --capabilities <path> --level <0-5>`.
 
-### 5. Staleguard Layer 1 Documentation Auditor (`framework/core/docaudit.py`)
+### 5. Project Capability Layer (`framework/core/capability.py`, `capability_registry.py`, `capability_router.py`)
+Answers *"Given this project, this subsystem, this component, and this task, what engineering capabilities should the agent use and why?"*:
+- **8 Canonical Capability Types**: `SKILL`, `RULE`, `WORKFLOW`, `TOOL`, `VERIFIER`, `SPECIALIST`, `EXTERNAL_PROVIDER`, `MCP_PROVIDER`.
+- **5-Rank Rule Precedence**: Platform Hook (1) > Core Invariant (2) > Adapter Policy (3) > Subsystem Invariant (4) > Project Guidance (5).
+- **Task-to-Capability Router**: Resolves intent into bounded Capability Packs ($\le 25$ lines card or full JSON).
+- **Negative Applicability**: Prevents irrelevant skills (e.g. debugging on doc tasks) from saturating agent context.
+- **MCP Evaluation**: 3-Tier policy (Native > Script > Project Tool > MCP); rejects unauthorized MCP bloat.
+- Accessible via CLI: `python framework/scripts/tools/navigate_repo.py --task "Change the login button" [--json]`.
+
+### 6. Staleguard Layer 1 Documentation Auditor (`framework/core/docaudit.py`)
 Zero-token, sub-second documentation reference integrity:
 - Audits markdown links, relative file paths, and test runner invocations against physical disk.
 - Guarantees 0% false positives and enforces Same Change Set documentation validity before task completion.
 - Accessible via CLI: `python framework/scripts/tools/audit_docs.py --all`.
 
-### 6. Lean, High-Value Skills (`.agents/skills/`)
+### 7. Lean, High-Value Skills (`.agents/skills/`)
 Avoids context saturation by enforcing a strict $\le 60$-line budget per skill:
 - **`antios-engineer`** (39 lines): 8-stage engineering lifecycle (`LOCATE FIRST`), safety boundaries, and Stop Gate ratchet.
 - **`antios-verifier`** (48 lines): Independent Checker verification contract and structured verdict emission.

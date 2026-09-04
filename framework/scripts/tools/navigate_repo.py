@@ -66,6 +66,7 @@ def build_engine(repo_root: str) -> WayfindingEngine:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="AntiOS Repository Wayfinding & Navigation")
+    parser.add_argument("--task", "-t", help="Task description / intent to resolve engineering capabilities for")
     parser.add_argument("--query", "-q", help="Task query, intent, or keyword")
     parser.add_argument("--file", "-f", help="Target file path to locate subsystem for")
     parser.add_argument("--component", "-c", help="Component or subsystem ID to inspect")
@@ -113,7 +114,7 @@ def main() -> None:
         sys.exit(0)
 
     # 3. Change Intent / Impact Analysis
-    if args.impact:
+    if args.impact and not args.task:
         intent = engine.analyze_change(args.impact)
         if args.json:
             print(json.dumps(intent.to_dict(), indent=2))
@@ -121,7 +122,21 @@ def main() -> None:
             print(engine.change_analyzer.format_change_intent_card(intent))
         sys.exit(0)
 
-    # 4. Capabilities Inspection
+    # 4. Task-to-Capability Routing
+    if args.task:
+        from framework.core.capability_router import CapabilityRouter
+        target_files = args.impact or ([args.file] if args.file else [])
+        router = CapabilityRouter(wayfinding_engine=engine, workspace_root=repo_root)
+        pack = router.resolve_capabilities(args.task, target_files=target_files)
+        if args.json:
+            print(pack.to_json())
+        elif args.level == 4:
+            print(ProgressiveDisclosureEngine.render(ProgressiveDisclosureLevel.L4_CAPABILITIES, pack))
+        else:
+            print(pack.format_card())
+        sys.exit(0)
+
+    # 5. Capabilities Inspection
     if args.capabilities:
         caps = engine.get_capabilities(args.capabilities)
         if args.json:

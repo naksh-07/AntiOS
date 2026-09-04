@@ -290,6 +290,17 @@ class WayfindingEngine:
             "test_commands": res.test_commands,
         }
 
+    def get_capability_pack(
+        self,
+        task_intent: str,
+        target_files: Optional[List[str]] = None,
+        task_class_hint: Optional[str] = None,
+    ) -> Any:
+        """Resolves full CapabilityPack for a task using the Project Capability Layer."""
+        from framework.core.capability_router import CapabilityRouter
+        router = CapabilityRouter(wayfinding_engine=self, workspace_root=self.workspace_root)
+        return router.resolve_capabilities(task_intent, target_files, task_class_hint)
+
     def get_blast_radius(self, subsystem_id: str) -> Dict[str, Any]:
         """Returns comprehensive blast radius analysis for a subsystem."""
         return self.knowledge_graph.calculate_blast_radius(subsystem_id)

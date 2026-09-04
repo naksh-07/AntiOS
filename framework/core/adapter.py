@@ -492,6 +492,18 @@ def verify_adapter(
         if comp_issues == 0:
             passed.append(f"Component registry verified ({len(cfg.components)} components).")
 
+    # 5. Check Capabilities policy if present
+    if hasattr(cfg, "capabilities") and cfg.capabilities:
+        caps = cfg.capabilities
+        if isinstance(caps, dict):
+            dis = caps.get("disabled_capabilities", [])
+            prohibited_disables = {"rule:platform-hook-interception", "rule:core-immutable", "rule:stop-gate-ratchet", "rule:shallow-depth-law"}
+            for d in dis:
+                if d in prohibited_disables:
+                    issues.append(f"CONSTITUTIONAL VIOLATION: Project adapter attempts to disable protected core invariant '{d}'.")
+            if not any(d in prohibited_disables for d in dis):
+                passed.append(f"Capability configuration verified ({len(caps)} keys).")
+
     is_valid = len(issues) == 0
     return AdapterVerificationResult(
         is_valid=is_valid,

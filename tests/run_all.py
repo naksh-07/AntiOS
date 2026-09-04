@@ -70,6 +70,15 @@ import tests.test_knowledge_adversarial as test_knowledge_adversarial
 import tests.test_performance_phase28_30 as test_performance_phase28_30
 import tests.test_phase28_30_integration as test_phase28_30_integration
 
+# Phase 31-33 Project Capability Layer test modules
+import tests.test_capability_model as test_capability_model
+import tests.test_capability_registry as test_capability_registry
+import tests.test_capability_router as test_capability_router
+import tests.test_capability_pack as test_capability_pack
+import tests.test_golden_tasks as test_golden_tasks
+import tests.test_capability_adversarial as test_capability_adversarial
+import tests.test_capability_benchmark as test_capability_benchmark
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -128,6 +137,14 @@ def build_suite() -> unittest.TestSuite:
         test_knowledge_adversarial,
         test_performance_phase28_30,
         test_phase28_30_integration,
+        # Phase 31-33
+        test_capability_model,
+        test_capability_registry,
+        test_capability_router,
+        test_capability_pack,
+        test_golden_tasks,
+        test_capability_adversarial,
+        test_capability_benchmark,
     ]
 
     for mod in modules:
