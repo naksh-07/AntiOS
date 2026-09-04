@@ -128,6 +128,15 @@ import tests.test_learning_evolution_proposals as test_learning_evolution_propos
 import tests.test_learning_decay_staleness as test_learning_decay_staleness
 import tests.test_learning_safety_gate_adversarial as test_learning_safety_gate_adversarial
 
+# Phase 67-72 Two-Way Adaptation, Capability Gap Detection & Controlled Evolution
+import tests.test_two_way_contract as test_two_way_contract
+import tests.test_capability_gap_detection as test_capability_gap_detection
+import tests.test_tool_mcp_gap_analysis as test_tool_mcp_gap_analysis
+import tests.test_capability_proposal_engine as test_capability_proposal_engine
+import tests.test_controlled_evolution as test_controlled_evolution
+import tests.test_migration_contract as test_migration_contract
+import tests.test_phase67_72_adversarial as test_phase67_72_adversarial
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -237,6 +246,14 @@ def build_suite() -> unittest.TestSuite:
         test_learning_evolution_proposals,
         test_learning_decay_staleness,
         test_learning_safety_gate_adversarial,
+        # Phase 67-72
+        test_two_way_contract,
+        test_capability_gap_detection,
+        test_tool_mcp_gap_analysis,
+        test_capability_proposal_engine,
+        test_controlled_evolution,
+        test_migration_contract,
+        test_phase67_72_adversarial,
     ]
 
     loader = unittest.defaultTestLoader

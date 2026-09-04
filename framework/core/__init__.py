@@ -322,6 +322,61 @@ from framework.core.learning import (
     LearningEngine,
 )
 
+# Phase 67: Two-Way Adaptation Contract
+from framework.core.two_way_contract import (
+    AdaptationTier,
+    SignalType,
+    EpistemicForm,
+    AuthorityTier,
+    AdaptationSignal,
+    TransitionGateVerdict,
+    TransitionGateResult,
+    TwoWayAdaptationContract,
+)
+
+# Phase 68: Capability Gap Detection
+from framework.core.capability_gap import (
+    GapClassification,
+    GapStatus,
+    CapabilityGap,
+    CapabilityGapDetector,
+    GapLifecycleEngine,
+)
+
+# Phase 69: Tool / MCP Gap Analysis
+from framework.core.tool_gap import (
+    ToolEscalationTier,
+    ToolAlternativeEvaluation,
+    ToolGapReport,
+    ToolGapAnalyzer,
+)
+
+# Phase 70: Capability Proposal Engine
+from framework.core.evolution_proposal import (
+    StructuredProposalType,
+    ProposalApprovalState,
+    AlternativeOption,
+    StructuredCapabilityProposal,
+    CapabilityProposalEngine,
+)
+
+# Phase 71: Controlled AntiOS Evolution
+from framework.core.evolution_governance import (
+    ApprovalClass,
+    EvolutionSnapshot,
+    EvolutionExecutionResult,
+    ControlledEvolutionGovernor,
+)
+
+# Phase 72: Compatibility & Migration Contract
+from framework.core.migration import (
+    CompatibilityState,
+    MigrationStep,
+    MigrationPlan,
+    MigrationResult,
+    MigrationEngine,
+)
+
 __all__ = [
     # Phase 12-15
     "AntiOSConfig",
@@ -559,4 +614,41 @@ __all__ = [
     "KnowledgeDecayEngine",
     "LearningSafetyGate",
     "LearningEngine",
+    # Phase 67: Two-Way Adaptation Contract
+    "AdaptationTier",
+    "SignalType",
+    "EpistemicForm",
+    "AuthorityTier",
+    "AdaptationSignal",
+    "TransitionGateVerdict",
+    "TransitionGateResult",
+    "TwoWayAdaptationContract",
+    # Phase 68: Capability Gap Detection
+    "GapClassification",
+    "GapStatus",
+    "CapabilityGap",
+    "CapabilityGapDetector",
+    "GapLifecycleEngine",
+    # Phase 69: Tool / MCP Gap Analysis
+    "ToolEscalationTier",
+    "ToolAlternativeEvaluation",
+    "ToolGapReport",
+    "ToolGapAnalyzer",
+    # Phase 70: Capability Proposal Engine
+    "StructuredProposalType",
+    "ProposalApprovalState",
+    "AlternativeOption",
+    "StructuredCapabilityProposal",
+    "CapabilityProposalEngine",
+    # Phase 71: Controlled AntiOS Evolution
+    "ApprovalClass",
+    "EvolutionSnapshot",
+    "EvolutionExecutionResult",
+    "ControlledEvolutionGovernor",
+    # Phase 72: Compatibility & Migration Contract
+    "CompatibilityState",
+    "MigrationStep",
+    "MigrationPlan",
+    "MigrationResult",
+    "MigrationEngine",
 ]

@@ -524,3 +524,63 @@
 - **CONSEQUENCES**: Evolution proposals require human approval; attacks attempting core modification or prompt injection are blocked and logged; stale lessons decay safely.
 - **REVERSIBILITY**: High.
 
+---
+
+## DECISION 53: Two-Way Adaptation Contract & Epistemic Boundary Segregation
+- **DECISION**: Implement `TwoWayAdaptationContract` and `AdaptationSignal` to formally govern information flow across four architectural tiers: `TARGET_PROJECT`, `PROJECT_INSTANCE`, `ANTIOS_SOURCE`, and `PLATFORM`. Target project evidence can adapt project-local intelligence but can NEVER directly mutate AntiOS core files (`framework/`, `ANTIOS_CONSTITUTION.md`). Upstream feedback is routed strictly as read-only RFCs. Agent interpretation alone (`AGENT_INFERENCE`, confidence $\le 0.4$) can never approve durable changes.
+- **EVIDENCE**: Bidirectional adaptation without constitutional boundaries leads to target project specifics polluting the universal OS core, causing drift and cross-project pollution.
+- **ALTERNATIVES**: Single-direction unconstrained adaptation or allowing target projects to patch framework core directly.
+- **WHY SELECTED**: Enforces the immutable law `CORE ≠ ADAPTER` while enabling safe project-specific intelligence synthesis.
+- **CONSEQUENCES**: All boundary-crossing signals are cryptographically hashed and validated; Core remains permanently immutable.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 54: Capability Gap Detection & Multi-Failure Classification Taxonomy
+- **DECISION**: Implement `CapabilityGapDetector` and `GapLifecycleEngine` with a 9-class failure taxonomy distinguishing genuine capability gaps (`MISSING_CAPABILITY`) from ordinary syntax bugs (`ORDINARY_IMPLEMENTATION_FAILURE`), test regressions (`VERIFICATION_FAILURE`), missing PATH binaries (`UNAVAILABLE_TOOL`), policy denials (`UNAUTHORIZED_TOOL`), stale intelligence, and unindexed knowledge. Gaps transition through a formal lifecycle (`DETECTED` -> `VALIDATING` -> `CONFIRMED` -> `PROPOSED` -> `RESOLVED` / `REJECTED` / `STALE`).
+- **EVIDENCE**: LLM agents frequently misclassify syntax errors or broken test assertions as missing OS capabilities, leading to hallucinated tool installations and runaway skill generation.
+- **ALTERNATIVES**: Treating every execution failure as a capability deficit or prompt-based triage.
+- **WHY SELECTED**: Eliminates false-positive capability claims and grounds OS adaptation in empirical proof.
+- **CONSEQUENCES**: Ordinary code errors generate `NO_ACTION` proposals; genuine gaps require reproducible evidence traces.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 55: 6-Tier Tool Hierarchy & MCP Escalation-Only Model
+- **DECISION**: Formalize the 6-tier tool escalation hierarchy (`NATIVE` > `LOCAL SCRIPT` > `PROJECT TOOL` > `STANDARD CLI` > `EXTERNAL SERVICE` > `MCP`). Local `git` CLI strictly outranks GitHub MCP. Remote MCP providers are treated strictly as an escalation mechanism of last resort evaluated through `MCPJustificationEngine`. Prohibited MCP providers (Notion, Postman, PostHog) are rejected fail-closed.
+- **EVIDENCE**: Defaulting to MCP tools causes latency, external network vulnerabilities, credential leakage, and reliance on remote proprietary services when local primitives suffice.
+- **ALTERNATIVES**: MCP-first architecture or arbitrary tool routing without tier preference.
+- **WHY SELECTED**: Maximizes determinism, local execution speed, and security boundary isolation.
+- **CONSEQUENCES**: Tasks resolve at the lowest viable local tier; MCP usage generates auditable justification ledgers.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 56: Structured Capability Evolution Proposals & Explicit NO_ACTION
+- **DECISION**: Implement `CapabilityProposalEngine` to synthesize complete `StructuredCapabilityProposal` records containing evaluated alternatives, cost hints, risk tiers, blast radius, verification plans, and rollback plans. The engine explicitly emits `NO_ACTION` proposals when deficits are classified as ordinary implementation or verification failures.
+- **EVIDENCE**: Requiring structured proposals with counterfactual alternative analysis and explicit `NO_ACTION` prevents unnecessary complexity accretion and keeps the OS lean.
+- **ALTERNATIVES**: Direct automatic file modification without proposal modeling.
+- **WHY SELECTED**: Ensures transparency, human auditability, and complete reversibility of all OS evolutions.
+- **CONSEQUENCES**: Every proposed change is paired with an automated test command and a concrete rollback procedure.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 57: Controlled AntiOS Evolution & Three-Tier Approval Governance
+- **DECISION**: Implement `ControlledEvolutionGovernor` enforcing three approval classes: `AUTO_EXECUTABLE` (low-risk managed config changes), `GOVERNANCE_REQUIRED` (medium/high risk skills, tools, or specialist roles requiring human sign-off), and `CORE_IMMUTABLE_DENIED` (attempts to mutate core or violate Shallow Depth Law). Application requires pre-snapshotting and atomic rollback on verification failure.
+- **EVIDENCE**: Autonomous self-evolution without human governance or atomic rollback risks catastrophic bricking of the project OS environment.
+- **ALTERNATIVES**: Unrestricted auto-application of all proposals or full manual execution of all edits.
+- **WHY SELECTED**: Balances frictionless low-risk maintenance with ironclad human governance over architectural changes.
+- **CONSEQUENCES**: Manifest capability revisions are bumped on successful verified applications; failed writes revert atomically.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 58: AntiOS Instance Compatibility & Fail-Closed Migration Engine
+- **DECISION**: Implement `MigrationEngine` and `migrate_instance.py` CLI supporting SemVer compatibility evaluation (`COMPATIBLE`, `UPGRADE_AVAILABLE`, `MIGRATION_REQUIRED`, `INCOMPATIBLE`, `CORRUPTED`, `UNKNOWN`), 7-stage migration planning (`INSPECT` -> `PLAN` -> `CONFLICT_CHECK` -> `SNAPSHOT` -> `MIGRATE` -> `VERIFY` -> `COMMIT_STATE`), and user-owned artifact preservation. Incompatible states fail closed.
+- **EVIDENCE**: As AntiOS evolves across versions, existing project instances require deterministic, safe schema updates without overwriting customized user files.
+- **ALTERNATIVES**: Blind overwrites, manual copy-paste instructions, or breaking backward compatibility.
+- **WHY SELECTED**: Guarantees zero data loss for user adaptations while keeping project instances synchronized with framework improvements.
+- **CONSEQUENCES**: `migrate_instance.py` provides automated `--check`, `--dry-run`, and migration capabilities.
+- **REVERSIBILITY**: High.
+

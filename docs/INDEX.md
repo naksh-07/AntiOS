@@ -17,6 +17,10 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [System Architecture Overview](architecture/OVERVIEW.md) — High-level system architecture, subsystem interaction map, and data flows.
 - [Project Agent OS Architecture](architecture/PROJECT_AGENT_OS.md) - Boundary demarcation (SOURCE ≠ INSTANCE ≠ PROJECT), manifest provenance, and orchestration constitution.
 - [Project Learning & Evolution Model](architecture/PROJECT_LEARNING.md) — Epistemic segregation, evidence promotion ladder, safe evolution proposals, and knowledge decay.
+- [Two-Way Adaptation Contract](architecture/TWO_WAY_ADAPTATION.md) — Four-tier boundary demarcation, epistemic segregation, and Core Immutability Law.
+- [Capability Gap & Tool Escalation Model](architecture/CAPABILITY_GAP_MODEL.md) — 9-class failure taxonomy, gap lifecycle state machine, and 6-tier tool escalation.
+- [Controlled Evolution Governance](architecture/EVOLUTION_GOVERNANCE.md) — Structured proposals, 3-tier approval classes, snapshotting, and atomic rollback.
+- [Compatibility & Migration Model](architecture/COMPATIBILITY_MODEL.md) — SemVer compatibility assessment, 7-stage migration lifecycle, and CLI tooling.
 - [Adaptive Mission Orchestration Model](architecture/ORCHESTRATION_MODEL.md) — Sizing modes (SOLO to MAX), wave lifecycle, dual dispatch gates, and resource ledger.
 - [AntiOS Primary Skill Architecture](architecture/ANTIOS_SKILL_MODEL.md) — Single `/antios` control plane specification and progressive disclosure.
 - [Canonical Component Model](architecture/COMPONENT_MODEL.md) — 34 core Python modules across all 7 subsystems.
