@@ -9,7 +9,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Master Source of Truth](../ANTIOS_SOURCE_OF_TRUTH.md) — Canonical authority hierarchy and precedence model (Phases 1–42 consolidated).
 - [Universal Constitution](../ANTIOS_CONSTITUTION.md) — The 7 non-negotiable engineering invariants (Protected zones, Same Change Set, etc.).
 - [Master Architecture Specification (v1.0.0-GA)](../ANTIOS_V1.md) — Canonical 4-tier model, 7 subsystems, 34 core modules.
-- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-42).
+- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-50).
 - [Project Agent OS Specification (AntiOS 2.0)](architecture/PROJECT_AGENT_OS.md) - Universal boundary compiler, 5-tier artifact model, lifecycle engine, and orchestration limits.
 - [Contributing Guide](../CONTRIBUTING.md) — Engineering standards, Same Change Set policy, and test validation.
 
@@ -47,7 +47,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Project Adapter Guide](guides/PROJECT_ADAPTER.md) — Declarative adapter configuration schema (`antios.config.json`).
 - [Orchestration Policy & Invariants](reference/ORCHESTRATION_POLICY.md) — Constitutional workforce limits, wave collapse rules, and write safety policies.
 - [Agent Dispatch Reference](reference/AGENT_DISPATCH.md) — Canonical 8-stage task dispatch pipeline and CLI reference.
-- [Command Line Interface Reference](reference/CLI.md) — Reference for all 8 deterministic CLI tools in `framework/scripts/tools/`.
+- [Command Line Interface Reference](reference/CLI.md) — Reference for deterministic CLI tools in `framework/scripts/tools/` (including `dispatch_task.py` and `verify_intelligence.py`).
 - [Configuration Reference](reference/CONFIGURATION.md) — Complete specification of `antios.config.json` options.
 - [Tool, Provider & MCP Policy](reference/MCP_POLICY.md) — 6-tier preference hierarchy and 8 canonical MCP justification rules.
 - [AntiOS Failure Taxonomy](reference/FAILURE_TAXONOMY.md) — Deterministic vs. agent failure classification and mitigations.

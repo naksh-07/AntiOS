@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "name": "architecture-drift-app",
+  "protected_zones": [".agents", "framework"],
+  "protected_domain_paths": [],
+  "forbidden_patterns": [],
+  "test_runners": [
+    {
+      "name": "node-test",
+      "manifest": "package.json",
+      "command": ["node", "--test"],
+      "timeout_seconds": 60,
+      "cwd": null,
+      "required": true,
+      "scope": "GLOBAL",
+      "member": null
+    }
+  ],
+  "linters": [],
+  "policies": {
+    "fail_closed": true,
+    "enforce_working_tree_cleanliness": true,
+    "enforce_same_change_set": true
+  },
+  "changeset": {
+    "tracked_extensions": [".ts", ".js"]
+  },
+  "manifest_fingerprint": "initial_pre_drift_fingerprint_hash",
+  "components": [],
+  "capabilities": {},
+  "agent_topology": {}
+}

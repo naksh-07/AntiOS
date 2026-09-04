@@ -98,18 +98,21 @@ AntiOS Core is organized into 7 cohesive, loosely coupled subsystems totaling 34
 
 ## 4. Agent Governance Layer (`.agents/`)
 
-- **Skills (`.agents/skills/`)**: 4 canonical skills strictly $\le 60$ lines:
+- **Primary Control Plane (`.agents/skills/antios/SKILL.md`)**: Canonical `/antios` entrypoint orchestrating wayfinding, capability routing, adaptive sizing, and verification.
+- **Operating Skills (`.agents/skills/`)**:
+  - `antios`: Universal project-native control plane ($\le 80$ lines).
   - `antios-engineer`: Universal engineering lifecycle, risk tiering, and boundary discipline.
   - `antios-verifier`: Independent Maker-Checker audit contract, diff review, and structured verdicts.
   - `antios-debug`: Deterministic 5-step root-cause debugging procedure.
   - `antios-adapt-project`: Universal project intelligence and adaptation procedure.
-- **Workflows (`.agents/workflows/`)**: 7 standard operating procedures strictly $\le 30$ lines (`FEATURE.md`, `BUG.md`, `REFACTOR.md`, `INVESTIGATION.md`, `DOCUMENTATION.md`, `RELEASE_MAINTENANCE.md`, `README.md`).
+- **Workflow Retirement**: Dedicated legacy procedural files in `.agents/workflows/` are retired and archived to `reports/archive/legacy_workflows/`; procedural lifecycles route natively via `/antios` and `framework/core/workflow.py`.
 - **Hook Manifest (`.agents/hooks.json`)**: Connects platform tool calls and completions to `pre_tool_guard.py` and `stop_gate.py`.
 
 ---
 
 ## 5. Verification & Quality Standard
 
-- **Test Suite**: Authoritative standard-library runner `tests/run_all.py` executing all 68 test modules and 447 tests with 100% pass rate.
+- **Test Suite**: Authoritative standard-library runner `tests/run_all.py` executing all 75 test modules and 534 tests with 100% pass rate.
+- **Intelligence Verification**: `framework/scripts/tools/verify_intelligence.py` cryptographically verifies emitted project intelligence, detects architecture drift, and prevents legacy workflow regressions.
 - **Zero Token Reference Auditing**: `framework/scripts/tools/audit_docs.py` verifies physical existence of all documentation references and test commands with zero LLM tokens.
 - **Changeset & Worktree Validation**: `check_changeset.py` and `check_worktree.py` guarantee repository cleanliness before turn completion.

@@ -1,41 +1,40 @@
 # Active Context (`docs/ACTIVE_CONTEXT.md`)
 
-**Mission**: AntiOS 2.0 — Phases 49–54 Main Skill, Orchestration & Capability Dispatch
+**Mission**: AntiOS 2.0 — Phases 55–60 Project Anatomy & Intelligence Synthesis
 **Class**: FEATURE_ARCHITECTURE | **Risk**: HIGH
-**Stage**: VERIFY | **Status**: ACTIVE
-**Version**: 2.0.0-PROPOSAL | **Mode**: VERIFYING
-**Active Subsystem**: Adaptive Orchestration, Capability Dispatch & Main Skill
+**Stage**: COMPLETE | **Status**: CERTIFIED
+**Version**: 2.0.0-PROPOSAL | **Mode**: OPERATIONAL
+**Active Subsystem**: Project Anatomy, Component Intelligence & Verification
 
 ## 1. Active Checklist
-- [x] Phase 49: Authoritative Mission Orchestrator & Ledger (`framework/core/orchestration.py`)
-- [x] Phase 50: Canonical Task Dispatch Pipeline (`framework/core/dispatch.py`, `dispatch_task.py`)
-- [x] Phase 51: Universal Main Operating Skill (`.agents/skills/antios/SKILL.md`)
-- [x] Phase 52: Boundary Compiler & Installation Sync (`framework/core/compiler.py`)
-- [x] Phase 53: Legacy Workflow Retirement & Migration (`reports/archive/legacy_workflows/`)
-- [x] Phase 54: Architecture Specs & Decision Register (Decisions 43–48, ORCHESTRATION_MODEL.md)
-- [x] Comprehensive Test Matrix (Skill discovery, sizing, budget, waves, hierarchy, adversarial)
-- [x] Authoritative Full Regression Run (503/503 tests pass in 27.18s) & Audit
+- [x] Phase 55: Project Anatomy Compiler (`anatomy.py`, `.antios/project_anatomy.json`)
+- [x] Phase 56: Component Intelligence (`component_intelligence.py`, card <= 25 lines)
+- [x] Phase 57: Project Skill Generation (`skill_generator.py`, main skill <= 80 lines)
+- [x] Phase 58: Project Specialist Generation (`specialist_generator.py`, depth <= 2)
+- [x] Phase 59: Workflow Retirement Enforced (0 `.agents/workflows/` generated)
+- [x] Phase 60: Generated Intelligence Verification (`intelligence_verifier.py`, CLI)
+- [x] 10-Fixture Proving Ground Matrix Certified (`test_phase55_60_fixtures.py`)
+- [x] Authoritative Full Regression Run (534/534 tests pass in 30.18s) & Audit
 
 ## 2. Blockers & Invariants
 - Invariant: 4-Boundary Demarcation (`SOURCE ≠ INSTANCE ≠ PROJECT ≠ ANTIGRAVITY`)
-- Invariant: Max active subagents <= 10 per wave; total launches <= 20 per mission; depth <= 2
-- Invariant: Mandatory wave collapse (`NEXT_WAVE_ALLOWED` only when active total == 0)
-- Invariant: Read-parallel, write-controlled (no overlapping concurrent writers)
+- Invariant: Target project never receives AntiOS core framework code or tests
+- Invariant: Shallow Depth Law (max delegation depth <= 2, specialists can_delegate=False)
+- Invariant: Epistemic segregation (`OBSERVED`, `INFERRED`, `UNKNOWN`)
 - Invariant: Active Context strictly bounded <= 60 lines (currently 42 lines)
 
 ## 3. Changed Files & Verification State
-- Core: `framework/core/orchestration.py`, `dispatch.py`, `worktree.py`, `governance.py`
-- Skill: `.agents/skills/antios/SKILL.md`, `framework/templates/skills/antios/SKILL.md`
-- CLI: `framework/scripts/tools/dispatch_task.py`
-- Docs: `ORCHESTRATION_MODEL.md`, `ANTIOS_SKILL_MODEL.md`, `ORCHESTRATION_POLICY.md`, `AGENT_DISPATCH.md`
-- Tests: `test_main_antios_skill.py`, `test_orchestration_adaptive.py`, `test_dispatch_pipeline.py`, `test_orchestration_adversarial.py`
-- Regressions: 503 tests pass (`python tests/run_all.py`), 0 broken doc links (`audit_docs.py --all`)
+- Core: `anatomy.py`, `component_intelligence.py`, `skill_generator.py`, `specialist_generator.py`, `intelligence_verifier.py`, `compiler.py`
+- CLI: `framework/scripts/tools/verify_intelligence.py`
+- Tests: 7 new test modules (534/534 tests passing 100% with 0 regressions)
+- Fixtures: 5 new test fixtures covering web, legacy, drift, and custom agents
+- Docs: `DECISION_REGISTER.md` (ADR 49, 50), `docs/INDEX.md`, `ANTIOS_V1.md`
 
 ## 4. Dead-End Memory & Validated Lessons
-- `write_to_file` on codebase files must NOT include `ArtifactMetadata` (reserved for brain artifacts)
-- `RiskTier` in `lifecycle.py` uses `HIGH`, `MEDIUM`, `LOW` (no `CRITICAL` enum value)
-- `find_conflict_markers_in_untracked` must check conflict separator lines to prevent banner collisions
-- Retiring `.agents/workflows/` eliminates dual authority while preserving archive evidence
+- `SubsystemDeclaration` has 15 positional fields; construct via `from_dict` in tests
+- Subsystem objects in `SpecialistGenerator` must be safely coerced from dict/str/obj
+- Discovery of important directories must check both root and `src/`/`lib/`/`app/`
+- Zero workflows invariant: routing flows exclusively via `/antios` and native skills
 
 ## 5. Next Immediate Action
-Emit authoritative final acceptance report and conclude Phase 49–54 implementation.
+Phase 55–60 implementation complete. Final verifier audit and sign-off.

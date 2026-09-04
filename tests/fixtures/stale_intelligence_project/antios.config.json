@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "name": "stale-intelligence-app",
+  "protected_zones": [".agents", "framework"],
+  "protected_domain_paths": [],
+  "forbidden_patterns": [],
+  "test_runners": [
+    {
+      "name": "node-test",
+      "manifest": "package.json",
+      "command": ["node", "--test"],
+      "timeout_seconds": 60,
+      "cwd": null,
+      "required": true,
+      "scope": "GLOBAL",
+      "member": null
+    }
+  ],
+  "linters": [],
+  "policies": {
+    "fail_closed": true,
+    "enforce_working_tree_cleanliness": true,
+    "enforce_same_change_set": true
+  },
+  "changeset": {
+    "tracked_extensions": [".js", ".ts"]
+  },
+  "manifest_fingerprint": "old_outdated_fingerprint_hash",
+  "components": [],
+  "capabilities": {},
+  "agent_topology": {}
+}

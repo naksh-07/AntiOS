@@ -1,0 +1,30 @@
+{
+  "schema_version": "2.0.0",
+  "antios_version": "2.0.0",
+  "source_revision": "v2.0.0",
+  "project_fingerprint": "old_outdated_fingerprint_hash",
+  "installation_state": "INSTALLED",
+  "adaptation_state": "ADAPTED",
+  "generated_at": "2026-09-01T00:00:00Z",
+  "managed_paths": {
+    "antios.config.json": {
+      "path": "antios.config.json",
+      "ownership": "MANAGED",
+      "sha256": "fake_sha_for_testing",
+      "source_revision": "v2.0.0",
+      "generated_at": "2026-09-01T00:00:00Z"
+    }
+  },
+  "generated_paths": {
+    ".antios/knowledge.json": {
+      "path": ".antios/knowledge.json",
+      "ownership": "GENERATED",
+      "sha256": "fake_sha_for_testing",
+      "source_revision": "v2.0.0",
+      "generated_at": "2026-09-01T00:00:00Z"
+    }
+  },
+  "user_owned_paths": [],
+  "protected_paths": [".agents", "framework"],
+  "stale_paths": []
+}

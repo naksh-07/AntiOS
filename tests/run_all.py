@@ -112,6 +112,15 @@ import tests.test_orchestration_adaptive as test_orchestration_adaptive
 import tests.test_dispatch_pipeline as test_dispatch_pipeline
 import tests.test_orchestration_adversarial as test_orchestration_adversarial
 
+# Phase 55-60 Project Intelligence & Adaptive Generation
+import tests.test_project_anatomy as test_project_anatomy
+import tests.test_component_intelligence as test_component_intelligence
+import tests.test_skill_generation as test_skill_generation
+import tests.test_specialist_generation as test_specialist_generation
+import tests.test_workflow_retirement as test_workflow_retirement
+import tests.test_intelligence_verification as test_intelligence_verification
+import tests.test_phase55_60_fixtures as test_phase55_60_fixtures
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -207,6 +216,14 @@ def build_suite() -> unittest.TestSuite:
         test_orchestration_adaptive,
         test_dispatch_pipeline,
         test_orchestration_adversarial,
+        # Phase 55-60
+        test_project_anatomy,
+        test_component_intelligence,
+        test_skill_generation,
+        test_specialist_generation,
+        test_workflow_retirement,
+        test_intelligence_verification,
+        test_phase55_60_fixtures,
     ]
 
     loader = unittest.defaultTestLoader

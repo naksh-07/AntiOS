@@ -1,0 +1,7 @@
+{
+  "name": "ETL Specialist",
+  "role": "etl-specialist",
+  "scope": "pipelines/",
+  "ownership": "USER_AUTHORED",
+  "description": "User-defined ETL agent persona that must be preserved."
+}

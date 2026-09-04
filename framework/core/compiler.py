@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from framework.core.adapter import generate_adapter_config
+from framework.core.anatomy import ProjectAnatomy, ProjectAnatomyCompiler
 from framework.core.config import AntiOSConfig, load_config
 from framework.core.discovery import discover_project
 from framework.core.manifest import (
@@ -37,6 +38,8 @@ from framework.core.manifest import (
 )
 from framework.core.profile import ProjectProfile
 from framework.core.provenance import can_safely_overwrite, compute_file_sha256
+from framework.core.skill_generator import SkillGenerator
+from framework.core.specialist_generator import SpecialistGenerator
 
 
 @dataclass
@@ -111,6 +114,10 @@ class ProjectBoundaryCompiler:
         profile_content = json.dumps(profile.to_dict(), indent=2)
         compiled_files[".antios/project_profile.json"] = profile_content
 
+        # 3b. Compile Project Anatomy (.antios/project_anatomy.json) [Phase 55]
+        anatomy = ProjectAnatomyCompiler(self.target_root).compile(profile=profile)
+        compiled_files[".antios/project_anatomy.json"] = anatomy.to_json()
+
         # 4. Compile Knowledge Graph (.antios/knowledge.json)
         top = getattr(profile, "topology", None) or getattr(profile, "workspace_topology", None)
         top_str = top.value if hasattr(top, "value") else (str(top) if top else "STANDALONE")
@@ -126,27 +133,15 @@ class ProjectBoundaryCompiler:
         }
         compiled_files[".antios/knowledge.json"] = json.dumps(knowledge_data, indent=2)
 
-        # 5. Compile Agent Topology (.antios/agent_topology.json)
-        topology_data = {
-            "project_name": profile.identity.name or "Target-Project",
-            "primary_role": "role:primary-engineer",
-            "allow_delegation": True,
-            "max_depth": 2,
-            "canonical_roles": [
-                "role:primary-engineer",
-                "role:root-cause-debugger",
-                "role:independent-verifier",
-                "role:investigation-specialist",
-                "role:security-reviewer",
-            ],
-            "subsystem_specialists": [
-                {
-                    "subsystem": s.name if hasattr(s, "name") else s.get("name", "unknown"),
-                    "owner": s.owner if hasattr(s, "owner") else s.get("owner", "unassigned"),
-                }
-                for s in profile.subsystems
-            ],
-        }
+        # 5. Compile Agent Topology (.antios/agent_topology.json) [Phase 58]
+        specialist_roles = SpecialistGenerator.evaluate_specialist_justification(
+            anatomy=anatomy,
+            subsystems=profile.subsystems,
+        )
+        topology_data = SpecialistGenerator.compile_topology_json(
+            roles=specialist_roles,
+            project_name=profile.identity.name or "Target-Project",
+        )
         compiled_files[".antios/agent_topology.json"] = json.dumps(topology_data, indent=2)
 
         # 6. Compile Tool Policy (.antios/tool_policy.json)
@@ -173,17 +168,22 @@ class ProjectBoundaryCompiler:
         config_content = json.dumps(config_dict, indent=2)
         compiled_files["antios.config.json"] = config_content
 
-        # 8. Compile .agents/skills/antios/SKILL.md from template
+        # 8. Compile .agents/skills/antios/SKILL.md & project-specific skills [Phase 57]
         template_skill_path = self.source_root / "framework/templates/skills/antios/SKILL.md"
         if template_skill_path.is_file():
-            skill_content = template_skill_path.read_text(encoding="utf-8")
+            main_skill_content = template_skill_path.read_text(encoding="utf-8")
         else:
-            # Fallback embedded skill content
-            skill_content = (
-                "---\nname: antios\ndescription: Universal project operating interface under AntiOS 2.0 governance.\n---\n"
-                "# AntiOS Project Operating Interface\n\nGoverns repository workflow under AntiOS 2.0.\n"
-            )
-        compiled_files[".agents/skills/antios/SKILL.md"] = skill_content
+            main_skill_content = SkillGenerator.compile_main_skill(anatomy)
+        compiled_files[".agents/skills/antios/SKILL.md"] = main_skill_content
+
+        # Evidence-driven specialist skill generation
+        existing_skills = list(anatomy.existing_agents_structure.get("skills", []))
+        skill_specs = SkillGenerator.evaluate_skill_justification(anatomy, existing_skills=existing_skills)
+        generated_skill_paths: List[str] = []
+        for spec in skill_specs:
+            sp = f".agents/skills/{spec.name}/SKILL.md"
+            compiled_files[sp] = SkillGenerator.generate_skill_content(spec, anatomy)
+            generated_skill_paths.append(sp)
 
         # 9. Compile .agents/hooks.json
         hooks_data = {
@@ -209,6 +209,12 @@ class ProjectBoundaryCompiler:
         }
         compiled_files[".agents/hooks.json"] = json.dumps(hooks_data, indent=2)
 
+        # Phase 59: Zero Legacy Workflows Invariant
+        # Ensure compiled_files never contains .agents/workflows/
+        for p in list(compiled_files.keys()):
+            if p.startswith(".agents/workflows"):
+                del compiled_files[p]
+
         # 10. Build Artifact Records & Project Manifest
         now_ts = datetime.now(timezone.utc).isoformat()
         managed_paths: Dict[str, ArtifactRecord] = {}
@@ -229,14 +235,18 @@ class ProjectBoundaryCompiler:
                     source_template=k,
                 )
 
-        # Generated paths (intelligence & operating skill)
+        # Generated paths (intelligence & operating skills)
         generated_keys = {
             ".antios/project_profile.json",
+            ".antios/project_anatomy.json",
             ".antios/knowledge.json",
             ".antios/agent_topology.json",
             ".antios/tool_policy.json",
             ".agents/skills/antios/SKILL.md",
         }
+        for gsp in generated_skill_paths:
+            generated_keys.add(gsp)
+
         for k in generated_keys:
             if k in compiled_files:
                 content = compiled_files[k]

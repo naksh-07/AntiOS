@@ -1,0 +1,35 @@
+{
+  "project_identity": {
+    "name": "stale-intelligence-app",
+    "root_path": ".",
+    "is_git_repo": false,
+    "languages": ["TypeScript"],
+    "frameworks": [],
+    "package_managers": ["npm"],
+    "build_systems": []
+  },
+  "workspace_topology": "STANDALONE",
+  "subsystems": [
+    {
+      "subsystem_id": "deleted_module",
+      "name": "Deleted Module",
+      "area": "logic",
+      "root_paths": ["src/deleted_module"],
+      "entrypoints": ["src/deleted_module/index.ts"],
+      "authoritative_files": [],
+      "covering_tests": [],
+      "test_commands": [],
+      "applicable_skills": [],
+      "applicable_workflows": [],
+      "governing_rules": [],
+      "protected_invariants": [],
+      "dependencies": [],
+      "consumers": []
+    }
+  ],
+  "workspace_members": [],
+  "risk_zones": [],
+  "protected_paths": [],
+  "protected_domain_paths": [],
+  "manifest_fingerprint": "old_outdated_fingerprint_hash"
+}

@@ -232,8 +232,8 @@ class ProjectManifest:
             antios_version=str(data.get("antios_version", CURRENT_ANTIOS_VERSION)),
             schema_version=str(data.get("schema_version", CURRENT_SCHEMA_VERSION)),
             project_fingerprint=str(data.get("project_fingerprint", "")),
-            source_revision=str(data.get("source_revision", "")),
-            generated_at=str(data.get("generated_at", "")),
+            source_revision=str(data.get("source_revision") or "v2.0.0"),
+            generated_at=str(data.get("generated_at") or datetime.now(timezone.utc).isoformat()),
             adaptation_state=adapt_state,
             installation_state=inst_state,
             managed_paths=managed_paths,
@@ -288,8 +288,13 @@ class ProjectManifest:
 
 
 def load_manifest(target_root: Union[str, Path]) -> Optional[ProjectManifest]:
-    """Loads .antios/manifest.json from target directory. Returns None if missing."""
-    target_path = Path(target_root) / DEFAULT_MANIFEST_REL_PATH
+    """Loads .antios/manifest.json from target directory or direct file path. Returns None if missing."""
+    p = Path(target_root)
+    if p.is_file() and p.name.endswith(".json"):
+        target_path = p
+    else:
+        target_path = p / DEFAULT_MANIFEST_REL_PATH
+
     if not target_path.is_file():
         return None
     try:

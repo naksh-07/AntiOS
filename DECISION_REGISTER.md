@@ -483,3 +483,24 @@
 - **WHY SELECTED**: Eliminates architectural ambiguity and aligns AntiOS with native platform conventions.
 - **CONSEQUENCES**: Active `.agents/` contains only Skills, Rules, and Hooks.
 - **REVERSIBILITY**: High.
+
+---
+
+## DECISION 49: Epistemically Segregated Project Anatomy Compiler and Component Intelligence
+- **DECISION**: Implement `ProjectAnatomyCompiler` to compile `.antios/project_anatomy.json` with strict epistemic segregation across three evidence tiers (`OBSERVED`, `INFERRED`, `UNKNOWN`). Component intelligence indexes domain subsystems and renders token-bounded cards ($\le 25$ lines) with authoritative interfaces and covering test mappings.
+- **EVIDENCE**: Code generation and specialist dispatch without epistemic segregation suffer from hallucinated package managers, assumed test runners, and spurious specialist proliferation. Grounding intelligence in physical witnesses prevents catastrophic assumptions.
+- **ALTERNATIVES**: Flat unstructured project metadata or dynamic prompt-time filesystem scraping.
+- **WHY SELECTED**: Guarantees deterministic, audited repository anatomy while respecting token limits and platform boundaries.
+- **CONSEQUENCES**: All target projects have an explicit, serializable anatomy ledger; wayfinding can resolve components and test boundaries instantly.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 50: Evidence-Driven Skill and Specialist Synthesis with Cryptographic Verification
+- **DECISION**: `SkillGenerator` and `SpecialistGenerator` synthesize project-specific operating skills and agent personas strictly on physical witness evidence, enforcing the Shallow Depth Law (`max_depth <= 2`, `can_delegate = False`) and core immutable boundary restrictions. `IntelligenceVerifier` cryptographically audits generated intelligence against target project state, flagging architecture drift, stale paths, and deprecated workflow presence.
+- **EVIDENCE**: Spurious specialist generation and deep delegation trees trigger agent swarm runaway and tool permission leakage. Automated verification gates ensure that emitted skills and specialists remain synchronized with actual project manifests.
+- **ALTERNATIVES**: Static hardcoded specialists or unbounded dynamic delegation chains.
+- **WHY SELECTED**: Combines project-tailored autonomous capability with strict constitutional safety guarantees and drift detection.
+- **CONSEQUENCES**: Emitted specialists are non-delegating leaf workers; legacy `.agents/workflows/` are strictly blocked; all emitted files are tracked in `.antios/manifest.json`.
+- **REVERSIBILITY**: High.
+

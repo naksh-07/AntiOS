@@ -338,6 +338,7 @@ class InstallationLifecycleManager:
             paths_to_remove = [
                 ".antios/manifest.json",
                 ".antios/project_profile.json",
+                ".antios/project_anatomy.json",
                 ".antios/knowledge.json",
                 ".antios/agent_topology.json",
                 ".antios/tool_policy.json",

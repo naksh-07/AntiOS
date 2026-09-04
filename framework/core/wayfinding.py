@@ -348,3 +348,16 @@ class WayfindingEngine:
             "=================================",
         ]
         return "\n".join(card)
+
+    def get_component_intelligence(self, query_or_path: str) -> Optional[Any]:
+        """Resolves pre-modification component intelligence answering 'what do I need to know before modifying it?'"""
+        from framework.core.component_intelligence import ComponentIntelligenceResolver
+        return ComponentIntelligenceResolver.resolve(query_or_path, self, self.knowledge_graph)
+
+    def render_component_intelligence_card(self, query_or_path: str) -> str:
+        """Renders token-bounded pre-modification card (<= 25 lines) for the component."""
+        from framework.core.component_intelligence import ComponentIntelligenceResolver
+        report = self.get_component_intelligence(query_or_path)
+        if not report:
+            return f"AntiOS Component Intelligence: No component matched for '{query_or_path}'."
+        return ComponentIntelligenceResolver.render_card(report)
