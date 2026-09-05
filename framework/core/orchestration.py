@@ -1,28 +1,33 @@
-"""AntiOS 2.0 Constitutional Orchestration Engine.
+"""AntiOS 2.0 Constitutional Orchestration Engine & Adaptive Workforce Architecture.
+
+Phases 83–86: Native Antigravity Orchestration & Teamwork-Grade Workforce Architecture.
 
 Authoritative AntiOS mission orchestration layer implementing:
 - Hard Constitutional Limits:
     MAX_ACTIVE_AGENTS_PER_WAVE = 10
     MAX_TOTAL_SPAWNED_AGENTS = 20 (across entire mission delegation tree)
     MAX_DELEGATION_DEPTH = 2 (Shallow Depth Law: Root=0 -> Child=1 -> Grandchild=2)
-- Adaptive Workforce Sizing:
+    MAX_WORKER_RETRIES_PER_ROLE = 2 (Anti-Hydra retry loop limit)
+- Adaptive Workforce Sizing & Cost Reasoning:
     SOLO, FOCUSED, SMALL, PARALLEL, STAGED, HIERARCHICAL, MAX
-- Dual Mandatory Dispatch Gates:
-    Gate A: Pre-Planning Dispatch (checks multi-domain, independent lanes, file scope)
-    Gate B: Execution Dispatch (checks implementation workstreams, independence, coupling)
-- Mission Resource Ledger:
-    Tracks mission_id, spawned_total, active_total, remaining_budget, current_wave,
-    current_depth, active_workers, worker_roles, reserved_capacity, completed_workers,
-    failed_workers, collapsed_workers. Fail-closed on uncertainty.
-- Adaptive Wave Lifecycle & Mandatory Collapse:
-    RECONNAISSANCE -> PLANNING -> IMPLEMENTATION -> VERIFICATION -> DELIVERY
-    NEXT_WAVE_ALLOWED only when PREVIOUS_WAVE_STATE == COLLAPSED (active_total == 0)
-- Read-Parallel / Write-Controlled Policy:
-    Disjoint writes, isolated branches, controlled single-writer fallback.
-- Hierarchical Capacity Reservation:
-    Coordinators receive bounded child quotas from root; unused capacity reverts to root.
-- Structured Evidence Handoffs:
-    Objective, observations, logic chain, evidence, caveats, conclusion, verification method, next owner.
+    AdaptiveWorkforcePlanner evaluates 12 inputs and token-bounded cost reasoning
+    (Why this workforce, Why not fewer workers, Why not more workers).
+- Teamwork-Grade Wave Lifecycle:
+    PLAN -> DISPATCH -> EXECUTE -> COLLECT -> RECONCILE -> VERIFY -> COLLAPSE -> NEXT_WAVE
+    NEXT_WAVE is strictly blocked while active_total != 0.
+- Anti-Hydra Protection:
+    WorkerMetadata required for every spawn (mission_id, wave_id, parent_id,
+    capability, purpose, write_boundary, risk_tier, expected_output, verification_requirement).
+    Rejects anonymous workers, duplicate specialists, recursive spawning, and runaway retries.
+- Controlled Parallel Writing:
+    Single writer default. Parallel writing allowed only when file boundaries are proven disjoint.
+    Overlapping boundaries automatically fall back to Controlled Single Writer (serialization).
+- Wave State Persistence & Interrupted Mission Recovery:
+    WavePersistenceEngine saves and restores mission state for deterministic recovery.
+- Failure & Recovery Engine:
+    Handles timeout, crash, partial result, conflicting result, duplicate result, stale result,
+    verification failure, write collision, capability unavailable, MCP unavailable.
+    Prefers RETRY_SAME_WORKER_CONTEXT over SPAWN_NEW_WORKER when safe.
 """
 
 from __future__ import annotations
@@ -30,6 +35,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 import json
+import os
+from pathlib import Path
 import time
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
@@ -38,6 +45,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 MAX_ACTIVE_AGENTS_PER_WAVE = 10
 MAX_TOTAL_SPAWNED_AGENTS = 20
 MAX_DELEGATION_DEPTH = 2
+MAX_WORKER_RETRIES_PER_ROLE = 2
 
 
 class OrchestrationBudgetExceeded(Exception):
@@ -64,6 +72,18 @@ class WaveState(str, Enum):
     COLLAPSED = "COLLAPSED"
 
 
+class WaveLifecycleStage(str, Enum):
+    """Canonical 8-step teamwork wave lifecycle."""
+    PLAN = "PLAN"
+    DISPATCH = "DISPATCH"
+    EXECUTE = "EXECUTE"
+    COLLECT = "COLLECT"
+    RECONCILE = "RECONCILE"
+    VERIFY = "VERIFY"
+    COLLAPSE = "COLLAPSE"
+    NEXT_WAVE = "NEXT_WAVE"
+
+
 class CanonicalWave(str, Enum):
     """Canonical mission wave stages."""
     RECONNAISSANCE = "RECONNAISSANCE"
@@ -87,6 +107,7 @@ class WriteSafetyPolicy(str, Enum):
     CONTROLLED_SINGLE_WRITER = "CONTROLLED_SINGLE_WRITER"
     SAFELY_PARALLELIZABLE = "SAFELY_PARALLELIZABLE"
     UNSAFE_TO_PARALLELIZE = "UNSAFE_TO_PARALLELIZE"
+    DISJOINT_BRANCHES = "DISJOINT_BRANCHES"
 
 
 class DispatchGateType(str, Enum):
@@ -101,6 +122,117 @@ class GateDecision(str, Enum):
     DELEGATION_MANDATORY = "DELEGATION_MANDATORY"
     COORDINATOR_AUTHORIZED = "COORDINATOR_AUTHORIZED"
     BLOCKED = "BLOCKED"
+
+
+class FailureType(str, Enum):
+    """Failure classes encountered during autonomous execution."""
+    TIMEOUT = "TIMEOUT"
+    CRASH = "CRASH"
+    PARTIAL_RESULT = "PARTIAL_RESULT"
+    CONFLICTING_RESULT = "CONFLICTING_RESULT"
+    DUPLICATE_RESULT = "DUPLICATE_RESULT"
+    STALE_RESULT = "STALE_RESULT"
+    VERIFICATION_FAILURE = "VERIFICATION_FAILURE"
+    WRITE_COLLISION = "WRITE_COLLISION"
+    CAPABILITY_UNAVAILABLE = "CAPABILITY_UNAVAILABLE"
+    MCP_UNAVAILABLE = "MCP_UNAVAILABLE"
+    UNGROUNDED_EVIDENCE = "UNGROUNDED_EVIDENCE"
+
+
+class RecoveryAction(str, Enum):
+    """Deterministic recovery actions for execution failures."""
+    RETRY_SAME_WORKER_CONTEXT = "RETRY_SAME_WORKER_CONTEXT"
+    REASSIGN_WORKER = "REASSIGN_WORKER"
+    SPAWN_NEW_WORKER = "SPAWN_NEW_WORKER"
+    TAKEOVER_DIRECT = "TAKEOVER_DIRECT"
+    FAIL_CLOSED = "FAIL_CLOSED"
+
+
+@dataclass
+class FailureRecoveryDecision:
+    """Decision emitted by FailureRecoveryEngine."""
+    failure_type: FailureType
+    action: RecoveryAction
+    worker_id: str
+    rationale: str
+    can_consume_budget: bool = False
+    retry_prompt: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "failure_type": self.failure_type.value,
+            "action": self.action.value,
+            "worker_id": self.worker_id,
+            "rationale": self.rationale,
+            "can_consume_budget": self.can_consume_budget,
+            "retry_prompt": self.retry_prompt,
+        }
+
+
+@dataclass
+class WorkerMetadata:
+    """Non-negotiable deterministic metadata required for every worker spawn (Anti-Hydra Protection)."""
+    mission_id: str
+    wave_id: int
+    parent_id: Optional[str]
+    capability: str
+    purpose: str = ""
+    write_boundary: List[str] = field(default_factory=list)
+    risk_tier: str = "MEDIUM"
+    expected_output: str = ""
+    verification_requirement: str = ""
+    goal: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.goal and not self.purpose:
+            self.purpose = self.goal
+        elif self.purpose and not self.goal:
+            self.goal = self.purpose
+
+    def validate(self) -> Tuple[bool, List[str]]:
+        """Validates that worker is fully specified (no anonymous workers)."""
+        errors: List[str] = []
+        if not self.mission_id or not self.mission_id.strip():
+            errors.append("WorkerMetadata missing required 'mission_id'.")
+        if self.wave_id <= 0:
+            errors.append("WorkerMetadata 'wave_id' must be >= 1.")
+        if not self.capability or not self.capability.strip():
+            errors.append("WorkerMetadata missing required 'capability' (no capability-free workers).")
+        if not self.purpose or not self.purpose.strip():
+            errors.append("WorkerMetadata missing required 'purpose'.")
+        if not self.expected_output or not self.expected_output.strip():
+            errors.append("WorkerMetadata missing required 'expected_output'.")
+        if not self.verification_requirement or not self.verification_requirement.strip():
+            errors.append("WorkerMetadata missing required 'verification_requirement'.")
+        return len(errors) == 0, errors
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "mission_id": self.mission_id,
+            "wave_id": self.wave_id,
+            "parent_id": self.parent_id,
+            "capability": self.capability,
+            "purpose": self.purpose,
+            "goal": self.purpose,
+            "write_boundary": list(self.write_boundary),
+            "risk_tier": self.risk_tier,
+            "expected_output": self.expected_output,
+            "verification_requirement": self.verification_requirement,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> WorkerMetadata:
+        return cls(
+            mission_id=str(data.get("mission_id", "")),
+            wave_id=int(data.get("wave_id", 1)),
+            parent_id=data.get("parent_id"),
+            capability=str(data.get("capability", "")),
+            purpose=str(data.get("purpose", "")),
+            write_boundary=list(data.get("write_boundary", [])),
+            risk_tier=str(data.get("risk_tier", "MEDIUM")),
+            expected_output=str(data.get("expected_output", "")),
+            verification_requirement=str(data.get("verification_requirement", "")),
+        )
 
 
 @dataclass
@@ -177,6 +309,81 @@ class AgentRecord:
     reserved_quota: int = 0
     actually_spawned: int = 0
     failure_reason: Optional[str] = None
+    metadata: Optional[WorkerMetadata] = None
+
+
+@dataclass
+class WorkforceCostReasoning:
+    """Multi-input cost reasoning explaining workforce mode selection (Phase 84)."""
+    why_this_workforce: str = ""
+    why_not_fewer: str = ""
+    why_not_more: str = ""
+    max_recommended_workers: int = 1
+    mode: WorkforceMode = WorkforceMode.SOLO
+    coordination_cost_tokens: int = 0
+    write_collision_risk: str = "MINIMAL"
+    decision_inputs: Dict[str, Any] = field(default_factory=dict)
+
+    # Aliases for backwards compatibility with DualDispatchGates:
+    selected_mode: Optional[WorkforceMode] = None
+    recommended_workers: Optional[int] = None
+    why_not_fewer_workers: Optional[str] = None
+    why_not_more_workers: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.selected_mode is not None:
+            self.mode = self.selected_mode
+        elif self.mode and self.selected_mode is None:
+            self.selected_mode = self.mode
+
+        if self.recommended_workers is not None:
+            self.max_recommended_workers = self.recommended_workers
+        elif self.max_recommended_workers and self.recommended_workers is None:
+            self.recommended_workers = self.max_recommended_workers
+
+        if self.why_not_fewer_workers is not None and not self.why_not_fewer:
+            self.why_not_fewer = self.why_not_fewer_workers
+        elif self.why_not_fewer and self.why_not_fewer_workers is None:
+            self.why_not_fewer_workers = self.why_not_fewer
+
+        if self.why_not_more_workers is not None and not self.why_not_more:
+            self.why_not_more = self.why_not_more_workers
+        elif self.why_not_more and self.why_not_more_workers is None:
+            self.why_not_more_workers = self.why_not_more
+
+    def format_token_bounded(self, max_lines: int = 12) -> str:
+        """Emits a concise rationale card strictly <= max_lines."""
+        lines = [
+            "--- WORKFORCE COST REASONING ---",
+            f"Mode:          {self.mode.value} (Max: {self.max_recommended_workers})",
+            f"Why This:      {self.why_this_workforce}",
+            f"Why Not Fewer: {self.why_not_fewer}",
+            f"Why Not More:  {self.why_not_more}",
+            f"Coord Cost:    ~{self.coordination_cost_tokens} tokens",
+            f"Collision Risk:{self.write_collision_risk}",
+            "--------------------------------",
+        ]
+        return "\n".join(lines[:max_lines])
+
+    def format_explanation_card(self, max_lines: int = 12) -> str:
+        """Alias for format_token_bounded adhering to budget."""
+        return self.format_token_bounded(max_lines=max_lines)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "mode": self.mode.value if isinstance(self.mode, WorkforceMode) else str(self.mode),
+            "selected_mode": self.mode.value if isinstance(self.mode, WorkforceMode) else str(self.mode),
+            "max_recommended_workers": self.max_recommended_workers,
+            "recommended_workers": self.max_recommended_workers,
+            "why_this_workforce": self.why_this_workforce,
+            "why_not_fewer": self.why_not_fewer,
+            "why_not_more": self.why_not_more,
+            "why_not_fewer_workers": self.why_not_fewer,
+            "why_not_more_workers": self.why_not_more,
+            "coordination_cost_tokens": self.coordination_cost_tokens,
+            "write_collision_risk": self.write_collision_risk,
+            "decision_inputs": dict(self.decision_inputs),
+        }
 
 
 @dataclass
@@ -189,9 +396,10 @@ class DispatchGateResult:
     reasons: List[str]
     checklist: Dict[str, Any] = field(default_factory=dict)
     budget_reserved: int = 0
+    cost_reasoning: Optional[WorkforceCostReasoning] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             "gate_type": self.gate_type.value,
             "decision": self.decision.value,
             "mode": self.mode.value,
@@ -200,6 +408,9 @@ class DispatchGateResult:
             "checklist": dict(self.checklist),
             "budget_reserved": self.budget_reserved,
         }
+        if self.cost_reasoning:
+            d["cost_reasoning"] = self.cost_reasoning.to_dict()
+        return d
 
 
 @dataclass
@@ -207,12 +418,13 @@ class MissionLedger:
     """Authoritative mission-wide resource ledger for AntiOS orchestration.
     
     Tracks global launches, active concurrency, coordinator reservations,
-    wave states, and worker outcomes.
+    wave states, worker outcomes, and enforces Anti-Hydra protection.
     """
     mission_id: str = "mission-001"
     max_active_per_wave: int = MAX_ACTIVE_AGENTS_PER_WAVE
     max_total_spawned: int = MAX_TOTAL_SPAWNED_AGENTS
     max_depth: int = MAX_DELEGATION_DEPTH
+    max_retries_per_role: int = MAX_WORKER_RETRIES_PER_ROLE
     spawned_total: int = 0
     active_total: int = 0
     current_wave: int = 0
@@ -235,21 +447,78 @@ class MissionLedger:
         """Available concurrency slots in the current wave."""
         return max(0, self.max_active_per_wave - self.active_total)
 
-    def can_spawn(self, depth: int = 1, parent_id: Optional[str] = None) -> Tuple[bool, str]:
-        """Pre-spawn gate verifying all constitutional constraints."""
+    def can_spawn(
+        self,
+        depth: int = 1,
+        parent_id: Optional[str] = None,
+        role: Optional[str] = None,
+        write_boundary: Optional[List[str]] = None,
+        wave_number: Optional[int] = None,
+        metadata: Optional["WorkerMetadata"] = None,
+    ) -> Tuple[bool, str]:
+        """Pre-spawn gate verifying all constitutional and Anti-Hydra constraints."""
+        # 1. Shallow Depth Law
         if depth > self.max_depth:
             return False, f"Shallow Depth Law violation: depth {depth} exceeds constitutional limit {self.max_depth}"
+
+        # 2. Grandchild delegation attempt (depth 2 cannot spawn depth 3)
+        if parent_id and parent_id in self.records:
+            parent_rec = self.records[parent_id]
+            if parent_rec.depth >= 2:
+                return False, f"Shallow Depth Law violation: leaf worker '{parent_id}' at depth {parent_rec.depth} cannot delegate"
+
+        # 3. Constitutional launch ceilings
         if self.spawned_total >= self.max_total_spawned:
             return False, f"Constitutional ceiling reached: spawned {self.spawned_total}/{self.max_total_spawned} total agents"
         if self.active_total >= self.max_active_per_wave:
             return False, f"Wave concurrency limit reached: active {self.active_total}/{self.max_active_per_wave} agents"
 
+        # 4. Coordinator quota checks
         if parent_id and parent_id in self.records:
             parent_rec = self.records[parent_id]
             if parent_rec.is_coordinator:
                 reserved = self.reserved_capacity.get(parent_id, 0)
                 if parent_rec.actually_spawned >= reserved:
                     return False, f"Coordinator '{parent_id}' exceeded reserved child quota ({reserved})"
+
+        # 5. Anti-Hydra: Duplicate active specialist check in same wave
+        if role and wave_number is not None and metadata is not None:
+            active_same_role = [
+                aid for aid in self.active_workers
+                if aid in self.records and self.records[aid].role == role and self.records[aid].wave_number == wave_number
+            ]
+            for other_id in active_same_role:
+                other_rec = self.records[other_id]
+                if other_rec.metadata:
+                    # Identical goal check
+                    if (
+                        other_rec.metadata.goal
+                        and metadata.goal
+                        and other_rec.metadata.goal.strip().lower() == metadata.goal.strip().lower()
+                    ):
+                        return False, f"Anti-Hydra Protection: Duplicate active specialist '{role}' with identical goal detected in wave {wave_number}"
+                    # Overlapping write boundaries check
+                    other_bounds = set(b.replace("\\", "/").strip().lower() for b in other_rec.metadata.write_boundary)
+                    this_bounds = set(b.replace("\\", "/").strip().lower() for b in metadata.write_boundary)
+                    if other_bounds and this_bounds and other_bounds.intersection(this_bounds):
+                        return False, f"Anti-Hydra Protection: Duplicate active specialist '{role}' with overlapping write boundary detected in wave {wave_number}"
+
+        # 6. Anti-Hydra: Runaway retry loop check
+        if role:
+            role_failures = sum(1 for rec in self.records.values() if rec.role == role and rec.failure_reason)
+            if role_failures >= self.max_retries_per_role:
+                return False, f"Anti-Hydra Protection: Retry limit reached for role '{role}' ({role_failures}/{self.max_retries_per_role}). Runaway retry loop prevented."
+
+        # 7. Anti-Hydra: Write boundary collision check
+        if write_boundary:
+            norm_new_bounds = {b.replace("\\", "/").strip().lower() for b in write_boundary}
+            for aid in self.active_workers:
+                rec = self.records.get(aid)
+                if rec and rec.metadata and rec.metadata.write_boundary:
+                    existing_bounds = {b.replace("\\", "/").strip().lower() for b in rec.metadata.write_boundary}
+                    collisions = norm_new_bounds.intersection(existing_bounds)
+                    if collisions:
+                        return False, f"Anti-Hydra Protection: Write collision with active worker '{aid}' on {collisions}"
 
         return True, "Spawn authorized within constitutional limits"
 
@@ -271,6 +540,11 @@ class MissionLedger:
         """Verifies whether an agent operation can be retried via new worker launch."""
         if self.remaining_budget <= 0:
             return False, "Cannot retry: mission launch budget exhausted (0 remaining)"
+        if agent_id in self.records:
+            role = self.records[agent_id].role
+            role_failures = sum(1 for rec in self.records.values() if rec.role == role and rec.failure_reason)
+            if role_failures >= self.max_retries_per_role:
+                return False, f"Anti-Hydra Protection: Excessive failure retries for role '{role}' ({role_failures})"
         return True, "Retry authorized (will consume 1 launch slot)"
 
     def can_delegate(self, coordinator_id: str) -> Tuple[bool, str]:
@@ -323,9 +597,24 @@ class MissionLedger:
         wave_number: int,
         parent_id: Optional[str] = None,
         is_coordinator: bool = False,
+        metadata: Optional[WorkerMetadata] = None,
     ) -> AgentRecord:
-        """Consumes a launch slot and increments active count."""
-        can_do, reason = self.can_spawn(depth=depth, parent_id=parent_id)
+        """Consumes a launch slot, validates metadata, and increments active count."""
+        # Validate metadata if provided
+        write_bounds = metadata.write_boundary if metadata else None
+        if metadata:
+            valid, errs = metadata.validate()
+            if not valid:
+                raise ValueError(f"Anti-Hydra Protection: Invalid worker metadata: {'; '.join(errs)}")
+
+        can_do, reason = self.can_spawn(
+            depth=depth,
+            parent_id=parent_id,
+            role=role,
+            write_boundary=write_bounds,
+            wave_number=wave_number,
+            metadata=metadata,
+        )
         if not can_do:
             raise OrchestrationBudgetExceeded(reason)
 
@@ -336,6 +625,7 @@ class MissionLedger:
             wave_number=wave_number,
             parent_id=parent_id,
             is_coordinator=is_coordinator,
+            metadata=metadata,
         )
         self.records[agent_id] = record
         self.spawned_total += 1
@@ -349,26 +639,28 @@ class MissionLedger:
 
         return record
 
-    def record_termination(self, agent_id: str) -> None:
+    def record_termination(self, agent_id: str, failure_reason: Optional[str] = None) -> None:
         """Marks an agent as terminated, decrementing active count."""
         if agent_id in self.records and self.records[agent_id].is_active:
             self.records[agent_id].is_active = False
             self.records[agent_id].terminated_at = time.time()
+            if failure_reason:
+                self.records[agent_id].failure_reason = failure_reason
             self.active_total = max(0, self.active_total - 1)
             if agent_id in self.active_workers:
                 self.active_workers.remove(agent_id)
-            if agent_id not in self.completed_workers and agent_id not in self.failed_workers:
-                self.completed_workers.append(agent_id)
+            if failure_reason:
+                if agent_id in self.completed_workers:
+                    self.completed_workers.remove(agent_id)
+                if agent_id not in self.failed_workers:
+                    self.failed_workers.append(agent_id)
+            else:
+                if agent_id not in self.completed_workers and agent_id not in self.failed_workers:
+                    self.completed_workers.append(agent_id)
 
     def record_failure(self, agent_id: str, reason: str) -> None:
         """Records a worker failure."""
-        if agent_id in self.records:
-            self.records[agent_id].failure_reason = reason
-            self.record_termination(agent_id)
-            if agent_id in self.completed_workers:
-                self.completed_workers.remove(agent_id)
-            if agent_id not in self.failed_workers:
-                self.failed_workers.append(agent_id)
+        self.record_termination(agent_id, failure_reason=reason)
 
     def collapse_all_active(self) -> int:
         """Aggressively collapses all active workers to 0."""
@@ -393,6 +685,7 @@ class MissionLedger:
             "max_active_per_wave": self.max_active_per_wave,
             "max_total_spawned": self.max_total_spawned,
             "max_depth": self.max_depth,
+            "max_retries_per_role": self.max_retries_per_role,
             "current_wave": self.current_wave,
             "current_depth": self.current_depth,
             "active_workers": list(self.active_workers),
@@ -418,6 +711,7 @@ class Wave:
     handoffs: List[StructuredHandoff] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
     collapsed_at: Optional[float] = None
+    stage: WaveLifecycleStage = WaveLifecycleStage.PLAN
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -428,11 +722,12 @@ class Wave:
             "handoff_count": len(self.handoffs),
             "created_at": self.created_at,
             "collapsed_at": self.collapsed_at,
+            "stage": self.stage.value,
         }
 
 
 class WaveManager:
-    """Orchestrates waves, ensuring mandatory consolidation and collapse."""
+    """Orchestrates waves, ensuring mandatory consolidation, collapse, and lifecycle stages."""
 
     def __init__(self, ledger: Optional[MissionLedger] = None, budget: Optional[MissionLedger] = None):
         self.ledger = ledger or budget or MissionLedger()
@@ -462,7 +757,7 @@ class WaveManager:
             self.current_wave.collapsed_at = time.time()
 
         wave_num = len(self.waves) + 1
-        wave = Wave(wave_number=wave_num, name=name, state=WaveState.ACTIVE)
+        wave = Wave(wave_number=wave_num, name=name, state=WaveState.ACTIVE, stage=WaveLifecycleStage.DISPATCH)
         self.waves.append(wave)
         self.current_wave_idx = len(self.waves) - 1
         self.ledger.current_wave = wave_num
@@ -475,8 +770,9 @@ class WaveManager:
         depth: int = 1,
         parent_id: Optional[str] = None,
         is_coordinator: bool = False,
+        metadata: Optional[WorkerMetadata] = None,
     ) -> AgentRecord:
-        """Spawns a worker inside the current wave."""
+        """Spawns a worker inside the current wave with Anti-Hydra validation."""
         if not self.current_wave or self.current_wave.state != WaveState.ACTIVE:
             raise RuntimeError("Cannot spawn worker: no active wave started.")
 
@@ -487,8 +783,10 @@ class WaveManager:
             wave_number=self.current_wave.wave_number,
             parent_id=parent_id,
             is_coordinator=is_coordinator,
+            metadata=metadata,
         )
         self.current_wave.agent_ids.append(agent_id)
+        self.current_wave.stage = WaveLifecycleStage.EXECUTE
         return rec
 
     def record_handoff(self, agent_id: str, handoff: StructuredHandoff) -> None:
@@ -504,6 +802,7 @@ class WaveManager:
             self.ledger.records[agent_id].handoff = handoff
         self.current_wave.handoffs.append(handoff)
         self.ledger.record_termination(agent_id)
+        self.current_wave.stage = WaveLifecycleStage.COLLECT
 
     def collapse_wave(self) -> int:
         """Collapses the current wave: active workers -> 0, state -> COLLAPSED."""
@@ -511,14 +810,313 @@ class WaveManager:
             return 0
 
         self.current_wave.state = WaveState.CONSOLIDATING
+        self.current_wave.stage = WaveLifecycleStage.COLLAPSE
         collapsed = self.ledger.collapse_all_active()
         self.current_wave.state = WaveState.COLLAPSED
         self.current_wave.collapsed_at = time.time()
         return collapsed
 
 
+class WavePersistenceEngine:
+    """Persists and restores mission wave state for deterministic recovery."""
+
+    @staticmethod
+    def save_state(ledger: MissionLedger, wave_manager: WaveManager, filepath: Union[str, Path]) -> None:
+        """Serializes current ledger and wave state to JSON file."""
+        data = {
+            "ledger": ledger.to_dict(),
+            "records": {
+                aid: {
+                    "agent_id": r.agent_id,
+                    "role": r.role,
+                    "depth": r.depth,
+                    "wave_number": r.wave_number,
+                    "spawned_at": r.spawned_at,
+                    "terminated_at": r.terminated_at,
+                    "is_active": r.is_active,
+                    "is_coordinator": r.is_coordinator,
+                    "parent_id": r.parent_id,
+                    "failure_reason": r.failure_reason,
+                    "metadata": r.metadata.to_dict() if r.metadata else None,
+                    "handoff": r.handoff.to_dict() if r.handoff else None,
+                }
+                for aid, r in ledger.records.items()
+            },
+            "waves": [w.to_dict() for w in wave_manager.waves],
+            "current_wave_idx": wave_manager.current_wave_idx,
+        }
+        p = Path(filepath)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    @staticmethod
+    def load_state(filepath: Union[str, Path]) -> Tuple[MissionLedger, WaveManager]:
+        """Restores mission ledger and wave manager from persisted JSON state."""
+        p = Path(filepath)
+        if not p.is_file():
+            raise FileNotFoundError(f"Wave state file '{filepath}' not found")
+        data = json.loads(p.read_text(encoding="utf-8"))
+        ledger_dict = data.get("ledger", {})
+        ledger = MissionLedger(
+            mission_id=ledger_dict.get("mission_id", "mission-001"),
+            max_active_per_wave=ledger_dict.get("max_active_per_wave", MAX_ACTIVE_AGENTS_PER_WAVE),
+            max_total_spawned=ledger_dict.get("max_total_spawned", MAX_TOTAL_SPAWNED_AGENTS),
+            max_depth=ledger_dict.get("max_depth", MAX_DELEGATION_DEPTH),
+            max_retries_per_role=ledger_dict.get("max_retries_per_role", MAX_WORKER_RETRIES_PER_ROLE),
+            spawned_total=ledger_dict.get("spawned_total", 0),
+            active_total=ledger_dict.get("active_total", 0),
+            current_wave=ledger_dict.get("current_wave", 0),
+            current_depth=ledger_dict.get("current_depth", 0),
+            active_workers=list(ledger_dict.get("active_workers", [])),
+            worker_roles=dict(ledger_dict.get("worker_roles", {})),
+            reserved_capacity=dict(ledger_dict.get("reserved_capacity", {})),
+            completed_workers=list(ledger_dict.get("completed_workers", [])),
+            failed_workers=list(ledger_dict.get("failed_workers", [])),
+            collapsed_workers=list(ledger_dict.get("collapsed_workers", [])),
+        )
+        for aid, r_data in data.get("records", {}).items():
+            meta = WorkerMetadata.from_dict(r_data["metadata"]) if r_data.get("metadata") else None
+            handoff = StructuredHandoff.from_dict(r_data["handoff"]) if r_data.get("handoff") else None
+            rec = AgentRecord(
+                agent_id=r_data["agent_id"],
+                role=r_data["role"],
+                depth=r_data["depth"],
+                wave_number=r_data["wave_number"],
+                spawned_at=r_data.get("spawned_at", 0.0),
+                terminated_at=r_data.get("terminated_at"),
+                is_active=r_data.get("is_active", True),
+                is_coordinator=r_data.get("is_coordinator", False),
+                parent_id=r_data.get("parent_id"),
+                failure_reason=r_data.get("failure_reason"),
+                metadata=meta,
+                handoff=handoff,
+            )
+            ledger.records[aid] = rec
+
+        wm = WaveManager(ledger=ledger)
+        for w_data in data.get("waves", []):
+            wave = Wave(
+                wave_number=w_data["wave_number"],
+                name=w_data["name"],
+                state=WaveState(w_data.get("state", "ACTIVE")),
+                agent_ids=list(w_data.get("agent_ids", [])),
+                created_at=w_data.get("created_at", 0.0),
+                collapsed_at=w_data.get("collapsed_at"),
+            )
+            wm.waves.append(wave)
+        wm.current_wave_idx = data.get("current_wave_idx", len(wm.waves) - 1)
+        return ledger, wm
+
+
+class FailureRecoveryEngine:
+    """Deterministic failure triage and recovery engine."""
+
+    @staticmethod
+    def evaluate_recovery(
+        failure_type: FailureType,
+        worker_id: str,
+        ledger: MissionLedger,
+        prior_retries: int = 0,
+    ) -> FailureRecoveryDecision:
+        """Determines the safest recovery action, preferring same-context retry over new spawns."""
+        # 1. Timeout / Partial result: Nudge in same context (zero budget consumed)
+        if failure_type in (FailureType.TIMEOUT, FailureType.PARTIAL_RESULT):
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.RETRY_SAME_WORKER_CONTEXT,
+                worker_id=worker_id,
+                rationale="Worker timed out or returned partial results; retry in same context without consuming spawn budget.",
+                can_consume_budget=False,
+                retry_prompt="Please complete the assigned objective with concrete observations and grounded evidence.",
+            )
+
+        # 2. Write collision: Force single controlled writer takeover
+        if failure_type == FailureType.WRITE_COLLISION:
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.TAKEOVER_DIRECT,
+                worker_id=worker_id,
+                rationale="Write collision detected across workers; serialize execution under Controlled Single Writer.",
+                can_consume_budget=False,
+            )
+
+        # 3. Capability / MCP Unavailable: Reassign or fallback to local tier
+        if failure_type in (FailureType.CAPABILITY_UNAVAILABLE, FailureType.MCP_UNAVAILABLE):
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.TAKEOVER_DIRECT,
+                worker_id=worker_id,
+                rationale="Required tool or MCP unavailable; fall back to local CLI/script tier.",
+                can_consume_budget=False,
+            )
+
+        # 4. Crash or Verification failure
+        if failure_type in (FailureType.CRASH, FailureType.VERIFICATION_FAILURE):
+            if prior_retries < 1:
+                return FailureRecoveryDecision(
+                    failure_type=failure_type,
+                    action=RecoveryAction.RETRY_SAME_WORKER_CONTEXT,
+                    worker_id=worker_id,
+                    rationale="Initial execution error; nudge worker with corrective feedback before spawning replacement.",
+                    can_consume_budget=False,
+                    retry_prompt="Execution or verification failed. Review error output, fix minimal defect, and verify via tests.",
+                )
+            # Second attempt failed -> spawn replacement worker if budget allows
+            if ledger.remaining_budget > 0 and ledger.active_total < ledger.max_active_per_wave:
+                return FailureRecoveryDecision(
+                    failure_type=failure_type,
+                    action=RecoveryAction.SPAWN_NEW_WORKER,
+                    worker_id=worker_id,
+                    rationale="Worker stalled across retries; spawning fresh-context replacement worker.",
+                    can_consume_budget=True,
+                )
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.TAKEOVER_DIRECT,
+                worker_id=worker_id,
+                rationale="Budget ceiling reached or active capacity exhausted; parent takes over execution directly.",
+                can_consume_budget=False,
+            )
+
+        # 5. Stale / Conflicting / Duplicate results
+        return FailureRecoveryDecision(
+            failure_type=failure_type,
+            action=RecoveryAction.FAIL_CLOSED,
+            worker_id=worker_id,
+            rationale=f"Unrecoverable result state: {failure_type.value}. Failing closed to prevent corruption.",
+            can_consume_budget=False,
+        )
+
+
+class AdaptiveWorkforcePlanner:
+    """Evidence-driven workforce planner evaluating 12 concrete inputs and cost reasoning."""
+
+    @classmethod
+    def plan_workforce(
+        cls,
+        task_complexity: str = "MODULAR",           # TINY, MODULAR, CROSS_SUBSYSTEM, ENTERPRISE
+        independent_work_surfaces: int = 1,
+        dependency_graph_depth: int = 1,            # 1 = parallelizable, >1 = sequential
+        risk_tier: str = "LOW",                     # LOW, MEDIUM, HIGH, CRITICAL
+        verification_requirements: str = "SOLO_SANITY", # SOLO_SANITY, MAKER_CHECKER, VERIFIER_AND_CHALLENGER, AUDITOR
+        project_topology_components: int = 1,
+        available_capabilities: Optional[List[str]] = None,
+        specialist_available: bool = True,
+        expected_context_cost: str = "LOW",         # LOW, MEDIUM, HIGH
+        expected_coordination_cost: str = "LOW",    # LOW, MEDIUM, HIGH
+        write_collision_risk: str = "ZERO",         # ZERO, LOW, HIGH
+        native_antigravity_sufficient: bool = False,
+        remaining_budget: int = MAX_TOTAL_SPAWNED_AGENTS,
+        active_capacity: int = MAX_ACTIVE_AGENTS_PER_WAVE,
+    ) -> Tuple[WorkforceMode, int, WorkforceCostReasoning]:
+        """Dynamically selects minimal effective workforce and emits cost reasoning."""
+        # 1. Check budget exhaustion
+        if remaining_budget <= 0:
+            mode = WorkforceMode.SOLO
+            rec_workers = 0
+            reasoning = WorkforceCostReasoning(
+                selected_mode=mode,
+                recommended_workers=rec_workers,
+                why_this_workforce="Mission launch budget exhausted (0 remaining); parent executes directly.",
+                why_not_fewer_workers="N/A: already minimal workforce (SOLO).",
+                why_not_more_workers="Budget exhausted: constitutional ceiling (20 launches) strictly enforced.",
+                decision_inputs={"remaining_budget": remaining_budget},
+            )
+            return mode, rec_workers, reasoning
+
+        # 2. Native Antigravity Primitives are Sufficient or Tiny Task
+        if native_antigravity_sufficient or (task_complexity.upper() == "TINY" and independent_work_surfaces <= 1 and risk_tier.upper() == "LOW"):
+            mode = WorkforceMode.SOLO
+            rec_workers = 0
+            reasoning = WorkforceCostReasoning(
+                selected_mode=mode,
+                recommended_workers=rec_workers,
+                why_this_workforce="Native Antigravity primitives or parent execution directly satisfy this narrow task with zero coordination latency.",
+                why_not_fewer_workers="Already minimal (0 subagents).",
+                why_not_more_workers="One worker beats multiple workers: work is sequential, files overlap, and context sharing overhead would dominate.",
+                decision_inputs={"native_antigravity_sufficient": native_antigravity_sufficient, "task_complexity": task_complexity},
+            )
+            return mode, rec_workers, reasoning
+
+        # 3. High Write Collision Risk or Tightly Coupled Dependencies -> Single Controlled Writer
+        if write_collision_risk.upper() == "HIGH" or dependency_graph_depth > 2:
+            mode = WorkforceMode.FOCUSED if risk_tier.upper() in ("HIGH", "CRITICAL") or verification_requirements != "SOLO_SANITY" else WorkforceMode.SOLO
+            rec_workers = min(1, remaining_budget, active_capacity) if mode == WorkforceMode.FOCUSED else 0
+            reasoning = WorkforceCostReasoning(
+                selected_mode=mode,
+                recommended_workers=rec_workers,
+                why_this_workforce="Tightly coupled files or sequential dependency graph mandates Controlled Single Writer to prevent write collisions.",
+                why_not_fewer_workers="High risk or Maker-Checker mandate requires dedicated specialist/verifier perspective." if mode == WorkforceMode.FOCUSED else "Already minimal.",
+                why_not_more_workers="Files overlap or changes are strictly sequential; additional workers would cause write conflicts without speed benefit.",
+                decision_inputs={"write_collision_risk": write_collision_risk, "dependency_depth": dependency_graph_depth},
+            )
+            return mode, rec_workers, reasoning
+
+        # 4. Enterprise initiative with decomposable subsystem -> HIERARCHICAL
+        if task_complexity.upper() == "ENTERPRISE" and independent_work_surfaces >= 3 and project_topology_components >= 3:
+            mode = WorkforceMode.HIERARCHICAL
+            rec_workers = min(independent_work_surfaces, 4, remaining_budget, active_capacity)
+            reasoning = WorkforceCostReasoning(
+                selected_mode=mode,
+                recommended_workers=rec_workers,
+                why_this_workforce="Enterprise multi-subsystem mission requires 1 Coordinator leading bounded leaf workers across independent domains.",
+                why_not_fewer_workers="Decomposable subsystems require dedicated local lead to aggregate separate research/implementation tracks.",
+                why_not_more_workers="Hierarchy strictly capped to depth-2 and coordinator quota <= 4 to prevent recursive swarm runaway.",
+                decision_inputs={"complexity": task_complexity, "independent_surfaces": independent_work_surfaces},
+            )
+            return mode, rec_workers, reasoning
+
+        # 5. Multi-surface parallel work (>= 3 independent surfaces)
+        if independent_work_surfaces >= 3:
+            mode = WorkforceMode.PARALLEL
+            rec_workers = min(independent_work_surfaces, 4, remaining_budget, active_capacity)
+            reasoning = WorkforceCostReasoning(
+                selected_mode=mode,
+                recommended_workers=rec_workers,
+                why_this_workforce=f"{independent_work_surfaces} genuinely independent work surfaces with disjoint boundaries justify parallel execution.",
+                why_not_fewer_workers="Fewer workers would serialize independent tracks, increasing wall-clock duration unnecessarily.",
+                why_not_more_workers="Diminishing returns and coordination overhead: active workers capped to 4 concurrent initial specialists.",
+                decision_inputs={"independent_surfaces": independent_work_surfaces},
+            )
+            return mode, rec_workers, reasoning
+
+        # 6. Two independent surfaces -> SMALL (Paired specialists)
+        if independent_work_surfaces == 2:
+            mode = WorkforceMode.SMALL
+            rec_workers = min(2, remaining_budget, active_capacity)
+            reasoning = WorkforceCostReasoning(
+                selected_mode=mode,
+                recommended_workers=rec_workers,
+                why_this_workforce="2 genuinely independent work surfaces justify paired specialists operating concurrently.",
+                why_not_fewer_workers="Gate B forbids SOLO when 2 independent implementation surfaces exist.",
+                why_not_more_workers="Only 2 independent work surfaces exist; spawning more workers would introduce idle worker overhead.",
+                decision_inputs={"independent_surfaces": independent_work_surfaces},
+            )
+            return mode, rec_workers, reasoning
+
+        # 7. Default: Focused narrow specialist or solo
+        if risk_tier.upper() in ("HIGH", "CRITICAL") or verification_requirements != "SOLO_SANITY":
+            mode = WorkforceMode.FOCUSED
+            rec_workers = min(1, remaining_budget, active_capacity)
+            why_fewer = "High risk tier or Maker-Checker verification requires dedicated specialist/verifier perspective."
+        else:
+            mode = WorkforceMode.SOLO
+            rec_workers = 0
+            why_fewer = "Already minimal workforce (0 subagents)."
+
+        reasoning = WorkforceCostReasoning(
+            selected_mode=mode,
+            recommended_workers=rec_workers,
+            why_this_workforce="Single focused lane satisfies mission requirements with minimal coordination overhead.",
+            why_not_fewer_workers=why_fewer,
+            why_not_more_workers="Work is sequential; additional workers provide zero concurrency value and increase credit cost.",
+            decision_inputs={"risk_tier": risk_tier, "verification": verification_requirements},
+        )
+        return mode, rec_workers, reasoning
+
+
 class DualDispatchGates:
-    """Evaluates Gate A (Pre-Planning) and Gate B (Execution Dispatch)."""
+    """Evaluates Gate A (Pre-Planning) and Gate B (Execution Dispatch) with cost reasoning."""
 
     @staticmethod
     def evaluate_pre_planning(
@@ -575,11 +1173,29 @@ class DualDispatchGates:
 
         if reasons:
             decision = GateDecision.DELEGATION_MANDATORY
+            why_fewer = "Mandatory delegation triggers (independent lanes / multi-domain / explicit user request) satisfied."
+            why_more = "Initial reconnaissance capped to prevent premature swarm spawning."
         else:
             decision = GateDecision.SOLO_AUTHORIZED
             reasons.append("Task is focused and narrow; solo reconnaissance authorized")
             rec_workers = 0
             mode = WorkforceMode.SOLO
+            why_fewer = "Already minimal workforce (0 subagents)."
+            why_more = "Reconnaissance is narrow; parent handles exploration directly without subagent cost."
+
+        cost_reasoning = WorkforceCostReasoning(
+            selected_mode=mode,
+            recommended_workers=rec_workers,
+            why_this_workforce="; ".join(reasons),
+            why_not_fewer_workers=why_fewer,
+            why_not_more_workers=why_more,
+            decision_inputs={
+                "domain_count": domain_count,
+                "independent_lanes": independent_lanes,
+                "file_count": file_count,
+                "module_count": module_count,
+            },
+        )
 
         return DispatchGateResult(
             gate_type=DispatchGateType.PRE_PLANNING,
@@ -597,6 +1213,7 @@ class DualDispatchGates:
                 "is_high_risk_investigation": is_high_risk_investigation,
             },
             budget_reserved=rec_workers,
+            cost_reasoning=cost_reasoning,
         )
 
     @staticmethod
@@ -606,8 +1223,8 @@ class DualDispatchGates:
         is_tightly_coupled: bool = False,
         file_ownership_disjoint: bool = True,
         risk_tier: str = "LOW",
-        remaining_budget: int = 20,
-        active_capacity: int = 10,
+        remaining_budget: int = MAX_TOTAL_SPAWNED_AGENTS,
+        active_capacity: int = MAX_ACTIVE_AGENTS_PER_WAVE,
     ) -> DispatchGateResult:
         """Gate B: Evaluates implementation delegation requirements from approved plan."""
         reasons: List[str] = []
@@ -622,6 +1239,13 @@ class DualDispatchGates:
                 recommended_workers=0,
                 reasons=["Mission budget exhausted (0 launches remaining)"],
                 checklist={"budget_available": False},
+                cost_reasoning=WorkforceCostReasoning(
+                    selected_mode=WorkforceMode.SOLO,
+                    recommended_workers=0,
+                    why_this_workforce="Blocked: remaining budget is 0.",
+                    why_not_fewer_workers="N/A",
+                    why_not_more_workers="Budget ceiling reached.",
+                ),
             )
 
         if is_tightly_coupled:
@@ -629,21 +1253,42 @@ class DualDispatchGates:
             mode = WorkforceMode.FOCUSED
             rec_workers = min(1, remaining_budget, active_capacity)
             decision = GateDecision.SOLO_AUTHORIZED
+            why_fewer = "Single writer handles tightly coupled changes safely."
+            why_more = "Overlapping code paths create merge collisions if parallelized."
         elif independent_streams >= 3:
             reasons.append(f"{independent_streams} independent implementation streams justify PARALLEL execution")
             rec_workers = min(independent_streams, 4, remaining_budget, active_capacity)
             mode = WorkforceMode.PARALLEL
             decision = GateDecision.DELEGATION_MANDATORY
+            why_fewer = "Serializing 3+ independent streams would increase wall-clock time."
+            why_more = "Parallel concurrency capped at 4 to control coordination overhead."
         elif independent_streams == 2:
             reasons.append("2 independent implementation streams mandate at least 2 workers (SOLO is forbidden)")
             rec_workers = min(2, remaining_budget, active_capacity)
             mode = WorkforceMode.SMALL
             decision = GateDecision.DELEGATION_MANDATORY
+            why_fewer = "Gate B strictly forbids SOLO when 2 independent streams exist."
+            why_more = "Only 2 independent streams exist; extra workers would be idle."
         else:
             reasons.append("Single implementation stream: controlled single writer (Parent or 1 Implementer)")
             mode = WorkforceMode.SOLO
             rec_workers = 0
             decision = GateDecision.SOLO_AUTHORIZED
+            why_fewer = "Already minimal workforce."
+            why_more = "Single stream offers no useful parallel progress."
+
+        cost_reasoning = WorkforceCostReasoning(
+            selected_mode=mode,
+            recommended_workers=rec_workers,
+            why_this_workforce="; ".join(reasons),
+            why_not_fewer_workers=why_fewer,
+            why_not_more_workers=why_more,
+            decision_inputs={
+                "independent_streams": independent_streams,
+                "is_tightly_coupled": is_tightly_coupled,
+                "risk_tier": risk_tier,
+            },
+        )
 
         return DispatchGateResult(
             gate_type=DispatchGateType.EXECUTION_DISPATCH,
@@ -660,6 +1305,7 @@ class DualDispatchGates:
                 "remaining_budget": remaining_budget,
             },
             budget_reserved=rec_workers,
+            cost_reasoning=cost_reasoning,
         )
 
 
@@ -732,3 +1378,305 @@ def determine_coordination_level(mode: WorkforceMode, wave_count: int = 1) -> Co
     if mode in (WorkforceMode.HIERARCHICAL, WorkforceMode.MAX):
         return CoordinationLevel.L3
     return CoordinationLevel.L1
+
+
+
+
+
+class AdaptiveWorkforcePlanner:
+    """12-Input Adaptive Workforce Sizer & Cost Reasoning Engine (Phase 84).
+
+    Inputs Evaluated:
+      1. task_class: Complexity classification (BUG, FEATURE, REFACTOR, etc.)
+      2. risk_tier: Security / blast radius (LOW, MEDIUM, HIGH)
+      3. pre_planning_decision: Gate A reconnaissance decision
+      4. execution_decision: Gate B execution decision
+      5. write_policy: File write conflict assessment
+      6. subsystem_count: Number of decoupled subsystems involved
+      7. file_count: Number of concrete target files
+      8. has_disjoint_boundaries: Whether worker file boundaries are disjoint
+      9. remaining_mission_budget: Global mission budget remaining
+      10. historical_worker_success_rate: Observed worker completion rate
+      11. estimated_token_cost_budget: Mission token budget ceiling
+      12. active_workers_in_wave: Concurrency already allocated
+    """
+
+    @classmethod
+    def plan(
+        cls,
+        task_class: str,
+        risk_tier: str,
+        pre_planning_decision: Any,
+        execution_decision: Optional[Any] = None,
+        write_policy: Optional[WriteSafetyPolicy] = None,
+        subsystem_count: int = 1,
+        file_count: int = 1,
+        has_disjoint_boundaries: bool = False,
+        remaining_mission_budget: int = 20,
+        historical_worker_success_rate: float = 1.0,
+        estimated_token_cost_budget: int = 100000,
+        active_workers_in_wave: int = 0,
+    ) -> Tuple[WorkforceMode, WorkforceCostReasoning]:
+        """Evaluates the 12 decision inputs and returns the authoritative WorkforceMode and Cost Reasoning."""
+        task_class_norm = str(task_class or "").upper()
+        risk_tier_norm = str(risk_tier or "").upper()
+
+        # Check remaining budget constraint
+        if remaining_mission_budget <= 2:
+            reasoning = WorkforceCostReasoning(
+                why_this_workforce="Near-exhausted mission budget (<3 remaining); solo execution avoids abort.",
+                why_not_fewer="Solo primary is the minimum viable execution unit.",
+                why_not_more=f"Remaining budget ({remaining_mission_budget}) strictly forbids parallel allocations.",
+                max_recommended_workers=1,
+                mode=WorkforceMode.SOLO,
+                coordination_cost_tokens=0,
+                write_collision_risk="NONE",
+            )
+            return WorkforceMode.SOLO, reasoning
+
+        # 1. Low-risk / Documentation / Single localized task
+        if (task_class_norm in ("DOCUMENTATION", "INVESTIGATION") and risk_tier_norm == "LOW") or (file_count <= 1 and subsystem_count <= 1 and risk_tier_norm == "LOW"):
+            reasoning = WorkforceCostReasoning(
+                why_this_workforce="Low-risk localized task; solo execution maximizes token efficiency with zero coordination overhead.",
+                why_not_fewer="Solo primary is the minimum viable execution unit.",
+                why_not_more="Single localized work surface; adding workers causes negative token ROI and context churn.",
+                max_recommended_workers=1,
+                mode=WorkforceMode.SOLO,
+                coordination_cost_tokens=0,
+                write_collision_risk="NONE",
+            )
+            return WorkforceMode.SOLO, reasoning
+
+        # 2. Check if execution gate or disjoint files authorized PARALLEL
+        exec_mode = getattr(execution_decision, "mode", None)
+        exec_decision_val = getattr(execution_decision, "decision", execution_decision)
+        exec_str = str(getattr(exec_decision_val, "value", exec_decision_val or "")).upper()
+
+        if (
+            exec_mode == WorkforceMode.PARALLEL
+            or "PARALLEL" in exec_str
+            or (
+                has_disjoint_boundaries
+                and file_count >= 2
+                and write_policy in (WriteSafetyPolicy.SAFELY_PARALLELIZABLE, WriteSafetyPolicy.DISJOINT_BRANCHES)
+            )
+        ) and active_workers_in_wave <= 6:
+            workers = min(4, max(file_count, 3), remaining_mission_budget)
+            reasoning = WorkforceCostReasoning(
+                why_this_workforce="Independent work streams / disjoint boundaries justify safe parallel execution.",
+                why_not_fewer="Serializing independent streams increases latency without safety advantage.",
+                why_not_more=f"Concurrency capped at {workers} to preserve wave ceiling and token efficiency.",
+                max_recommended_workers=workers,
+                mode=WorkforceMode.PARALLEL,
+                coordination_cost_tokens=workers * 500,
+                write_collision_risk="LOW",
+            )
+            return WorkforceMode.PARALLEL, reasoning
+
+        # 3. High risk or Cross-subsystem work
+        if risk_tier_norm == "HIGH" or subsystem_count >= 2:
+            reasoning = WorkforceCostReasoning(
+                why_this_workforce="High risk cross-subsystem scope requires focused primary engineer with independent verifier.",
+                why_not_fewer="High risk triggers mandatory independent verification gate (Maker-Checker invariant).",
+                why_not_more="Shared subsystem coupling makes wide parallel execution prone to merge conflicts.",
+                max_recommended_workers=2,
+                mode=WorkforceMode.FOCUSED,
+                coordination_cost_tokens=1000,
+                write_collision_risk="MODERATE",
+            )
+            return WorkforceMode.FOCUSED, reasoning
+
+        # 4. Check execution decision
+        exec_str = getattr(execution_decision, "value", str(execution_decision or "")).upper()
+        if "PARALLEL" in exec_str:
+            reasoning = WorkforceCostReasoning(
+                why_this_workforce="Execution gate authorized multi-stream parallel execution.",
+                why_not_fewer="Execution gate verified independent work surfaces exist.",
+                why_not_more="Concurrency capped to prevent token exhaustion.",
+                max_recommended_workers=3,
+                mode=WorkforceMode.PARALLEL,
+                coordination_cost_tokens=1500,
+                write_collision_risk="LOW",
+            )
+            return WorkforceMode.PARALLEL, reasoning
+        elif "SPECIALIST" in exec_str or "FOCUSED" in exec_str or "DELEGATION" in exec_str:
+            reasoning = WorkforceCostReasoning(
+                why_this_workforce="Focused specialist authorized for deep localized subsystem investigation.",
+                why_not_fewer="Specialist capability needed beyond generalist primary role.",
+                why_not_more="Task scope is bounded to single specialist domain.",
+                max_recommended_workers=2,
+                mode=WorkforceMode.FOCUSED,
+                coordination_cost_tokens=800,
+                write_collision_risk="LOW",
+            )
+            return WorkforceMode.FOCUSED, reasoning
+
+        # Default: SOLO
+        reasoning = WorkforceCostReasoning(
+            why_this_workforce="Default bounded solo execution ensures strict token economy and low coordination overhead.",
+            why_not_fewer="Solo primary is the minimum viable execution unit.",
+            why_not_more="No evidence justifying delegation overhead for current task complexity.",
+            max_recommended_workers=1,
+            mode=WorkforceMode.SOLO,
+            coordination_cost_tokens=0,
+            write_collision_risk="MINIMAL",
+        )
+        return WorkforceMode.SOLO, reasoning
+
+
+class FailureRecoveryEngine:
+    """Deterministic failure recovery and retry decision authority (Phase 85)."""
+
+    MAX_RETRIES_PER_ROLE = 2
+
+    @classmethod
+    def evaluate(
+        cls,
+        worker_id: str,
+        failure_type: FailureType,
+        consecutive_failures: int,
+        can_retry_budget: bool,
+        error_message: str = "",
+    ) -> FailureRecoveryDecision:
+        """Determines the exact recovery action based on failure type and retry history."""
+        # Runaway retry limit
+        if consecutive_failures >= cls.MAX_RETRIES_PER_ROLE:
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.FAIL_CLOSED,
+                worker_id=worker_id,
+                rationale=f"Anti-Hydra Protection: Consecutive failure threshold reached ({consecutive_failures}/{cls.MAX_RETRIES_PER_ROLE}). Aborting to prevent runaway retry loops.",
+                can_consume_budget=False,
+            )
+
+        # Budget exhaustion
+        if not can_retry_budget:
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.TAKEOVER_DIRECT,
+                worker_id=worker_id,
+                rationale="Mission launch budget exhausted; primary coordinator takes over directly without subagent launch.",
+                can_consume_budget=False,
+            )
+
+        if failure_type == FailureType.UNGROUNDED_EVIDENCE:
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.RETRY_SAME_WORKER_CONTEXT,
+                worker_id=worker_id,
+                rationale="Handoff failed evidence grounding check; prompt worker with specific validation error.",
+                can_consume_budget=False,
+                retry_prompt=f"Evidence verification failed: {error_message}. Provide verified file paths, line numbers, or test outputs.",
+            )
+
+        if failure_type == FailureType.WRITE_COLLISION:
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.TAKEOVER_DIRECT,
+                worker_id=worker_id,
+                rationale="Write collision detected; serialize execution under single primary writer.",
+                can_consume_budget=False,
+            )
+
+        if failure_type in (FailureType.TIMEOUT, FailureType.CRASH):
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.SPAWN_NEW_WORKER,
+                worker_id=worker_id,
+                rationale="Worker unresponsive or crashed; spawn fresh worker with clean context (consumes 1 launch slot).",
+                can_consume_budget=True,
+                retry_prompt=f"Previous worker failed with {failure_type.value}: {error_message}. Execute bounded task.",
+            )
+
+        if failure_type in (FailureType.MCP_UNAVAILABLE, FailureType.CAPABILITY_UNAVAILABLE):
+            return FailureRecoveryDecision(
+                failure_type=failure_type,
+                action=RecoveryAction.TAKEOVER_DIRECT,
+                worker_id=worker_id,
+                rationale=f"Capability or MCP unavailable ({failure_type.value}); fallback to deterministic local tools.",
+                can_consume_budget=False,
+            )
+
+        # Default: Direct Takeover
+        return FailureRecoveryDecision(
+            failure_type=failure_type,
+            action=RecoveryAction.TAKEOVER_DIRECT,
+            worker_id=worker_id,
+            rationale=f"Deterministic fallback to primary coordinator takeover for {failure_type.value}.",
+            can_consume_budget=False,
+        )
+
+
+class WavePersistenceEngine:
+    """State persistence and crash recovery engine for teamwork wave execution (Phase 85)."""
+
+    DEFAULT_STATE_FILE = ".antios/wave_state.json"
+
+    @classmethod
+    def save_state(
+        cls,
+        state: Dict[str, Any],
+        workspace_root: str = ".",
+        filepath: Optional[str] = None,
+    ) -> str:
+        """Persists active wave state to disk."""
+        target = filepath or os.path.join(workspace_root, cls.DEFAULT_STATE_FILE)
+        os.makedirs(os.path.dirname(os.path.abspath(target)), exist_ok=True)
+        serializable = dict(state)
+        serializable["persisted_at"] = time.time()
+        with open(target, "w", encoding="utf-8") as f:
+            json.dump(serializable, f, indent=2)
+        return target
+
+    @classmethod
+    def load_state(
+        cls,
+        workspace_root: str = ".",
+        filepath: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Loads persisted wave state from disk if present."""
+        target = filepath or os.path.join(workspace_root, cls.DEFAULT_STATE_FILE)
+        if not os.path.exists(target):
+            return None
+        try:
+            with open(target, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return None
+
+    @classmethod
+    def clear_state(
+        cls,
+        workspace_root: str = ".",
+        filepath: Optional[str] = None,
+    ) -> bool:
+        """Removes persisted wave state upon successful mission completion."""
+        target = filepath or os.path.join(workspace_root, cls.DEFAULT_STATE_FILE)
+        if os.path.exists(target):
+            try:
+                os.remove(target)
+                return True
+            except OSError:
+                return False
+        return False
+
+    @classmethod
+    def recover_mission(
+        cls,
+        workspace_root: str = ".",
+        filepath: Optional[str] = None,
+    ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+        """Recovers an interrupted mission from persisted state."""
+        state = cls.load_state(workspace_root=workspace_root, filepath=filepath)
+        if not state:
+            return False, "No persisted wave state found to recover.", None
+
+        wave_idx = state.get("current_wave_index", 0)
+        active_workers = state.get("active_workers", [])
+        total_spawned = state.get("total_spawned", 0)
+
+        recovery_summary = (
+            f"Recovered mission '{state.get('mission_id', 'unknown')}' at wave {wave_idx}. "
+            f"Reconciled {len(active_workers)} active workers (total launched: {total_spawned})."
+        )
+        return True, recovery_summary, state

@@ -3,10 +3,10 @@
 **Universal, Domain-Agnostic Agent-Native Engineering OS for Google Antigravity**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-447%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
+[![Tests](https://img.shields.io/badge/tests-733%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](ANTIOS_CONSTITUTION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/version-v1.0.0--GA-green.svg)](ANTIOS_V1.md)
+[![Status](https://img.shields.io/badge/version-v2.0.0--TEAMWORK--GRADE-green.svg)](ANTIOS_V1.md)
 
 ---
 
@@ -109,7 +109,7 @@ AntiOS provides 8 standard library CLI tools in `framework/scripts/tools/`:
 
 ## Running Tests
 
-AntiOS includes 447 deterministic automated tests covering all 34 core modules:
+AntiOS includes 733 deterministic automated tests covering all core modules, contracts, and safety gates:
 
 ```bash
 python tests/run_all.py
@@ -118,7 +118,7 @@ python tests/run_all.py
 ```
 ======================================================================
 AntiOS Master Test Suite
-Ran 447 tests in 25.2s
+Ran 733 tests in 25.3s
 OK (100% passed, 0 failures, 0 errors)
 ======================================================================
 ```

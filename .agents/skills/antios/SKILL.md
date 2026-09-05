@@ -9,55 +9,48 @@ description: >-
 # AntiOS Project Operating Interface (`/antios`)
 
 You are operating under **AntiOS 2.0 (Project Agent OS)** governance.
-This skill is your **single authoritative control plane** (`/antios`). Follow the canonical 9-step execution pipeline below.
+This skill is your **single authoritative control plane** (`/antios`). AntiOS coordinates native Antigravity primitives without reimplementing the platform. Helper CLI: `dispatch_task.py`.
 
-## 1. Operating Axioms & Responsibility Boundaries
-- **Platform (Antigravity)**: Owns execution primitives (`invoke_subagent`, `manage_subagents`, `define_subagent`), tool transport, and planning mode.
-- **AntiOS Core**: Owns engineering governance, safety boundaries, task dispatch, adaptive orchestration, and verification gates.
-- **Project Adapter (`antios.config.json` / `.antios/`)**: Owns project topology, protected paths, and configured test runners.
-- **Target Project**: Owns domain application logic, schemas, and native test suites.
+## 1. Responsibility Demarcation (Phase 83 Workforce Contract)
+- **Platform (Antigravity)**: Owns execution primitives (`invoke_subagent`, `manage_subagents`), tool transport, and workspace branching.
+- **AntiOS Core**: Owns governance, boundaries, task dispatch, adaptive planning, anti-hydra validation, and verification gates.
+- **Project Adapter (`antios.config.json` / `.antios/`)**: Owns project topology, protected paths, and test runners.
+- **Target Project**: Owns application logic, domain schemas, and native test suites.
 
-## 2. Canonical 9-Step Dispatch Pipeline
-1. `UNDERSTAND`: Clarify user objective, scope, constraints, and non-goals.
-2. `CHECK STATE`: Read `.antios/knowledge.json` and `docs/ACTIVE_CONTEXT.md` (must be $\le 60$ lines).
-3. `LOCATE`: Run wayfinding via `python .antios/runtime/inspect_instance.py --query "<query>"` or native search tools.
-4. `CLASSIFY`: Classify TaskClass (`FEATURE`|`BUG`|`REFACTOR`|`INVESTIGATION`|`DOCUMENTATION`|`RELEASE`) and RiskTier.
-5. `SELECT CAPABILITIES`: Resolve skills, rules, and tools via `CapabilityRouter`.
-6. `SELECT WORKFORCE`: Evaluate Gate A (Pre-Planning) and Gate B (Execution Dispatch).
-7. `EXECUTE`: Controlled single writer or disjoint parallel workers (`Workspace='branch'`).
-8. `VERIFY`: Physical test suite (exit code 0) + Maker-Checker audit via `antios-verifier`.
-9. `REMEMBER`: Record observations, distill lessons via learning engine, update `docs/ACTIVE_CONTEXT.md`.
-*Dispatch Helper*: Automated dispatch logic via dispatch_task.py or native `/antios` 9-step pipeline.
+## 2. Canonical Capability Pipeline Stages
+1. `UNDERSTAND`: Parse user intent, acceptance criteria, and non-goals.
+2. `CHECK STATE`: Read `.antios/knowledge.json` and `docs/ACTIVE_CONTEXT.md` ($\le 60$ lines).
+3. `LOCATE`: Deterministically locate code via project intelligence.
+4. `CLASSIFY`: Determine `TaskClass` and `RiskTier`.
+5. `SELECT CAPABILITIES`: Resolve 8-tier matrix (Native -> Skill -> Tool -> Runtime -> Specialist -> CLI -> Service -> MCP).
+6. `SELECT WORKFORCE`: 12-input `AdaptiveWorkforcePlanner` emitting cost reasoning card.
+7. `EXECUTE`: Dispatch native tools or specialists (`antios-engineer`, `antios-debug`, `antios-adapt-project`).
+8. `VERIFY`: Independent Maker-Checker audit (`antios-verifier`) and test suite (exit code 0).
+9. `REMEMBER`: Distill durable lessons and refresh active context.
 
-## 3. Adaptive Workforce Sizing & Constitutional Limits
-Select the minimal effective workforce:
-- **SOLO** (0 workers): Parent executes directly for narrow, local, or doc edits.
-- **FOCUSED** (1 specialist): Isolated bug or deep investigation (`antios-debug`).
-- **SMALL** (2 specialists): 2 disjoint, independent workstreams.
-- **PARALLEL** (2–4 specialists): 3+ independent workstreams with disjoint file boundaries.
-- **STAGED** (sequential waves): Multi-phase architectural changes with wave collapse.
-- **HIERARCHICAL** (1 coordinator + 1–2 children): Bounded subproblem requiring local decomposition.
-- **MAX** (broad initiative): Hard-capped by constitutional ceilings.
+## 3. Adaptive Workforce Sizing & Cost Reasoning (Phase 84)
+Evaluates 12 inputs to select mode with token-bounded cost card (**Why this**, **Why not fewer**, **Why not more**):
+- Modes: `SOLO` (0 subagents), `FOCUSED` (1 specialist), `SMALL` (2 specialists), `PARALLEL` (2–4 specialists), `STAGED` (sequential waves), `HIERARCHICAL` (coordinator + 1–2 children), `MAX` (constitutional ceiling).
 
-### Hard Constraints
-- **Max Active Subagents Per Wave**: $\le 10$ across the active wave.
-- **Max Lifetime Launches Per Mission**: $\le 20$ global launches total.
-- **Shallow Depth Law**: Depth $\le 2$ (`Root -> Coordinator -> Child/Verifier`).
-- **Mandatory Wave Collapse**: `NEXT_WAVE_ALLOWED` only when active workers == 0.
+## 4. Teamwork-Grade Waves & Anti-Hydra Protection (Phase 85)
+- **Constitutional Limits**:
+  - Max Active Subagents Per Wave: 10.
+  - Max Lifetime Launches Per Mission: 20.
+  - Shallow Depth Law: Depth bounded $\le 2$ (`Root=0 -> Child=1 -> Grandchild=2`). Leaf specialists cannot delegate.
+  - Mandatory Wave Collapse: `NEXT_WAVE` strictly blocked while `ACTIVE_TOTAL != 0`.
+- **Anti-Hydra Specialist Protection**:
+  - Valid `WorkerMetadata` required (no anonymous workers).
+  - Duplicate specialist roles with identical goals or overlapping write boundaries rejected.
+  - Runaway retry limit: Max 2 consecutive failures per role before fail-closed.
+  - Wave persistence: `.antios/wave_state.json` saved at each transition for crash recovery.
+- **Read-Parallel, Write-Controlled**: Single writer default. Parallel writes require disjoint boundaries (`Workspace='branch'`).
 
-## 4. Fundamental Law: Read-Parallel, Write-Controlled
-- **READ Operations**: Parallelize freely for codebase navigation, symbol discovery, and research.
-- **WRITE Operations**: Strictly controlled. Single writer default. Parallel writes require disjoint paths and `Workspace='branch'`. Overlapping concurrent writes are prohibited.
-
-## 5. Progressive Disclosure: Specialist Skills
-Activate specialized skills only when justified:
-- `antios-debug`: Root-cause diagnosis, test failure reproduction, minimal fix isolation.
-- `antios-engineer`: Feature implementation, refactoring, and test-driven engineering.
-- `antios-verifier`: Independent Maker-Checker audit, test runner execution, verdict generation.
-- `antios-adapt-project`: Repository onboarding, project manifest, adapter tuning.
+## 5. 8-Tier Capability Matrix & Governed MCP Escalation (Phase 86)
+Priority: 1. Native -> 2. Project Skill -> 3. Script -> 4. Runtime -> 5. Specialist -> 6. CLI -> 7. Service -> 8. MCP.
+- *Local Git Invariant*: Local Git CLI (Tier 6) is strictly preferred over GitHub MCP (Tier 8) for local operations.
+- *MCP Escalation*: Mandatory 7-field report (`capability_sought`, `why_native_failed`, `least_privilege_scope`, `risk_assessment`, `rollback_plan`, `user_approval_required`, `audit_trail_entry`).
 
 ## 6. Stop Gate & Task Completion
-1. Ensure all active workers are collapsed (`manage_subagents(Action='kill', ...)`).
+1. Collapse all active workers: `manage_subagents(Action='kill', ...)`.
 2. Execute configured test runner (from `antios.config.json`, must exit code 0).
 3. Ensure `docs/ACTIVE_CONTEXT.md` is updated and strictly $\le 60$ lines.
-4. Stop Gate will physically verify test pass before turn completion.

@@ -40,6 +40,7 @@ from framework.core.capability_router import CapabilityRouter
 from framework.core.config import AntiOSConfig, load_config
 from framework.core.lifecycle import RiskTier, TaskClass
 from framework.core.orchestration import (
+    AdaptiveWorkforcePlanner,
     CanonicalWave,
     CoordinationLevel,
     DispatchGateResult,
@@ -49,6 +50,7 @@ from framework.core.orchestration import (
     MissionLedger,
     StructuredHandoff,
     WaveManager,
+    WorkforceCostReasoning,
     WorkforceMode,
     WorkforceSizer,
     WriteSafetyEvaluator,
@@ -94,6 +96,8 @@ class MissionPlan:
     agent_routing: Dict[str, Any]
     initial_waves: List[str]
     reasons: List[str]
+    cost_reasoning: Optional[Dict[str, Any]] = None
+    workforce_planner_decision: Optional[Dict[str, Any]] = None
 
     def format_card(self, max_lines: int = 25) -> str:
         """Emits a token-bounded summary card adhering to token budget (<= max_lines)."""
@@ -116,8 +120,10 @@ class MissionPlan:
             f"Verification: {self.verification_method}",
             f"Waves:        {' -> '.join(self.initial_waves)}",
             f"Rationale:    {reasons_str[:60]}",
-            "-------------------------------------",
         ]
+        if self.cost_reasoning:
+            lines.append(f"Cost Reason:  {self.cost_reasoning.get('why_this_workforce', '')[:60]}")
+        lines.append("-------------------------------------")
         return "\n".join(lines[:max_lines])
 
     def to_dict(self) -> Dict[str, Any]:
@@ -141,6 +147,8 @@ class MissionPlan:
             "reasons": list(self.reasons),
             "capability_pack": dict(self.capability_pack),
             "agent_routing": dict(self.agent_routing),
+            "cost_reasoning": dict(self.cost_reasoning) if self.cost_reasoning else None,
+            "workforce_planner_decision": dict(self.workforce_planner_decision) if self.workforce_planner_decision else None,
         }
 
 
@@ -338,7 +346,25 @@ class TaskDispatchPipeline:
             is_read_only=is_read_only,
         )
 
-        # 8. Adaptive Waves Selection
+        # 8. Adaptive Workforce Planning (Phase 84 12-input evaluation)
+        planner_mode, cost_reasoning = AdaptiveWorkforcePlanner.plan(
+            task_class=classification.task_class.value,
+            risk_tier=classification.risk_tier.value,
+            pre_planning_decision=pre_gate,
+            execution_decision=exec_gate,
+            write_policy=write_policy,
+            subsystem_count=len(matched_subs),
+            file_count=len(target_files),
+            has_disjoint_boundaries=(write_policy in (WriteSafetyPolicy.SAFELY_PARALLELIZABLE, WriteSafetyPolicy.DISJOINT_BRANCHES)),
+            remaining_mission_budget=20,
+            historical_worker_success_rate=1.0,
+            estimated_token_cost_budget=100000,
+            active_workers_in_wave=0,
+        )
+        if not explicit_mode and not classification.explicit_delegation:
+            mode = planner_mode
+
+        # 9. Adaptive Waves Selection
         if mode == WorkforceMode.SOLO:
             initial_waves = [CanonicalWave.PLANNING.value, CanonicalWave.IMPLEMENTATION.value, CanonicalWave.VERIFICATION.value]
         else:
@@ -352,7 +378,7 @@ class TaskDispatchPipeline:
 
         coordination_lvl = determine_coordination_level(mode, wave_count=len(initial_waves))
 
-        # 9. Tool & Verification Wiring
+        # 10. Tool & Verification Wiring
         primary_runner = self.config.test_runners[0] if self.config.test_runners else None
         test_cmd = " ".join(primary_runner.default_command) if primary_runner else "python tests/run_all.py"
         verification_method = f"Maker-Checker ({routing_pack.required_verifier}) + Stop Gate (exit code 0)"
@@ -387,4 +413,9 @@ class TaskDispatchPipeline:
             agent_routing=routing_pack.to_dict(),
             initial_waves=initial_waves,
             reasons=reasons,
+            cost_reasoning=cost_reasoning.to_dict(),
+            workforce_planner_decision={
+                "mode": planner_mode.value,
+                "cost_reasoning": cost_reasoning.to_dict(),
+            },
         )

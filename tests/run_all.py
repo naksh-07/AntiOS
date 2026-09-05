@@ -149,6 +149,14 @@ import tests.test_phase73_78_adversarial as test_phase73_78_adversarial
 # Phase 79-82 Project Instance Runtime Closure
 import tests.test_runtime_closure as test_runtime_closure
 
+# Phase 83-86 Native Antigravity Orchestration & Teamwork-Grade Workforce Architecture
+import tests.test_workforce_contract as test_workforce_contract
+import tests.test_workforce_planner as test_workforce_planner
+import tests.test_teamwork_wave_orchestration as test_teamwork_wave_orchestration
+import tests.test_hybrid_capability_matrix as test_hybrid_capability_matrix
+import tests.test_orchestration_phase83_86_adversarial as test_orchestration_phase83_86_adversarial
+import tests.test_proving_ground_scenarios as test_proving_ground_scenarios
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -276,6 +284,13 @@ def build_suite() -> unittest.TestSuite:
         test_phase73_78_adversarial,
         # Phase 79-82
         test_runtime_closure,
+        # Phase 83-86
+        test_workforce_contract,
+        test_workforce_planner,
+        test_teamwork_wave_orchestration,
+        test_hybrid_capability_matrix,
+        test_orchestration_phase83_86_adversarial,
+        test_proving_ground_scenarios,
     ]
 
     loader = unittest.defaultTestLoader

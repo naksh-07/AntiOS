@@ -197,3 +197,87 @@ Every specialist must return a standardized structured handoff before terminatio
   - Concurrent implementers must be assigned **disjoint file boundaries**.
   - When concurrent writing occurs, assign `Workspace='branch'` to isolate git worktrees; the parent reconciles diffs prior to verification.
   - If file boundaries overlap, the system falls back to **Controlled Single Writer**.
+
+---
+
+## 9. 12-Input Adaptive Workforce Sizer & Cost Reasoning Engine (Phase 84)
+
+Rather than relying on ad-hoc heuristics, `AdaptiveWorkforcePlanner` deterministically evaluates **12 decision inputs**:
+1. `task_class`: Complexity classification (`BUG`, `FEATURE`, `REFACTOR`, `DOCUMENTATION`, `INVESTIGATION`, etc.)
+2. `risk_tier`: Security and blast radius (`LOW`, `MEDIUM`, `HIGH`)
+3. `pre_planning_decision`: Gate A reconnaissance authorization
+4. `execution_decision`: Gate B execution dispatch authorization
+5. `write_policy`: File write safety policy (`READ_ONLY`, `CONTROLLED_SINGLE_WRITER`, `SAFELY_PARALLELIZABLE`, `DISJOINT_BRANCHES`)
+6. `subsystem_count`: Number of decoupled subsystems involved
+7. `file_count`: Number of concrete target files
+8. `has_disjoint_boundaries`: Whether worker file boundaries are mutually disjoint
+9. `remaining_mission_budget`: Global lifetime launches remaining ($\le 20$)
+10. `historical_worker_success_rate`: Observed completion rate of worker roles
+11. `estimated_token_cost_budget`: Mission token budget ceiling
+12. `active_workers_in_wave`: Concurrency already allocated in active wave ($\le 10$)
+
+### Token-Bounded Cost Reasoning Card
+Every workforce plan emits a token-bounded `WorkforceCostReasoning` explanation card ($\le 12$ lines) justifying the sizing:
+- **Why This Workforce**: Explicit justification for the chosen mode and worker count.
+- **Why Not Fewer**: Marginal cost/risk of reducing worker count (e.g. latency vs serialization).
+- **Why Not More**: Marginal coordination overhead and conflict risk of adding workers.
+
+---
+
+## 10. Teamwork-Grade Wave Lifecycle & Anti-Hydra Protection (Phase 85)
+
+### Anti-Hydra Invariants
+Every worker spawn requires a fully validated `WorkerMetadata` instance. The system enforces 4 deterministic anti-hydra gates:
+1. **Duplicate Specialist Prevention**: Rejects spawning multiple active workers with the same role and goal in the same wave.
+2. **Runaway Retry Loop Guard**: Enforces `max_retries_per_role = 2`. If a role accumulates $\ge 2$ failures, further spawns are blocked and escalated.
+3. **Write Boundary Collision Check**: Rejects concurrent workers with intersecting write target sets unless safe branching is active.
+4. **Shallow Depth Law Guard**: Strictly forbids leaf specialists at depth 2 from attempting delegation.
+
+### Wave Persistence & Failure Recovery
+- **Crash Recovery**: `WavePersistenceEngine` serializes active wave state and mission ledgers to `.antios/wave_state.json`. Uncompleted waves can be resumed without re-running earlier stages.
+- **Deterministic Recovery Actions**: `FailureRecoveryEngine` categorizes worker terminations into 11 failure types (timeouts, syntax crashes, ungrounded handoffs, write collisions) and prescribes deterministic actions (`RETRY_WITH_CONTEXT`, `REPLACE_SPECIALIST`, `REDUCE_WORKFORCE`, `FAIL_CLOSED`).
+
+---
+
+## 11. 8-Tier Hybrid Capability Execution Matrix (Phase 86)
+
+AntiOS resolves requested engineering capabilities through a strict 8-tier hierarchy:
+
+```text
+[Tier 1: Native Antigravity Built-in Tool] (view_file, write_to_file, grep_search, run_command)
+       │
+       ▼
+[Tier 2: Project-Native Skill] (.agents/skills/antios-*, project skills)
+       │
+       ▼
+[Tier 3: Project Tool / Script] (tests/run_all.py, pytest, npm test)
+       │
+       ▼
+[Tier 4: AntiOS Core Runtime Service] (wayfinder, stop_gate, workforce_planner)
+       │
+       ▼
+[Tier 5: Antigravity Built-in Specialist Agent] (research, flutter_a11y_agent)
+       │
+       ▼
+[Tier 6: Standard CLI Execution] (git, python, npm, cargo, docker)
+       │
+       ▼
+[Tier 7: User-Approved External Service] (cloud_storage, bigquery - requires explicit approval)
+       │
+       ▼
+[Tier 8: Managed MCP Tool] (GitHub, Chrome DevTools, Playwright - highest barrier)
+```
+
+### Local Git CLI Strict Preference
+Local Git CLI (Tier 6) is strictly preferred over GitHub MCP (Tier 8) for all local operations (`git status`, `git diff`, `git log`, `git commit`). Local CLI executes in $<50$ms, offline, with zero token cost. GitHub MCP is strictly forbidden for local repository inspection.
+
+### 7-Field MCP Escalation Protocol
+Managed MCP tools require a complete 7-field escalation audit report. Missing fields trigger immediate fail-closed rejection:
+1. `capability_sought`: Specific operation sought.
+2. `why_native_failed`: Why Tiers 1–6 cannot satisfy the requirement.
+3. `least_privilege_scope`: Scoped tool permissions required.
+4. `risk_assessment`: Security and remote latency risk profile.
+5. `rollback_plan`: Exact remediation if the MCP call fails or disconnects.
+6. `user_approval_required`: Boolean flag indicating if user consent is needed.
+7. `audit_trail_entry`: Structured dictionary logging the escalation event.
+

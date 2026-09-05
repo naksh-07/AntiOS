@@ -21,6 +21,29 @@ class ToolTier(str, Enum):
     MCP = "MCP"            # Model Context Protocol external server (selective)
 
 
+class HybridCapabilityTier(int, Enum):
+    """The 8 canonical capability tiers under Phase 86 strict priority hierarchy.
+
+    Strict Resolution Order:
+      1. Native Antigravity Built-in Tool
+      2. Project-Native Skill (.agents/skills/)
+      3. Project Tool / Script
+      4. AntiOS Core Runtime Service
+      5. Antigravity Built-in Specialist Agent
+      6. Standard CLI Execution
+      7. User-Approved External Service
+      8. Managed MCP Tool (highest barrier, mandatory 7-field escalation audit)
+    """
+    TIER_1_NATIVE_BUILTIN = 1
+    TIER_2_PROJECT_NATIVE_SKILL = 2
+    TIER_3_PROJECT_TOOL_SCRIPT = 3
+    TIER_4_ANTIOS_CORE_RUNTIME = 4
+    TIER_5_SPECIALIST_AGENT = 5
+    TIER_6_STANDARD_CLI = 6
+    TIER_7_EXTERNAL_SERVICE = 7
+    TIER_8_MANAGED_MCP = 8
+
+
 class ExecutionMode(str, Enum):
     """Execution mode of a tool."""
     SYNCHRONOUS = "SYNCHRONOUS"

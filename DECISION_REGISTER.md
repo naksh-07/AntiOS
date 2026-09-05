@@ -653,3 +653,44 @@
 - **WHY SELECTED**: Copying development source bloats user repositories and pollutes project architecture; requiring an external pip package creates external dependency friction. Emitting lightweight, audited, zero-dependency runtime scripts directly into `.antios/runtime/` ensures complete autonomy, maximum performance, and zero dependency overhead.
 - **CONSEQUENCES**: Target projects operate completely offline and detached from the compiler source. `verify_runtime_closure()` and `.antios/runtime/verify_runtime.py` provide deterministic CI/CD verification of instance closure. Target instances cannot leak references back to the AntiOS development environment.
 - **REVERSIBILITY**: High; isolated within the compiler, lifecycle manager, and runtime templates.
+
+---
+
+## DECISION 66: AntiOS Native Workforce Contract & 11-Step Capability Hierarchy (Phase 83)
+- **DECISION**: Formally codify the boundary between AntiOS Governance and native Antigravity execution via `WorkforceContract` and `DEFAULT_WORKFORCE_CONTRACT` in `framework/core/workforce_contract.py`. AntiOS operates strictly as an intelligent control plane over native Antigravity primitives, never as a competing runtime, daemon, or custom workflow engine (*"AntiOS orchestrates Antigravity; AntiOS does not rebuild Antigravity"*). Enforce an authoritative 11-step execution pipeline: `USER` -> `/antios` -> `MISSION_UNDERSTANDING` -> `PROJECT_INTELLIGENCE` -> `CAPABILITY_SELECTION` -> `WORKFORCE_PLAN` -> `NATIVE_EXECUTION` -> `SPECIALIST_SUBAGENT` -> `NATIVE_TOOL_CLI_MCP` -> `EVIDENCE` -> `VERIFICATION_AND_MEMORY`. Prohibit AntiOS from emulating platform primitives (`agent_execution_runtime`, `subagent_lifecycle`, `tool_execution_transport`, `mcp_transport`, `cli_execution_sandbox`, `background_execution`).
+- **EVIDENCE**: Architectural drift occurred when AntiOS components attempted to mimic runtime execution layers (background daemons, polling loops, custom subagent process managers). Demarcating responsibilities establishes clear authority, prevents duplicated execution logic, and eliminates runtime contention.
+- **ALTERNATIVES**: Implement an independent agent runner inside AntiOS; or allow unstructured ad-hoc tool calling without hierarchical governance.
+- **WHY SELECTED**: Guarantees alignment with Antigravity 2.0 platform architecture, preserves `/antios` as the single authoritative user entrypoint, and ensures deterministic execution.
+- **CONSEQUENCES**: All subagent actions route through native `invoke_subagent` and `manage_subagents`; AntiOS components that attempt to claim native primitives fail validation fail-closed.
+- **REVERSIBILITY**: High; cleanly codified in `framework/core/workforce_contract.py`.
+
+---
+
+## DECISION 67: 12-Input Adaptive Workforce Sizer with Token-Bounded Cost Reasoning (Phase 84)
+- **DECISION**: Implement `AdaptiveWorkforcePlanner` in `framework/core/orchestration.py` evaluating 12 deterministic decision inputs (`task_class`, `risk_tier`, `pre_planning_decision`, `execution_decision`, `write_policy`, `subsystem_count`, `file_count`, `has_disjoint_boundaries`, `remaining_mission_budget`, `historical_worker_success_rate`, `estimated_token_cost_budget`, `active_workers_in_wave`). Every sizing decision emits a token-bounded `WorkforceCostReasoning` rationale card ($\le 12$ lines) answering three mandatory economic questions: *Why this workforce*, *Why not fewer workers*, and *Why not more workers*. Integrate planning directly into `TaskDispatchPipeline` and `MissionPlan`.
+- **EVIDENCE**: Unbounded agent swarms cause catastrophic context churn, high token expenditure, and merge collision risks. Grounding workforce sizing in 12 objective inputs and requiring token-bounded economic justification ensures minimal viable headcount.
+- **ALTERNATIVES**: Hardcoded agent counts per task class; heuristic-free agent spawning; or unconstrained LLM self-sizing.
+- **WHY SELECTED**: Enforces the governing law *"Maximize useful parallel progress per token — never optimize for agent headcount. The team must shrink as the problem narrows."*
+- **CONSEQUENCES**: Simple tasks default to SOLO (0 subagents); multi-worker modes require verified independent workstreams and disjoint file boundaries.
+- **REVERSIBILITY**: High; backward-compatible with `DualDispatchGates`.
+
+---
+
+## DECISION 68: Teamwork-Grade Wave Orchestration, Anti-Hydra Protection & Crash Persistence (Phase 85)
+- **DECISION**: Formalize teamwork-grade wave lifecycle management in `framework/core/orchestration.py`. Mandate `WorkerMetadata` on every worker spawn and enforce 4 deterministic Anti-Hydra gates: duplicate active specialist prevention within waves, runaway failure retry ceiling ($\le 2$ consecutive failures per role), write boundary collision checks, and leaf depth delegation blocking. Implement `WavePersistenceEngine` serializing mission and wave state to `.antios/wave_state.json` for crash recovery, and `FailureRecoveryEngine` mapping 11 failure types to deterministic recovery actions.
+- **EVIDENCE**: Multi-agent sessions are vulnerable to "hydra spawning" (duplicate workers spawned on failure, runaway retry loops, concurrent write collisions on identical files). Explicit metadata and barrier synchronization eliminate agent runaway and state corruption.
+- **ALTERNATIVES**: In-memory-only wave tracking; or allowing unconstrained worker retries without failure type classification.
+- **WHY SELECTED**: Provides production-grade resilience against crashes and ungrounded worker behavior while enforcing constitutional concurrency and depth limits.
+- **CONSEQUENCES**: Waves cannot advance while active workers exist (`Mandatory Wave Collapse`); failed runs recover state from `.antios/wave_state.json`.
+- **REVERSIBILITY**: High; serialized cleanly in JSON.
+
+---
+
+## DECISION 69: 8-Tier Hybrid Capability Execution Matrix & Governed MCP Escalation (Phase 86)
+- **DECISION**: Implement `HybridCapabilityExecutionMatrix` in `framework/core/tool_policy.py` establishing a strict 8-tier resolution order: 1. Native Antigravity Built-in Tool -> 2. Project-Native Skill -> 3. Project Tool / Script -> 4. AntiOS Core Runtime Service -> 5. Antigravity Built-in Specialist Agent -> 6. Standard CLI Execution -> 7. User-Approved External Service -> 8. Managed MCP Tool. Enforce that Local Git CLI (Tier 6) is strictly preferred over GitHub MCP (Tier 8) for all local git operations. Mandate a 7-field escalation audit report (`capability_sought`, `why_native_failed`, `least_privilege_scope`, `risk_assessment`, `rollback_plan`, `user_approval_required`, `audit_trail_entry`) for any Tier 8 MCP escalation; missing fields fail closed immediately.
+- **EVIDENCE**: Agents frequently default to remote, high-latency MCP providers for operations that local tools or standard CLIs perform in $<50$ms with zero token cost. A strict 8-tier priority hierarchy and mandatory 7-field escalation audit enforce least-privilege tool usage.
+- **ALTERNATIVES**: Treat all tools as peers without preference; or allow arbitrary MCP tool invocation without escalation audit.
+- **WHY SELECTED**: Guarantees lowest possible latency, zero token cost for local operations, and ironclad security governance over external capabilities.
+- **CONSEQUENCES**: Local git commands execute via standard CLI; external MCPs are used solely when lower tiers genuinely lack the required remote protocol or live browser DOM capabilities.
+- **REVERSIBILITY**: High; integrated into `ToolPolicyEngine` and `MCPJustificationEngine`.
+

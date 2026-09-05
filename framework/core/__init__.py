@@ -440,6 +440,37 @@ from framework.core.runtime_contract import (
     verify_runtime_closure,
 )
 
+# Phase 83: Native Workforce Contract
+from framework.core.workforce_contract import (
+    ResponsibilityDomain,
+    ResponsibilityAllocation,
+    CapabilityHierarchyStep,
+    WorkforceContract,
+    DEFAULT_WORKFORCE_CONTRACT,
+)
+
+# Phase 84 & 85: Adaptive Workforce Planner & Teamwork Orchestration
+from framework.core.orchestration import (
+    WorkerMetadata,
+    WorkforceCostReasoning,
+    AdaptiveWorkforcePlanner,
+    WavePersistenceEngine,
+    FailureType,
+    RecoveryAction,
+    FailureRecoveryDecision,
+    FailureRecoveryEngine,
+)
+
+# Phase 86: 8-Tier Hybrid Capability Execution Matrix
+from framework.core.tool import (
+    HybridCapabilityTier,
+)
+from framework.core.tool_policy import (
+    MCPJustificationReport,
+    HybridResolutionResult,
+    HybridCapabilityExecutionMatrix,
+)
+
 __all__ = [
     # Phase 12-15
     "AntiOSConfig",
@@ -753,5 +784,25 @@ __all__ = [
     "FORBIDDEN_SOURCE_PATTERNS",
     "RuntimeClosureResult",
     "verify_runtime_closure",
+    # Phase 83: Native Workforce Contract
+    "ResponsibilityDomain",
+    "ResponsibilityAllocation",
+    "CapabilityHierarchyStep",
+    "WorkforceContract",
+    "DEFAULT_WORKFORCE_CONTRACT",
+    # Phase 84 & 85: Adaptive Workforce Planner & Teamwork Orchestration
+    "WorkerMetadata",
+    "WorkforceCostReasoning",
+    "AdaptiveWorkforcePlanner",
+    "WavePersistenceEngine",
+    "FailureType",
+    "RecoveryAction",
+    "FailureRecoveryDecision",
+    "FailureRecoveryEngine",
+    # Phase 86: 8-Tier Hybrid Capability Execution Matrix
+    "HybridCapabilityTier",
+    "MCPJustificationReport",
+    "HybridResolutionResult",
+    "HybridCapabilityExecutionMatrix",
 ]
 
