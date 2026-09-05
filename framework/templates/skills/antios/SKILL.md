@@ -24,9 +24,10 @@ This skill is your **single authoritative control plane** (`/antios`). AntiOS co
 4. `CLASSIFY`: Determine `TaskClass` and `RiskTier`.
 5. `SELECT CAPABILITIES`: Resolve 8-tier matrix (Native -> Skill -> Tool -> Runtime -> Specialist -> CLI -> Service -> MCP).
 6. `SELECT WORKFORCE`: 12-input `AdaptiveWorkforcePlanner` emitting cost reasoning card.
-7. `EXECUTE`: Dispatch native tools or specialists (`antios-engineer`, `antios-debug`, `antios-adapt-project`).
-8. `VERIFY`: Independent Maker-Checker audit (`antios-verifier`) and test suite (exit code 0).
-9. `REMEMBER`: Distill durable lessons and refresh active context.
+7. `BUILD CONTEXT`: Internal `ContextBudgetGovernor` & `FreshnessEvaluator` emitting bounded context card.
+8. `EXECUTE`: Dispatch native tools or specialists (`antios-engineer`, `antios-debug`, `antios-adapt-project`).
+9. `VERIFY`: Independent Maker-Checker audit (`antios-verifier`) and test suite (exit code 0).
+10. `REMEMBER`: Distill durable lessons and refresh active context.
 
 ## 3. Adaptive Workforce Sizing & Cost Reasoning (Phase 84)
 Evaluates 12 inputs to select mode with token-bounded cost card (**Why this**, **Why not fewer**, **Why not more**):
@@ -50,7 +51,19 @@ Priority: 1. Native -> 2. Project Skill -> 3. Script -> 4. Runtime -> 5. Special
 - *Local Git Invariant*: Local Git CLI (Tier 6) is strictly preferred over GitHub MCP (Tier 8) for local operations.
 - *MCP Escalation*: Mandatory 7-field report (`capability_sought`, `why_native_failed`, `least_privilege_scope`, `risk_assessment`, `rollback_plan`, `user_approval_required`, `audit_trail_entry`).
 
-## 6. Stop Gate & Task Completion
+## 6. Context Budget Governor & Freshness (Phases 87–88)
+- **Context Classification**: `MANDATORY`, `RELEVANT`, `OPTIONAL`, `STALE`, `REDUNDANT`, `UNKNOWN`.
+- **Governor Actions**: `LOAD`, `DEFER`, `SUMMARIZE`, `DISCARD`, `REFRESH`.
+- **Epistemic Freshness**: Evaluates against physical file SHAs, manifest fingerprints, and git HEAD. Stale context is never silently authoritative.
+- **Safe Compaction**: Preserves facts, decisions, constraints, acceptance criteria, and evidence references. Never converts inference into fact; never strips provenance.
+
+## 7. Mission State Continuity & Output Bounding (Phase 89)
+- **Persistence Threshold**: Trivial tasks (single file, LOW risk, SOLO) use ephemeral in-memory state; complex tasks persist to `.antios/missions/<mission-id>/` (`mission.json`, `progress.json`, `evidence.json`, `handoffs.json`).
+- **Crash Recovery**: Audits interrupted waves, active agent remnants, and fingerprint drift to deterministically select `RESUME`, `REPLAN`, `REFRESH`, `ROLLBACK`, or `ABORT`.
+- **Tool Output Bounding**: Classifies tool stdout/stderr as `RAW`, `RELEVANT`, `SUMMARIZED`, or `DISCARDED` (truncates large output while storing verifiable SHA-256).
+
+## 8. Stop Gate & Task Completion
 1. Collapse all active workers: `manage_subagents(Action='kill', ...)`.
 2. Execute configured test runner (from `antios.config.json`, must exit code 0).
 3. Ensure `docs/ACTIVE_CONTEXT.md` is updated and strictly $\le 60$ lines.
+

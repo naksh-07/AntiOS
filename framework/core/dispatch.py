@@ -38,7 +38,18 @@ from framework.core.agent_routing_pack import AgentRoutingPack
 from framework.core.capability_pack import CapabilityPack
 from framework.core.capability_router import CapabilityRouter
 from framework.core.config import AntiOSConfig, load_config
+from framework.core.context_budget import (
+    ContextBudgetGovernor,
+    ContextSourceItem,
+    ContextSourceType,
+)
+from framework.core.context_freshness import FreshnessEvaluator
 from framework.core.lifecycle import RiskTier, TaskClass
+from framework.core.mission_state import (
+    MissionPersistenceMode,
+    MissionStateStore,
+)
+
 from framework.core.orchestration import (
     AdaptiveWorkforcePlanner,
     CanonicalWave,
@@ -98,6 +109,9 @@ class MissionPlan:
     reasons: List[str]
     cost_reasoning: Optional[Dict[str, Any]] = None
     workforce_planner_decision: Optional[Dict[str, Any]] = None
+    context_budget_card: Optional[Dict[str, Any]] = None
+    loaded_context: Optional[str] = None
+    mission_state_mode: Optional[str] = None
 
     def format_card(self, max_lines: int = 25) -> str:
         """Emits a token-bounded summary card adhering to token budget (<= max_lines)."""
@@ -121,6 +135,8 @@ class MissionPlan:
             f"Waves:        {' -> '.join(self.initial_waves)}",
             f"Rationale:    {reasons_str[:60]}",
         ]
+        if self.context_budget_card:
+            lines.append(f"Context:      {self.context_budget_card.get('total_allocated_tokens', 0)}/{self.context_budget_card.get('budget_limit', 0)} tok ({self.context_budget_card.get('selected_count', 0)} sel)")
         if self.cost_reasoning:
             lines.append(f"Cost Reason:  {self.cost_reasoning.get('why_this_workforce', '')[:60]}")
         lines.append("-------------------------------------")
@@ -149,7 +165,11 @@ class MissionPlan:
             "agent_routing": dict(self.agent_routing),
             "cost_reasoning": dict(self.cost_reasoning) if self.cost_reasoning else None,
             "workforce_planner_decision": dict(self.workforce_planner_decision) if self.workforce_planner_decision else None,
+            "context_budget_card": dict(self.context_budget_card) if self.context_budget_card else None,
+            "loaded_context": self.loaded_context,
+            "mission_state_mode": self.mission_state_mode,
         }
+
 
 
 class TaskDispatchPipeline:
@@ -393,6 +413,68 @@ class TaskDispatchPipeline:
 
         mission_id = f"mission-{abs(hash(task_query)) % 10000:04d}"
 
+        # 11. Context Budget Governance & Freshness (Stage 7: BUILD CONTEXT)
+        candidate_sources: List[ContextSourceItem] = []
+        candidate_sources.append(
+            ContextSourceItem.create(
+                source_id="constitutional-invariants",
+                source_type=ContextSourceType.CONSTITUTIONAL_POLICY,
+                title="Constitutional Safety Invariants",
+                content="Immutable core zones: framework/, .agents/hooks.json, antios.config.json. Shallow depth <= 2. Max active <= 10. Max launches <= 20.",
+                is_safety_critical=True,
+                provenance="AntiOS Constitution",
+                epistemic_weight=1.0,
+            )
+        )
+        for sub in matched_subs:
+            candidate_sources.append(
+                ContextSourceItem.create(
+                    source_id=f"subsystem-{sub}",
+                    source_type=ContextSourceType.COMPONENT_INTELLIGENCE,
+                    title=f"Subsystem Intelligence: {sub}",
+                    content=f"Subsystem '{sub}' relevant to query '{task_query}'. Matched components: {', '.join(matched_comps) if matched_comps else 'none'}.",
+                    is_safety_critical=False,
+                    provenance=f"framework/core/subsystems/{sub}",
+                    epistemic_weight=0.9,
+                    target_files=target_files,
+                )
+            )
+
+        active_context_path = os.path.join(self.workspace_root, "docs", "ACTIVE_CONTEXT.md")
+        if os.path.exists(active_context_path):
+            try:
+                with open(active_context_path, "r", encoding="utf-8") as f:
+                    act_content = f.read()
+                candidate_sources.append(
+                    ContextSourceItem.create(
+                        source_id="active-context-md",
+                        source_type=ContextSourceType.ACTIVE_MISSION_STATE,
+                        title="Active Context Ledger",
+                        content=act_content,
+                        is_safety_critical=True,
+                        provenance="docs/ACTIVE_CONTEXT.md",
+                        epistemic_weight=1.0,
+                    )
+                )
+            except Exception:
+                pass
+
+        budget_governor = ContextBudgetGovernor()
+        context_result = budget_governor.evaluate(
+            task_intent=task_query,
+            sources=candidate_sources,
+            active_files=target_files,
+            risk_tier=classification.risk_tier.value,
+        )
+
+        persistence_mode = MissionStateStore.evaluate_persistence_threshold(
+            task_intent=task_query,
+            file_count=len(target_files),
+            wave_count=len(initial_waves),
+            risk_tier=classification.risk_tier.value,
+            workforce_mode=mode.value,
+        )
+
         return MissionPlan(
             mission_id=mission_id,
             task_intent=task_query,
@@ -418,4 +500,8 @@ class TaskDispatchPipeline:
                 "mode": planner_mode.value,
                 "cost_reasoning": cost_reasoning.to_dict(),
             },
+            context_budget_card=asdict(context_result.card),
+            loaded_context=context_result.loaded_context,
+            mission_state_mode=persistence_mode.value,
         )
+

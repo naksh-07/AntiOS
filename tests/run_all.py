@@ -157,6 +157,12 @@ import tests.test_hybrid_capability_matrix as test_hybrid_capability_matrix
 import tests.test_orchestration_phase83_86_adversarial as test_orchestration_phase83_86_adversarial
 import tests.test_proving_ground_scenarios as test_proving_ground_scenarios
 
+# Phase 87-89 Context Engineering, Context Freshness & Mission State Continuity
+import tests.test_context_budget_governor as test_context_budget_governor
+import tests.test_context_freshness_compaction as test_context_freshness_compaction
+import tests.test_mission_state_continuity as test_mission_state_continuity
+import tests.test_context_mission_adversarial as test_context_mission_adversarial
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -291,6 +297,11 @@ def build_suite() -> unittest.TestSuite:
         test_hybrid_capability_matrix,
         test_orchestration_phase83_86_adversarial,
         test_proving_ground_scenarios,
+        # Phase 87-89
+        test_context_budget_governor,
+        test_context_freshness_compaction,
+        test_mission_state_continuity,
+        test_context_mission_adversarial,
     ]
 
     loader = unittest.defaultTestLoader

@@ -1,8 +1,8 @@
 # AntiOS Component Model Specification (`ANTIOS_COMPONENT_MODEL.md`)
 
-**Version**: 1.0.0-GA  
-**Date**: 2026-09-04  
-**Status**: Canonical Component Model Specification (34 Core Modules)  
+**Version**: 2.0.0-GA  
+**Date**: 2026-09-06  
+**Status**: Canonical Component Model Specification (63 Core Modules)  
 
 ---
 
@@ -56,7 +56,7 @@ The AntiOS Component Model defines the physical and logical components that cons
 
 ## 2. Framework Core Subsystem Inventory
 
-All 34 core modules in `framework/core/` are standard-library Python 3.8+ with zero external dependencies:
+All 63 core modules in `framework/core/` are standard-library Python 3.8+ with zero external dependencies:
 
 ### 2.1 Governance & Boundaries
 - `guard.py`: Fail-closed tool mutation guard with path canonicalization and 8.3 alias blocking.
@@ -99,8 +99,49 @@ All 34 core modules in `framework/core/` are standard-library Python 3.8+ with z
 - `workflow.py`: Maps high-level workflow archetypes to capabilities and roles.
 
 ### 2.7 Tool & Provider Layer
-- `tool.py`: Standardized tool abstractions and 6-tier preference taxonomy.
+- `tool.py`: Standardized tool abstractions and 8-tier hybrid capability matrix.
 - `tool_pack.py`: Token-bounded tool selection cards (<= 25 lines).
 - `provider.py`: Provider definitions, operational states, and capability mappings.
 - `tool_registry.py`: In-memory multi-dimensional tool registry with sub-millisecond lookups.
-- `tool_policy.py`: Centralized `MCPJustificationEngine` enforcing the 8-question framework.
+- `tool_policy.py`: Centralized `MCPJustificationEngine` enforcing the 8-question framework and escalation protocol.
+
+### 2.8 Project Agent OS & Boundary Compilation
+- `manifest.py`: Project manifest provenance and cryptographic hash verification.
+- `provenance.py`: Provenance and ownership tracking across 5 artifact tiers.
+- `compiler.py`: Universal boundary compiler compiling declarative project boundaries.
+- `installation.py`: Installation lifecycle, bootstrap validation, and uninstall cleanliness.
+- `runtime_contract.py`: Instance runtime closure and source-independent execution.
+
+### 2.9 Main AntiOS Control Plane & Task Dispatch
+- `dispatch.py`: Canonical 10-stage task dispatch pipeline and workforce resolution.
+- `anatomy.py`: Structural decomposition of project codebases.
+- `component_intelligence.py`: Component-level semantic intelligence and convention discovery.
+- `skill_generator.py`: Generates targeted project-specific skills.
+- `specialist_generator.py`: Generates least-privilege specialist agent personas.
+
+### 2.10 Project Learning & Controlled Evolution
+- `learning.py`: Epistemic observation store and `LearningSafetyGate` fail-closed defenses.
+- `evolution_proposal.py`: Structured evolution proposal schemas with atomic snapshots.
+- `evolution_governance.py`: Controlled evolution engine with rollback capabilities.
+- `intelligence_verifier.py`: Verifies intelligence artifacts against drift and contamination.
+- `capability_gap.py`: 9-class failure taxonomy and capability gap detection.
+- `tool_gap.py`: Tool and MCP gap analysis engine.
+- `two_way_contract.py`: Core immutability vs project adaptation contract.
+- `migration.py`: SemVer compatibility and migration lifecycle engine.
+
+### 2.11 Agent-Native Repository Optimization
+- `agent_native_score.py`: 10-dimension evidence-backed agent-native scoring.
+- `agent_friction.py`: 19-class agent friction detection and telemetry.
+- `agent_improvement.py`: Friction-targeted improvement proposals.
+- `documentation_compiler.py`: Compiles progressive-disclosure documentation.
+- `agent_refactoring.py`: Agent-native structural refactoring suggestions.
+- `agent_native_certification.py`: 5-tier formal repository certification engine.
+
+### 2.12 Native Antigravity Workforce & Orchestration
+- `workforce_contract.py`: Responsibility domain partitioning, anti-emulation constraints, and Teamwork coordination.
+- `orchestration.py`: Adaptive workforce planner, wave manager, wave persistence, and recovery engines.
+
+### 2.13 Context Engineering, Freshness & Continuity
+- `context_budget.py`: 6-action context budget governor, token-bounded reasoning cards, and utility optimization.
+- `context_freshness.py`: Freshness evaluator detecting hash and git drift, safe compaction engine.
+- `mission_state.py`: Dual-mode mission persistence (4-file format) and deterministic crash recovery engine.

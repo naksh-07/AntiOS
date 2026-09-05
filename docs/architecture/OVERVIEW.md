@@ -97,11 +97,11 @@ All core logic resides within `framework/core/`, organized into 7 cohesive subsy
 - [`workflow.py`](../../framework/core/workflow.py) — Maps high-level workflow archetypes to capabilities and roles.
 
 ### 7. Tool & Provider Layer
-- [`tool.py`](../../framework/core/tool.py) — Standardized tool abstractions and 6-tier preference taxonomy.
+- [`tool.py`](../../framework/core/tool.py) — Standardized tool abstractions and 8-tier hybrid capability matrix.
 - [`tool_pack.py`](../../framework/core/tool_pack.py) — Token-bounded tool selection cards (<= 25 lines).
 - [`provider.py`](../../framework/core/provider.py) — Provider definitions, operational states, and capability mappings.
 - [`tool_registry.py`](../../framework/core/tool_registry.py) — In-memory multi-dimensional tool registry with sub-millisecond lookups.
-- [`tool_policy.py`](../../framework/core/tool_policy.py) — Centralized `MCPJustificationEngine` enforcing the 8-question framework.
+- [`tool_policy.py`](../../framework/core/tool_policy.py) — Centralized `MCPJustificationEngine` enforcing the 8-question framework and escalation protocol.
 
 ---
 

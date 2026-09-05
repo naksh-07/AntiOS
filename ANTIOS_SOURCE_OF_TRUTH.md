@@ -20,20 +20,20 @@
 | Architectural Domain | Canonical Source of Truth | Location / File Path | Authority Level | Precedence When Conflicting |
 | :--- | :--- | :--- | :---: | :--- |
 | **Engineering Invariants & Constitution** | AntiOS Master Constitution | `ANTIOS_CONSTITUTION.md` | **CONSTITUTION** | Highest architectural policy; defines invariants, boundaries, and immutable rules. |
-| **System Architecture** | AntiOS Master Architecture Specification | `ANTIOS_V1.md` | **PRIMARY SPEC** | Comprehensive system specification: 4-tier model, 7 subsystems, 34 core modules. |
+| **System Architecture** | AntiOS Master Architecture Specification | `ANTIOS_V1.md` | **PRIMARY SPEC** | Comprehensive system specification: 4-tier model, 7 subsystems, 63 core modules. |
 | **Project Agent OS Architecture** | AntiOS 2.0 Project Agent OS Specification | `docs/architecture/PROJECT_AGENT_OS.md` | **PRIMARY SPEC** | Compilation contract, 5-tier ownership, 6-phase lifecycle, and orchestration limits. |
 | **Adaptive Mission Orchestration** | AntiOS Adaptive Orchestration Model | `docs/architecture/ORCHESTRATION_MODEL.md` | **PRIMARY SPEC** | Adaptive workforce sizing (SOLO to MAX), wave lifecycle, dual dispatch gates, resource ledger. |
 | **Primary Skill Control Plane** | AntiOS Primary Skill Architecture | `docs/architecture/ANTIOS_SKILL_MODEL.md` | **PRIMARY SPEC** | Authoritative control plane specification for `/antios` skill and progressive disclosure. |
 | **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
-| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–65) recording why decisions were made. |
-| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 684 certified tests. |
+| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–73) recording why decisions were made. |
+| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 766 certified tests. |
 | **Project Instance Runtime & Closure** | Instance Runtime & Closure Contract | `framework/core/runtime_contract.py` / `.antios/runtime/` | **RUNTIME CLOSURE** | Self-contained instance execution, PreToolUse and Stop gates, and closure contract. |
 | **Formal System Certification** | AntiOS Formal Certification Matrix | `docs/architecture/CERTIFICATION_MATRIX.md` | **CERTIFICATION LEDGER** | Complete verification ledger across all 50 capability dimensions. |
 | **Core vs Adapter Contract** | Core vs Project Adapter Specification | `docs/architecture/CORE_VS_ADAPTER.md` | **BOUNDARY CONTRACT** | Strict demarcation between universal Core logic and declarative project adapters. |
 | **Safety Boundaries & Path Protection** | Pre-Tool Guard Hook Implementation | `framework/scripts/hooks/pre_tool_guard.py` | **CODE / RUNTIME** | Physical Python script is authoritative over any prompt or documentation text. |
 | **Task Completion & Verification Gate** | Stop Gate Hook Implementation | `framework/scripts/hooks/stop_gate.py` | **CODE / RUNTIME** | Physical subprocess exit code overrides conversational claims and subagent reports. |
 | **Active Task State & Working Set** | Bounded Working Context | `docs/ACTIVE_CONTEXT.md` | **ACTIVE MEMORY** | Authoritative for the current session's immediate tasks, blockers, and next action (<= 60 lines). |
-| **Tool, Provider & MCP Architecture** | AntiOS Tool, Provider & MCP Policy | `docs/reference/MCP_POLICY.md` | **PRIMARY SPEC** | Authoritative for 6-tier preference, provider abstractions, and MCP justification. |
+| **Tool, Provider & MCP Architecture** | AntiOS Tool, Provider & MCP Policy | `docs/reference/MCP_POLICY.md` | **PRIMARY SPEC** | Authoritative for 8-tier hybrid capability matrix, provider abstractions, and MCP escalation. |
 | **Hook Registration & Mounts** | Platform Hook Manifest | `.agents/hooks.json` | **PLATFORM BINDING** | Connects Antigravity tool events to AntiOS hook scripts. |
 | **Declarative Project Adapter** | Project Adapter Configuration | `antios.config.json` | **PROJECT CONFIG** | Declares project test runners, linters, protected zones, and topology overrides. |
 | **Historical Evidence & Research** | Reports & Archive Directories | `reports/archive/` | **HISTORICAL ARCHIVE** | Read-only evidence ledger. Never used as active task state or current specification. |

@@ -3,10 +3,10 @@
 **Universal, Domain-Agnostic Agent-Native Engineering OS for Google Antigravity**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-733%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
+[![Tests](https://img.shields.io/badge/tests-766%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](ANTIOS_CONSTITUTION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/version-v2.0.0--TEAMWORK--GRADE-green.svg)](ANTIOS_V1.md)
+[![Status](https://img.shields.io/badge/version-v2.0.0--CONTEXT--GRADE-green.svg)](ANTIOS_V1.md)
 
 ---
 
@@ -37,7 +37,8 @@ Antigravity Platform
 - **Maker-Checker Independent Verification**: High-risk tasks mandate independent audit by an unbiased, fresh-context verifier subagent.
 - **Universal Project Adapter**: Declarative `antios.config.json` configuration binds any software stack (Python, TypeScript, Rust, Go, polyglot) to AntiOS without modifying core code.
 - **Deterministic Repository Wayfinding**: Sub-millisecond navigation tool resolves task intent to owning subsystems, test suites, and blast radius.
-- **Strict 6-Tier Tooling & MCP Policy**: Prioritizes local, deterministic tools over unvetted Model Context Protocol servers.
+- **Strict 8-Tier Hybrid Capability Matrix & MCP Policy**: Prioritizes local, deterministic tools over unvetted Model Context Protocol servers.
+- **Context Budget Governor & Freshness Compactor**: Enforces strict token budgets, detects stale context drift, and safely compacts history without hypothesis elevation.
 - **Zero Third-Party Dependencies**: Pure Python 3.8+ standard library. Zero pip dependencies required.
 
 ---
@@ -75,18 +76,18 @@ Explore the full documentation portal in [`docs/INDEX.md`](docs/INDEX.md):
 | :--- | :--- | :--- |
 | **Portal** | [`docs/INDEX.md`](docs/INDEX.md) | Definitive navigation portal for humans and agents |
 | **Architecture** | [`ANTIOS_V1.md`](ANTIOS_V1.md) | Canonical Master Architecture Specification (v1.0.0-GA) |
-| **Architecture** | [`docs/architecture/OVERVIEW.md`](docs/architecture/OVERVIEW.md) | 4-tier model, 7 subsystems, and 34-module model |
+| **Architecture** | [`docs/architecture/OVERVIEW.md`](docs/architecture/OVERVIEW.md) | 4-tier model, 7 subsystems, and 63-module model |
 | **Architecture** | [`docs/architecture/CAPABILITY_MATRIX.md`](docs/architecture/CAPABILITY_MATRIX.md) | Core capability catalog and taxonomy |
 | **Architecture** | [`docs/architecture/CERTIFICATION_MATRIX.md`](docs/architecture/CERTIFICATION_MATRIX.md) | 50 canonical certification rules (C-01 to C-50) |
 | **Governance** | [`ANTIOS_CONSTITUTION.md`](ANTIOS_CONSTITUTION.md) | Universal non-negotiable axioms and invariants |
 | **Governance** | [`ANTIOS_SOURCE_OF_TRUTH.md`](ANTIOS_SOURCE_OF_TRUTH.md) | Definitive system source of truth |
-| **Decisions** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Architectural Decision Register (ADR 01-35) |
+| **Decisions** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Architectural Decision Register (ADR 01-73) |
 | **Operations** | [`.agents/skills/`](.agents/skills/antios-engineer/SKILL.md) | Canonical agent skills (`antios-engineer`, `antios-verifier`, etc.) |
 | **Guides** | [`docs/guides/ADOPT_ANTIOS.md`](docs/guides/ADOPT_ANTIOS.md) | Step-by-step onboarding guide for any repo |
 | **Guides** | [`docs/guides/PROJECT_ADAPTER.md`](docs/guides/PROJECT_ADAPTER.md) | Guide on `antios.config.json` customization |
 | **Reference** | [`docs/reference/CLI.md`](docs/reference/CLI.md) | Reference for all 8 deterministic CLI tools |
 | **Reference** | [`docs/reference/CONFIGURATION.md`](docs/reference/CONFIGURATION.md) | Field-by-field `antios.config.json` schema reference |
-| **Reference** | [`docs/reference/MCP_POLICY.md`](docs/reference/MCP_POLICY.md) | 6-tier tooling hierarchy & MCP justification |
+| **Reference** | [`docs/reference/MCP_POLICY.md`](docs/reference/MCP_POLICY.md) | 8-tier hybrid capability matrix & MCP escalation |
 | **Testing** | [`docs/operations/TESTING.md`](docs/operations/TESTING.md) | Test suite catalog, running tests, benchmarks |
 | **Contributing**| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution standards and Same Change Set policy |
 
@@ -109,7 +110,7 @@ AntiOS provides 8 standard library CLI tools in `framework/scripts/tools/`:
 
 ## Running Tests
 
-AntiOS includes 733 deterministic automated tests covering all core modules, contracts, and safety gates:
+AntiOS includes 766 deterministic automated tests covering all core modules, contracts, and safety gates:
 
 ```bash
 python tests/run_all.py
@@ -118,7 +119,7 @@ python tests/run_all.py
 ```
 ======================================================================
 AntiOS Master Test Suite
-Ran 733 tests in 25.3s
+Ran 766 tests in 30.9s
 OK (100% passed, 0 failures, 0 errors)
 ======================================================================
 ```

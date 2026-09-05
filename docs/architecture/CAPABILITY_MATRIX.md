@@ -2,7 +2,7 @@
 
 **Version**: 1.0.0-GA  
 **Date**: 2026-09-04  
-**Status**: Authoritative Canonical Capability Matrix (447 Tests Certified)  
+**Status**: Authoritative Canonical Capability Matrix (766 Tests Certified)  
 
 ---
 
@@ -29,17 +29,18 @@ Every capability in AntiOS is mapped across 18 cohesive architectural layers:
 | **15. Knowledge Graph Engine** | Core | `framework/core/knowledge.py` | 28 tests | **CERTIFIED**: In-memory multi-index graph, BFS reachability, L0-L5 disclosure. |
 | **16. Capability Routing Layer** | Core | `framework/core/capability*.py` | 44 tests | **CERTIFIED**: 8 capability types, 5-tier rule precedence, bounded cards <= 25 lines. |
 | **17. Agent Topology Registry** | Core | `framework/core/agent_*.py`, `workflow.py` | 52 tests | **CERTIFIED**: Canonical roles, least-privilege boundaries, Shallow Depth Law <= 2. |
-| **18. Tool & Provider Engine** | Core | `framework/core/tool*.py`, `provider.py` | 77 tests | **CERTIFIED**: 6-tier tool hierarchy, in-memory registry, canonical MCP justification. |
+| **18. Tool & Provider Engine** | Core | `framework/core/tool*.py`, `provider.py` | 77 tests | **CERTIFIED**: 8-tier hybrid capability matrix, in-memory registry, canonical MCP justification. |
 
 ---
 
 ## 2. Canonical Skill Inventory (`.agents/skills/`)
 
-All active skills adhere strictly to the $\le 60$ line token efficiency budget:
-1. `antios-engineer`: Universal engineering workflow, 3-tier risk matrix, and stop gate discipline (39 lines).
-2. `antios-verifier`: Independent Maker-Checker audit contract and structured verdict generation (52 lines).
-3. `antios-debug`: Systematic 5-step root-cause debugging procedure (37 lines).
-4. `antios-adapt-project`: Universal project intelligence and adaptation procedure (38 lines).
+All active skills adhere strictly to the token efficiency budget:
+1. `antios`: Universal project-native control plane and primary entrypoint.
+2. `antios-engineer`: Universal engineering workflow, 3-tier risk matrix, and stop gate discipline.
+3. `antios-verifier`: Independent Maker-Checker audit contract and structured verdict generation.
+4. `antios-debug`: Systematic 5-step root-cause debugging procedure.
+5. `antios-adapt-project`: Universal project intelligence and adaptation procedure.
 
 ---
 

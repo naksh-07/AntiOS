@@ -694,3 +694,44 @@
 - **CONSEQUENCES**: Local git commands execute via standard CLI; external MCPs are used solely when lower tiers genuinely lack the required remote protocol or live browser DOM capabilities.
 - **REVERSIBILITY**: High; integrated into `ToolPolicyEngine` and `MCPJustificationEngine`.
 
+---
+
+## DECISION 70: Context Budget Governor & Epistemic Utility Optimization (Phase 87)
+- **DECISION**: Implement `ContextBudgetGovernor` in `framework/core/context_budget.py` establishing deterministic task-time context budgeting. Classify candidate sources into `MANDATORY`, `RELEVANT`, `OPTIONAL`, `STALE`, `REDUNDANT`, and `UNKNOWN`. Map sources to actions `LOAD`, `DEFER`, `SUMMARIZE`, `DISCARD`, and `REFRESH`. Enforce the optimization metric: `USEFUL INFORMATION / CONTEXT COST` rather than `MINIMUM TOKENS AT ANY COST`. Unconditionally preserve safety invariants, acceptance criteria, active blockers, and ownership boundaries. Emit a token-bounded reasoning card ($\le 16$ lines).
+- **EVIDENCE**: Blind context dumping wastes prompt tokens, distracts reasoning, and elevates injection risks. Simple truncation risks stripping security rules. Objective utility scoring with mandatory invariant reservation guarantees safety and efficiency.
+- **ALTERNATIVES**: Unconstrained full-context injection; purely length-based FIFO truncation; or LLM-based self-summarization.
+- **WHY SELECTED**: Enforces deterministic, predictable context bounds while guaranteeing safety-critical rules are never discarded.
+- **CONSEQUENCES**: Context is budgeted at Stage 7 (`BUILD CONTEXT`) of `/antios`; workers receive strictly bounded relevant context.
+- **REVERSIBILITY**: High; isolated engine in `framework/core/context_budget.py`.
+
+---
+
+## DECISION 71: Context Freshness Model & Non-Destructive Safe Compaction (Phase 88)
+- **DECISION**: Implement `FreshnessEvaluator` and `SafeContextCompactor` in `framework/core/context_freshness.py`. Audit context against physical file SHA-256 digests, manifest fingerprints, git HEAD advancement, and working tree modifications. Enforce two non-negotiable laws: (1) A stale source must never silently appear as authoritative current context; (2) Compaction never converts inference into fact or strips provenance references.
+- **EVIDENCE**: Context drift between tool invocations leads to hallucinated fixes on stale code states. Non-destructive compaction preserves all verifiable facts, constraints, and test outputs while stripping redundant conversational fluff.
+- **ALTERNATIVES**: Blind trust in cached context; heuristic string truncation; or vector embedding cosine similarity.
+- **WHY SELECTED**: Rooted in physical filesystem evidence (`REALITY > STALE STATE`) with zero external dependencies.
+- **CONSEQUENCES**: Stale sources trigger deterministic `REFRESH` actions; compacted context preserves complete provenance.
+- **REVERSIBILITY**: High; deterministic standard library implementation.
+
+---
+
+## DECISION 72: Bounded Mission State Continuity & Evidence-Grounded Recovery (Phase 89)
+- **DECISION**: Implement `MissionStateStore` and `MissionRecoveryEngine` in `framework/core/mission_state.py`. Establish a deterministic complexity threshold: trivial single-file/low-risk tasks use ephemeral in-memory state; complex multi-file/multi-wave/high-risk tasks persist state to `.antios/missions/<mission-id>/` across 4 canonical files (`mission.json`, `progress.json`, `evidence.json`, `handoffs.json`). On interruption or crash, audit disk reality to deterministically choose `RESUME`, `REPLAN`, `REFRESH`, `ROLLBACK`, or `ABORT`.
+- **EVIDENCE**: Multi-agent missions fail across context wipes if state is ephemeral, but persisting every trivial command clutters the filesystem. Bounded 4-file persistence for complex tasks enables crash resilience without disk churn.
+- **ALTERNATIVES**: Monolithic sqlite database; unbounded session log appending; or purely in-memory wave state.
+- **WHY SELECTED**: Transparent, inspectable JSON files with zero external database dependencies, adhering to AntiOS project sovereignty.
+- **CONSEQUENCES**: Crashed missions cleanly resume their active wave and workstreams without duplicating completed tasks.
+- **REVERSIBILITY**: High; clean filesystem layout under `.antios/missions/`.
+
+---
+
+## DECISION 73: Token Bounding of Tool Outputs & Cryptographic Verification Digests (Phase 89)
+- **DECISION**: Implement `ToolOutputClassifier` in `framework/core/mission_state.py` categorizing execution outputs as `RAW`, `RELEVANT`, `SUMMARIZED`, or `DISCARDED`. For outputs exceeding 2,000 characters, compact stdout/stderr to 20 bounded lines while computing and storing the SHA-256 hash.
+- **EVIDENCE**: Large test suites or compiler outputs generate tens of thousands of characters that blow out context windows. Compacting to head+tail lines with a cryptographic hash preserves 100% verification reproducibility while bounding prompt tokens.
+- **ALTERNATIVES**: Discarding stdout entirely; or persisting unlimited multi-megabyte log dumps into LLM context.
+- **WHY SELECTED**: Provides full verifiability without context bloat.
+- **CONSEQUENCES**: Verification audits verify the exit code and SHA-256 digest; agent prompts remain strictly token-bounded.
+- **REVERSIBILITY**: High; integrated into `ToolOutputClassifier`.
+
+

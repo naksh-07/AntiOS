@@ -47,7 +47,7 @@ AntiOS strictly separates concerns across four distinct architectural tiers:
 • Deterministic wayfinding & locality indexing (framework/core/wayfinding.py)
 • 8-type Project Capability Layer (framework/core/capability*.py)
 • Canonical Agent Roles & Topology Registry (framework/core/agent_*.py)
-• 6-Tier Tool & Provider Preference Engine (framework/core/tool*.py)
+• 8-Tier Hybrid Capability Matrix & Provider Engine (framework/core/tool*.py)
 • Same Change Set & Worktree Cleanliness (framework/core/changeset.py, worktree.py)
 • Bounded working memory & distillation (framework/core/memory.py)
                                     │
@@ -75,9 +75,9 @@ AntiOS strictly separates concerns across four distinct architectural tiers:
 
 ---
 
-## 3. Core Subsystems Map (34 Core Modules)
+## 3. Core Subsystems Map (63 Core Modules)
 
-AntiOS Core is organized into 7 cohesive, loosely coupled subsystems totaling 34 standard-library Python modules:
+AntiOS Core is organized into cohesive, loosely coupled subsystems totaling 63 standard-library Python modules:
 
 1. **Governance & Boundaries (`guard.py`, `gate.py`, `verdict.py`, `config.py`, `changeset.py`, `worktree.py`, `telemetry.py`, `governance.py`)**:
    Enforces fail-closed tool mutation guards, physical process exit-code-0 ratchets, merge conflict blocking, Same Change Set discipline, and worktree verification.

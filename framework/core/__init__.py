@@ -471,7 +471,43 @@ from framework.core.tool_policy import (
     HybridCapabilityExecutionMatrix,
 )
 
+# Phase 87: Context Budget Governor
+from framework.core.context_budget import (
+    ContextClassification,
+    GovernorAction,
+    ContextSourceType,
+    ContextSourceItem,
+    ContextSelectionDecision,
+    ContextBudgetCard,
+    ContextBudgetResult,
+    ContextBudgetGovernor,
+)
+
+# Phase 88: Context Freshness & Safe Compaction
+from framework.core.context_freshness import (
+    ContextFreshnessState,
+    FreshnessEvaluation,
+    FreshnessEvaluator,
+    CompactedFact,
+    SafeContextCompactor,
+)
+
+# Phase 89: Mission State Continuity & Output Bounding
+from framework.core.mission_state import (
+    MissionPersistenceMode,
+    MissionLifecycleState,
+    MissionRecoveryAction,
+    ToolOutputClassification,
+    ToolOutputEvidence,
+    ToolOutputClassifier,
+    MissionState,
+    MissionStateStore,
+    MissionRecoveryDecision,
+    MissionRecoveryEngine,
+)
+
 __all__ = [
+
     # Phase 12-15
     "AntiOSConfig",
     "load_config",
@@ -804,5 +840,32 @@ __all__ = [
     "MCPJustificationReport",
     "HybridResolutionResult",
     "HybridCapabilityExecutionMatrix",
+    # Phase 87: Context Budget Governor
+    "ContextClassification",
+    "GovernorAction",
+    "ContextSourceType",
+    "ContextSourceItem",
+    "ContextSelectionDecision",
+    "ContextBudgetCard",
+    "ContextBudgetResult",
+    "ContextBudgetGovernor",
+    # Phase 88: Context Freshness & Safe Compaction
+    "ContextFreshnessState",
+    "FreshnessEvaluation",
+    "FreshnessEvaluator",
+    "CompactedFact",
+    "SafeContextCompactor",
+    # Phase 89: Mission State Continuity & Output Bounding
+    "MissionPersistenceMode",
+    "MissionLifecycleState",
+    "MissionRecoveryAction",
+    "ToolOutputClassification",
+    "ToolOutputEvidence",
+    "ToolOutputClassifier",
+    "MissionState",
+    "MissionStateStore",
+    "MissionRecoveryDecision",
+    "MissionRecoveryEngine",
 ]
+
 

@@ -1,10 +1,10 @@
 # AntiOS Formal Certification Matrix (`ANTIOS_CERTIFICATION_MATRIX.md`)
 
-**Version**: 1.0.0-GA (Fully Certified)  
-**Date**: 2026-09-04  
+**Version**: 2.0.0-GA (Fully Certified)  
+**Date**: 2026-09-06  
 **Status**: OFFICIALLY CERTIFIED  
-**Test Suite Pass Rate**: 447 / 447 tests passing (100.0%) in 28.68s  
-**Governing Architecture**: Platform $	o$ AntiOS Core $	o$ Project Adapter $	o$ Target Project  
+**Test Suite Pass Rate**: 766 / 766 tests passing (100.0%) in 30.95s  
+**Governing Architecture**: Platform → AntiOS Core → Project Adapter → Target Project  
 
 ---
 
@@ -58,7 +58,7 @@ AntiOS Core operates with:
 | **C-31** | Member-Scoped Verification | Adapter | `test_member_scoped_verification.py` | 100% (PASS) | Isolates leaf changes to member runner; transitively includes all dependent members. |
 | **C-32** | Shared Root Escalation | Adapter | `test_gate.py` | 100% (PASS) | Modifying root config escalates verification to full workspace scope. |
 | **C-33** | Immutable Zone Defense | Adapter | `test_adapter_verification.py` | 100% (PASS) | Prevents stripping .agents or framework from adapter configuration. |
-| **C-34** | Zero-Dependency Test Suite | Testing | `tests/run_all.py` | 100% (PASS) | Standard library test suite running 447 tests across Windows & Unix in 28.68s. |
+| **C-34** | Zero-Dependency Test Suite | Testing | `tests/run_all.py` | 100% (PASS) | Standard library test suite running 766 tests across Windows & Unix in 30.95s. |
 | **C-35** | Component Wayfinding & Locality | Core | `test_wayfinding.py` | 100% (PASS) | Sub-20ms prefix tree and inverted index component locality mapping. |
 | **C-36** | Subsystem Manifest Standards | Core | `test_subsystem.py` | 100% (PASS) | Agent-oriented subsystem schemas pairing entrypoints, tests, and boundaries. |
 | **C-37** | Staleguard Layer-1 Doc Drift Audit| Core | `test_docaudit.py` | 100% (PASS) | Fast deterministic verification that all cited file paths physically exist on disk. |
@@ -72,7 +72,7 @@ AntiOS Core operates with:
 | **C-45** | Deterministic Agent Topology | Core | `test_agent_topology.py` | 100% (PASS) | Multi-key index for Primary, Specialist, and Checker roles. |
 | **C-46** | Signal-Based Agent Router | Core | `test_agent_router.py` | 100% (PASS) | Conservative delegation gating; defaults strictly to SOLO execution. |
 | **C-47** | Token-Bounded Handoff Contract | Core | `test_agent_routing_pack.py` | 100% (PASS) | Compact context transfer schema for Primary <-> Specialist delegation. |
-| **C-48** | Six-Tier Tool Preference Engine| Core | `test_tool_policy.py` | 100% (PASS) | Native > Script > Project > External > Authorized MCP > Prohibited MCP. |
+| **C-48** | Eight-Tier Hybrid Capability Matrix| Core | `test_tool_policy.py` | 100% (PASS) | Native > Script > Project > External > Authorized MCP > Prohibited MCP. |
 | **C-49** | In-Memory Multi-Dimensional Tool Reg| Core | `test_tool_registry.py` | 100% (PASS) | Sub-millisecond query performance across 100+ tools with zero disk I/O. |
 | **C-50** | Canonical MCP Justification Authority| Core | `test_mcp_justification.py` | 100% (PASS) | Centralized 8-question evaluation report; strictly rejects unauthorized MCPs. |
 
