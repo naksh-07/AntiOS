@@ -21,6 +21,9 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Capability Gap & Tool Escalation Model](architecture/CAPABILITY_GAP_MODEL.md) — 9-class failure taxonomy, gap lifecycle state machine, and 6-tier tool escalation.
 - [Controlled Evolution Governance](architecture/EVOLUTION_GOVERNANCE.md) — Structured proposals, 3-tier approval classes, snapshotting, and atomic rollback.
 - [Compatibility & Migration Model](architecture/COMPATIBILITY_MODEL.md) — SemVer compatibility assessment, 7-stage migration lifecycle, and CLI tooling.
+- [Agent-Native Repository Model](architecture/AGENT_NATIVE_MODEL.md) — 10-dimension evidence-backed scoring, progressive disclosure compiler, and refactoring advisor.
+- [Agent Friction Taxonomy & Resolution](architecture/AGENT_FRICTION_MODEL.md) — 19-class friction detection, epistemic segregation, and NO_ACTION improvement proposals.
+- [Agent-Native Certification](architecture/AGENT_NATIVE_CERTIFICATION.md) — Formal 5-tier certification, fail-closed security invariants, and CLI tooling.
 - [Adaptive Mission Orchestration Model](architecture/ORCHESTRATION_MODEL.md) — Sizing modes (SOLO to MAX), wave lifecycle, dual dispatch gates, and resource ledger.
 - [AntiOS Primary Skill Architecture](architecture/ANTIOS_SKILL_MODEL.md) — Single `/antios` control plane specification and progressive disclosure.
 - [Canonical Component Model](architecture/COMPONENT_MODEL.md) — 34 core Python modules across all 7 subsystems.

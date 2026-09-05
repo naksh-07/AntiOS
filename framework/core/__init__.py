@@ -377,6 +377,60 @@ from framework.core.migration import (
     MigrationEngine,
 )
 
+# Phase 73: Agent-Native Score Engine
+from framework.core.agent_native_score import (
+    EpistemicDimensionState,
+    ConfidenceLevel,
+    ScoreDimension,
+    DimensionScore,
+    AgentNativeScoreCard,
+    AgentNativeScoreEngine,
+)
+
+# Phase 74: Agent Friction Detection Engine
+from framework.core.agent_friction import (
+    FrictionCategory,
+    FrictionClassification,
+    FrictionSeverity,
+    AgentCostLevel,
+    FrictionStatus,
+    AgentFrictionFinding,
+    AgentFrictionReport,
+    AgentFrictionDetector,
+)
+
+# Phase 75: Improvement Proposal Engine
+from framework.core.agent_improvement import (
+    ImprovementProposalEngine,
+)
+
+# Phase 76: Evidence-Driven Documentation Compiler
+from framework.core.documentation_compiler import (
+    DocSurfaceType,
+    CompiledDocSurface,
+    DocCompilationResult,
+    DocumentationCompiler,
+)
+
+# Phase 77: Agent-Native Refactoring Advisor
+from framework.core.agent_refactoring import (
+    RefactoringRecommendation,
+    RefactoringAdvisorReport,
+    AgentRefactoringAdvisor,
+)
+
+# Phase 78: Agent-Native Certification Engine
+from framework.core.agent_native_certification import (
+    CertificationLevel,
+    AgentNativeCertification,
+    AgentNativeCertificationEngine,
+)
+
+from framework.core.docaudit import (
+    DocAuditSummary,
+    DocReferenceAuditor,
+)
+
 __all__ = [
     # Phase 12-15
     "AntiOSConfig",
@@ -651,4 +705,38 @@ __all__ = [
     "MigrationPlan",
     "MigrationResult",
     "MigrationEngine",
+    # Phase 73: Agent-Native Score Engine
+    "EpistemicDimensionState",
+    "ConfidenceLevel",
+    "ScoreDimension",
+    "DimensionScore",
+    "AgentNativeScoreCard",
+    "AgentNativeScoreEngine",
+    # Phase 74: Agent Friction Detection Engine
+    "FrictionCategory",
+    "FrictionClassification",
+    "FrictionSeverity",
+    "AgentCostLevel",
+    "FrictionStatus",
+    "AgentFrictionFinding",
+    "AgentFrictionReport",
+    "AgentFrictionDetector",
+    # Phase 75: Improvement Proposal Engine
+    "ImprovementProposalEngine",
+    # Phase 76: Evidence-Driven Documentation Compiler
+    "DocSurfaceType",
+    "CompiledDocSurface",
+    "DocCompilationResult",
+    "DocumentationCompiler",
+    # Phase 77: Agent-Native Refactoring Advisor
+    "RefactoringRecommendation",
+    "RefactoringAdvisorReport",
+    "AgentRefactoringAdvisor",
+    # Phase 78: Agent-Native Certification Engine
+    "CertificationLevel",
+    "AgentNativeCertification",
+    "AgentNativeCertificationEngine",
+    "DocAuditSummary",
+    "DocReferenceAuditor",
 ]
+

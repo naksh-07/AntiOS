@@ -255,3 +255,36 @@ def audit_all_documentation(
                     results[rel] = audit_documentation_references(rel, norm_root)
 
     return results
+
+
+@dataclass
+class DocAuditSummary:
+    """Consolidated summary of documentation reference audit."""
+    total_files_audited: int
+    broken_count: int
+    clean_count: int
+    broken_references_by_file: Dict[str, List[str]]
+    results: Dict[str, DocAuditResult]
+
+
+class DocReferenceAuditor:
+    """Unified interface for syntactic documentation reference audits."""
+
+    @classmethod
+    def audit_documentation(cls, workspace_root: Union[str, os.PathLike] = ".") -> DocAuditSummary:
+        """Audits all markdown files and produces a consolidated DocAuditSummary."""
+        res_dict = audit_all_documentation(str(workspace_root))
+        total_broken = sum(r.broken_count for r in res_dict.values())
+        clean_count = sum(1 for r in res_dict.values() if r.is_clean)
+        broken_by_file = {
+            k: [ref.raw_text for ref in r.references if not ref.is_valid]
+            for k, r in res_dict.items() if not r.is_clean
+        }
+        return DocAuditSummary(
+            total_files_audited=len(res_dict),
+            broken_count=total_broken,
+            clean_count=clean_count,
+            broken_references_by_file=broken_by_file,
+            results=res_dict,
+        )
+

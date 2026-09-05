@@ -584,3 +584,64 @@
 - **CONSEQUENCES**: `migrate_instance.py` provides automated `--check`, `--dry-run`, and migration capabilities.
 - **REVERSIBILITY**: High.
 
+---
+
+## DECISION 59: Evidence-Backed Agent-Native Scoring Engine (Phase 73)
+- **DECISION**: Implement `AgentNativeScoreEngine` evaluating 10 canonical dimensions (`WAYFINDING`, `DOCUMENTATION`, `SKILLS`, `AGENTS`, `OWNERSHIP`, `VERIFICATION`, `MEMORY_KNOWLEDGE`, `TOOLING`, `PROJECT_STRUCTURE`, `ORCHESTRATION_READINESS`) strictly from observable filesystem, manifest, and configuration evidence. Enforce epistemic segregation (`OBSERVED`, `INFERRED`, `UNKNOWN`) and confidence tiers. Missing information is logged as `UNKNOWN` with baseline neutral scores rather than arbitrarily collapsed to zero.
+- **EVIDENCE**: Unanchored LLM self-assessment creates arbitrary, ungrounded quality scores. Grounding every score in physical files, verified manifests, and passing test runners provides reproducible, objective metrics.
+- **ALTERNATIVES**: Arbitrary LLM score generation or simple checklist counting without evidence verification.
+- **WHY SELECTED**: Establishes objective, reproducible measurement of how easily AI agents can understand and maintain a repository.
+- **CONSEQUENCES**: Scores explain WHY each dimension was rated with concrete evidence, warnings, unknowns, and recommendations.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 60: Deterministic Agent Friction Detection & Cost Modeling (Phase 74)
+- **DECISION**: Implement `AgentFrictionDetector` identifying 19 measurable friction patterns (including broken doc references, unindexed docs, context bloat, duplicate skills, ambiguous ownership, missing verification surfaces, and unnecessary MCP escalation). Categorize findings into `OBSERVED_FRICTION`, `INFERRED_FRICTION`, `POSSIBLE_FRICTION`, and `UNKNOWN` with estimated agent token/cognitive cost metrics.
+- **EVIDENCE**: Agents trapped in repeated search cycles or encountering broken links consume excessive tokens and risk hallucinating fixes. Deterministic friction detection isolates the root structural causes of agent failure.
+- **ALTERNATIVES**: Relying solely on runtime runtime crash logs or unstructured agent feedback.
+- **WHY SELECTED**: Provides proactive, preventative detection of impediments before agent missions fail.
+- **CONSEQUENCES**: Outputs structured `AgentFrictionReport` feeding directly into the improvement proposal engine.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 61: Governed Improvement Proposal Engine & NO_ACTION Ratchet (Phase 75)
+- **DECISION**: Implement `ImprovementProposalEngine` integrating directly with `StructuredCapabilityProposal` and `ControlledEvolutionGovernor`. Proposes targeted remedies (`DOCUMENTATION_IMPROVEMENT`, `WAYFINDING_IMPROVEMENT`, `SKILL_DEDUPLICATION`, `MCP_ESCALATION_REDUCTION`, `KNOWLEDGE_REFRESH`, etc.) with counterfactual alternative options, blast radius analysis, and explicit rollback plans. Mandate `NO_ACTION` when evidence is weak (confidence < 0.6) or refactoring risk exceeds potential benefit.
+- **EVIDENCE**: Uncontrolled automated code refactoring introduces regressions and churn. Modeling changes as governed proposals under existing evolution infrastructure guarantees human oversight and fail-closed safety.
+- **ALTERNATIVES**: Creating a duplicate proposal system or performing direct autonomous mutations.
+- **WHY SELECTED**: Unifies all repository evolution under the established AntiOS Controlled Evolution Governance pipeline.
+- **CONSEQUENCES**: Zero autonomous churn; all improvements are reviewable proposals paired with automated verification contracts.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 62: Progressive Disclosure Documentation Compiler & Ownership Tiers (Phase 76)
+- **DECISION**: Implement `DocumentationCompiler` to compile concise, progressive disclosure documentation surfaces (`ARCHITECTURE_SUMMARY.md`, `SUBSYSTEM_MAP.md`, `COMPONENT_MAP.md`, `TEST_MAP.md`, `AGENT_GUIDANCE.md`, `OWNERSHIP_INFO.md`). Enforce 4-tier artifact ownership (`GENERATED`, `MANAGED`, `USER_AUTHORED`, `PROTECTED`). The compiler strictly refuses to overwrite `USER_AUTHORED` and `PROTECTED` documents.
+- **EVIDENCE**: Massive, bloated documentation saturates agent context windows. Compact, structured markdown surfaces (<= 100 lines) with provenance headers maximize token efficiency while preserving user-authored knowledge.
+- **ALTERNATIVES**: Generating monolithic markdown dumps or allowing unconstrained overwriting of human docs.
+- **WHY SELECTED**: Delivers maximum signal per token while preserving human authorial intent.
+- **CONSEQUENCES**: Generated documentation contains cryptographic provenance hashes; user files are never overwritten.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 63: Agent-Native Refactoring Advisor & Protected Path Invariance (Phase 77)
+- **DECISION**: Implement `AgentRefactoringAdvisor` as a strictly advisory intelligence engine identifying high-cost repository structures. Convert recommendations to governed evolution proposals. Explicitly prohibit recommendations that mutate immutable AntiOS core paths (`framework/core/`, `ANTIOS_CONSTITUTION.md`, `.agents/hooks.json`), classifying them as `CORE_IMMUTABLE_DENIED` / `NO_ACTION`.
+- **EVIDENCE**: Refactoring agents given write access to constitutional governance code or framework cores inevitably break universal invariants. Strict advisory boundaries protect framework stability.
+- **ALTERNATIVES**: Allowing autonomous broad refactoring across the entire repository.
+- **WHY SELECTED**: Enforces the immutable law `CORE ≠ ADAPTER` while helping developers optimize their repositories for agents.
+- **CONSEQUENCES**: Advisor cannot write code directly; all advice evaluates friction cost vs. risk before proposing action.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 64: Formal Evidence-Based Certification & Fail-Closed Safety (Phase 78)
+- **DECISION**: Implement `AgentNativeCertificationEngine` and `certify_agent_native.py` CLI supporting 5 formal certification tiers (`NOT_READY`, `BASELINE`, `AGENT_READY`, `HIGHLY_AGENT_NATIVE`, `CERTIFIED`). The certification engine unconditionally fails closed (`NOT_READY`) upon detecting legacy workflow remnants (`.agents/workflows/`), specialist delegation violations (`can_delegate=True`), manifest corruption, test runner execution failures, or unauthorized privilege escalation.
+- **EVIDENCE**: A checklist score alone cannot guarantee safety if critical security invariants are violated. Fail-closed certification prevents unsafe or poorly structured repositories from being certified as agent-native.
+- **ALTERNATIVES**: Passive scoring without certification levels or lenient passing grades despite critical security failures.
+- **WHY SELECTED**: Establishes a rigorous, industry-grade standard for agent-native software engineering.
+- **CONSEQUENCES**: `certify_agent_native.py` provides deterministic CLI exit codes (0 for pass, 1 for fail) for CI/CD gates.
+- **REVERSIBILITY**: High.
+
+

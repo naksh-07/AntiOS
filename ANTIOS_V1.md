@@ -112,7 +112,9 @@ AntiOS Core is organized into 7 cohesive, loosely coupled subsystems totaling 34
 
 ## 5. Verification & Quality Standard
 
-- **Test Suite**: Authoritative standard-library runner `tests/run_all.py` executing all 75 test modules and 534 tests with 100% pass rate.
+- **Test Suite**: Authoritative standard-library runner `tests/run_all.py` executing all 79 test modules and 671 tests with 100% pass rate.
+- **Agent-Native Certification**: `framework/scripts/tools/certify_agent_native.py` formally certifies repository agent-native quality across 10 dimensions with fail-closed security.
 - **Intelligence Verification**: `framework/scripts/tools/verify_intelligence.py` cryptographically verifies emitted project intelligence, detects architecture drift, and prevents legacy workflow regressions.
 - **Zero Token Reference Auditing**: `framework/scripts/tools/audit_docs.py` verifies physical existence of all documentation references and test commands with zero LLM tokens.
 - **Changeset & Worktree Validation**: `check_changeset.py` and `check_worktree.py` guarantee repository cleanliness before turn completion.
+

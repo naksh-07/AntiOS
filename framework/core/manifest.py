@@ -286,6 +286,13 @@ class ProjectManifest:
         norm = rel_path.replace("\\", "/").strip("/")
         return norm in self.stale_paths
 
+    @property
+    def artifacts(self) -> Dict[str, ArtifactRecord]:
+        """Unified dictionary of all managed and generated artifacts."""
+        res = dict(self.managed_paths)
+        res.update(self.generated_paths)
+        return res
+
 
 def load_manifest(target_root: Union[str, Path]) -> Optional[ProjectManifest]:
     """Loads .antios/manifest.json from target directory or direct file path. Returns None if missing."""

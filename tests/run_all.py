@@ -137,6 +137,15 @@ import tests.test_controlled_evolution as test_controlled_evolution
 import tests.test_migration_contract as test_migration_contract
 import tests.test_phase67_72_adversarial as test_phase67_72_adversarial
 
+# Phase 73-78 Agent-Native Transformation & Evidence-Based Certification
+import tests.test_agent_native_score as test_agent_native_score
+import tests.test_agent_friction as test_agent_friction
+import tests.test_agent_improvement as test_agent_improvement
+import tests.test_documentation_compiler as test_documentation_compiler
+import tests.test_agent_refactoring as test_agent_refactoring
+import tests.test_agent_native_certification as test_agent_native_certification
+import tests.test_phase73_78_adversarial as test_phase73_78_adversarial
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -254,6 +263,14 @@ def build_suite() -> unittest.TestSuite:
         test_controlled_evolution,
         test_migration_contract,
         test_phase67_72_adversarial,
+        # Phase 73-78
+        test_agent_native_score,
+        test_agent_friction,
+        test_agent_improvement,
+        test_documentation_compiler,
+        test_agent_refactoring,
+        test_agent_native_certification,
+        test_phase73_78_adversarial,
     ]
 
     loader = unittest.defaultTestLoader
