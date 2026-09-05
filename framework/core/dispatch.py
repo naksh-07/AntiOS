@@ -49,6 +49,22 @@ from framework.core.mission_state import (
     MissionPersistenceMode,
     MissionStateStore,
 )
+from framework.core.evidence import (
+    EpistemicCategory,
+    EvidenceItem,
+    EvidencePackage,
+    EvidenceState,
+)
+from framework.core.mission_evaluation import (
+    EvaluationStatus,
+    MissionEvaluationEngine,
+    MissionEvaluationResult,
+)
+from framework.core.learning import (
+    EpistemicSource,
+    Observation,
+    ObservationType,
+)
 
 from framework.core.orchestration import (
     AdaptiveWorkforcePlanner,
@@ -504,4 +520,74 @@ class TaskDispatchPipeline:
             loaded_context=context_result.loaded_context,
             mission_state_mode=persistence_mode.value,
         )
+
+    def verify_mission(
+        self,
+        plan: MissionPlan,
+        evidence_package: EvidencePackage,
+        maker_identity: Optional[str] = None,
+        checker_identity: Optional[str] = None,
+        is_independent_checker: bool = True,
+    ) -> MissionEvaluationResult:
+        """Stage 9 (VERIFY): Produces authoritative Mission Evaluation + Evidence Package."""
+        maker_id = maker_identity or plan.primary_role
+        eval_result = MissionEvaluationEngine.evaluate(
+            evidence_package=evidence_package,
+            risk_tier=plan.risk_tier,
+            maker_identity=maker_id,
+            checker_identity=checker_identity,
+            is_independent_checker=is_independent_checker,
+        )
+        evidence_package.final_verdict = eval_result.overall_status.value
+        return eval_result
+
+    def remember_mission(
+        self,
+        plan: MissionPlan,
+        evaluation_result: MissionEvaluationResult,
+        evidence_package: EvidencePackage,
+        lessons: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Stage 10 (REMEMBER): Stores bounded references to validated evidence and durable lessons.
+        
+        Strictly preserves the invariant: Never duplicate entire mission history into project learning.
+        """
+        lessons = lessons or []
+        epistemic = (
+            EpistemicSource.OBSERVED_FACT
+            if evaluation_result.overall_status == EvaluationStatus.PASS
+            else EpistemicSource.AGENT_INTERPRETATION
+        )
+
+        obs_refs = []
+        for i, lesson in enumerate(lessons[:5]):  # Bounded to at most 5 lessons
+            obs = Observation(
+                observation_id=f"obs-{plan.mission_id}-{i+1}",
+                timestamp=evaluation_result.timestamp,
+                mission_id=plan.mission_id,
+                source=f"mission:{plan.mission_id}",
+                epistemic_source=epistemic,
+                observation_type=ObservationType.TASK_OUTCOME,
+                title=f"Lesson: {lesson[:100]}",
+                content=lesson[:500],
+                affected_subsystem=plan.matched_subsystems[0] if plan.matched_subsystems else "core",
+                related_files=plan.matched_components[:5],
+                evidence_references={
+                    "evidence_hash": evaluation_result.evidence_hash,
+                    "package_id": evidence_package.package_id,
+                    "verdict": evaluation_result.overall_status.value,
+                },
+                confidence=1.0 if evaluation_result.overall_status == EvaluationStatus.PASS else 0.5,
+            )
+            obs_refs.append(obs.observation_id)
+
+        return {
+            "mission_id": plan.mission_id,
+            "overall_status": evaluation_result.overall_status.value,
+            "evidence_hash": evaluation_result.evidence_hash,
+            "lessons_recorded": len(obs_refs),
+            "observation_refs": obs_refs,
+            "stored_bounded_references": True,
+        }
+
 

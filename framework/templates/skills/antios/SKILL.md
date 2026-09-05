@@ -62,8 +62,16 @@ Priority: 1. Native -> 2. Project Skill -> 3. Script -> 4. Runtime -> 5. Special
 - **Crash Recovery**: Audits interrupted waves, active agent remnants, and fingerprint drift to deterministically select `RESUME`, `REPLAN`, `REFRESH`, `ROLLBACK`, or `ABORT`.
 - **Tool Output Bounding**: Classifies tool stdout/stderr as `RAW`, `RELEVANT`, `SUMMARIZED`, or `DISCARDED` (truncates large output while storing verifiable SHA-256).
 
-## 8. Stop Gate & Task Completion
+## 8. Evidence Architecture & Mission Evaluation (Phases 90–92)
+- **Epistemic Separation**: `OBSERVATION ≠ EVIDENCE ≠ VERDICT ≠ INFERENCE ≠ DECISION`. Worker assertions are never evidence.
+- **6 Evidence States**: `OBSERVED`, `VERIFIED`, `INVALIDATED`, `SUPERSEDED`, `MISSING`, `CONFLICTING`.
+- **Bounded Evidence Package**: Contains mission intent, criteria, artifact fingerprints (before/after SHA-256), commands, test results, invariants, and bounded excerpts.
+- **Deterministic 11-Dimension Evaluator**: Emits `PASS`, `FAIL`, `BLOCKED`, or `INCONCLUSIVE` alongside bounded `MissionEvaluationCard` ($\le 25$ lines).
+- **Agent-Native Workflow Benchmark**: Controlled proving grounds (Scenarios A–J) comparing Baseline vs AntiOS with conservative outcome classifications.
+
+## 9. Stop Gate & Task Completion
 1. Collapse all active workers: `manage_subagents(Action='kill', ...)`.
 2. Execute configured test runner (from `antios.config.json`, must exit code 0).
 3. Ensure `docs/ACTIVE_CONTEXT.md` is updated and strictly $\le 60$ lines.
+
 

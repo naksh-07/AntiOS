@@ -506,6 +506,39 @@ from framework.core.mission_state import (
     MissionRecoveryEngine,
 )
 
+# Phase 90: Evidence Architecture
+from framework.core.evidence import (
+    EpistemicCategory,
+    EvidenceState,
+    ArtifactFingerprint,
+    EvidenceItem,
+    EvidencePackage,
+    EvidenceBuilder,
+)
+
+# Phase 91: Mission Evaluation Engine
+from framework.core.mission_evaluation import (
+    EvaluationStatus,
+    MissionEvaluationDimension,
+    DimensionEvaluation,
+    MissionEvaluationCard,
+    MissionEvaluationResult,
+    IndependentVerifierContract,
+    MissionEvaluationEngine,
+)
+
+# Phase 92: Agent-Native Mission Benchmark
+from framework.core.mission_benchmark import (
+    ComparisonOutcome,
+    ScenarioId,
+    BenchmarkProxyMetric,
+    BenchmarkTrace,
+    BenchmarkReportCard,
+    ProvingGroundScenario,
+    ProvingGroundScenarioRegistry,
+    MissionBenchmarkEngine,
+)
+
 __all__ = [
 
     # Phase 12-15
@@ -866,6 +899,31 @@ __all__ = [
     "MissionStateStore",
     "MissionRecoveryDecision",
     "MissionRecoveryEngine",
+    # Phase 90: Evidence Architecture
+    "EpistemicCategory",
+    "EvidenceState",
+    "ArtifactFingerprint",
+    "EvidenceItem",
+    "EvidencePackage",
+    "EvidenceBuilder",
+    # Phase 91: Mission Evaluation Engine
+    "EvaluationStatus",
+    "MissionEvaluationDimension",
+    "DimensionEvaluation",
+    "MissionEvaluationCard",
+    "MissionEvaluationResult",
+    "IndependentVerifierContract",
+    "MissionEvaluationEngine",
+    # Phase 92: Agent-Native Mission Benchmark
+    "ComparisonOutcome",
+    "ScenarioId",
+    "BenchmarkProxyMetric",
+    "BenchmarkTrace",
+    "BenchmarkReportCard",
+    "ProvingGroundScenario",
+    "ProvingGroundScenarioRegistry",
+    "MissionBenchmarkEngine",
 ]
+
 
 

@@ -9,7 +9,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Master Source of Truth](../ANTIOS_SOURCE_OF_TRUTH.md) — Canonical authority hierarchy and precedence model (Phases 1–42 consolidated).
 - [Universal Constitution](../ANTIOS_CONSTITUTION.md) — The 7 non-negotiable engineering invariants (Protected zones, Same Change Set, etc.).
 - [Master Architecture Specification (v1.0.0-GA)](../ANTIOS_V1.md) — Canonical 4-tier model, 7 subsystems, 63 core modules.
-- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-73).
+- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-76).
 - [Project Agent OS Specification (AntiOS 2.0)](architecture/PROJECT_AGENT_OS.md) - Universal boundary compiler, 5-tier artifact model, lifecycle engine, and orchestration limits.
 - [Contributing Guide](../CONTRIBUTING.md) — Engineering standards, Same Change Set policy, and test validation.
 
@@ -19,6 +19,9 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Native Workforce Contract](architecture/WORKFORCE_CONTRACT.md) — Responsibility domain partitioning, anti-emulation constraints, and Teamwork-grade coordination.
 - [Context Budget & Governance](architecture/CONTEXT_GOVERNANCE.md) — 6-action context budget governor, token-bounded reasoning cards, and freshness detection.
 - [Mission State Continuity](architecture/MISSION_CONTINUITY.md) — Dual-mode persistence, 4-file atomic storage, and deterministic crash recovery.
+- [Evidence Architecture](architecture/EVIDENCE_ARCHITECTURE.md) — Epistemic separation, 6 evidence states, cryptographic artifact fingerprints, and bounded packages.
+- [Mission Evaluation Engine](architecture/MISSION_EVALUATION.md) — 11-dimension evaluation engine, 4 statuses, and independent Maker-Checker contract.
+- [Agent-Native Mission Benchmark](architecture/MISSION_BENCHMARK.md) — Engineering workflow quality metrics, Baseline vs AntiOS comparison, and proving grounds A–J.
 - [Project Learning & Evolution Model](architecture/PROJECT_LEARNING.md) — Epistemic segregation, evidence promotion ladder, safe evolution proposals, and knowledge decay.
 - [Two-Way Adaptation Contract](architecture/TWO_WAY_ADAPTATION.md) — Four-tier boundary demarcation, epistemic segregation, and Core Immutability Law.
 - [Capability Gap & Tool Escalation Model](architecture/CAPABILITY_GAP_MODEL.md) — 9-class failure taxonomy, gap lifecycle state machine, and 6-tier tool escalation.
@@ -62,7 +65,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Configuration Reference](reference/CONFIGURATION.md) — Complete specification of `antios.config.json` options.
 - [Tool, Provider & MCP Policy](reference/MCP_POLICY.md) — 8-tier hybrid capability matrix and canonical MCP escalation rules.
 - [AntiOS Failure Taxonomy](reference/FAILURE_TAXONOMY.md) — Deterministic vs. agent failure classification and mitigations.
-- [Testing & Verification Guide](operations/TESTING.md) — Test suite architecture, 766 tests across 115 modules, and commands.
+- [Testing & Verification Guide](operations/TESTING.md) — Test suite architecture, 807 tests across 119 modules, and commands.
 - [Security Architecture & Threat Model](SECURITY.md) — Process confinement, protected zone immutability, and boundary rules.
 
 ## 5. Historical Archive & Research (`reports/archive/`)

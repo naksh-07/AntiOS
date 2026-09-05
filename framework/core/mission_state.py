@@ -139,6 +139,24 @@ class ToolOutputClassifier:
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
+    @classmethod
+    def classify(
+        cls,
+        tool_name: str,
+        command_or_path: str,
+        exit_code: int = 0,
+        raw_stdout: str = "",
+        raw_stderr: str = "",
+    ) -> ToolOutputEvidence:
+        """Convenience alias for process_output."""
+        return cls.process_output(
+            tool_name=tool_name,
+            command_or_path=command_or_path,
+            stdout=raw_stdout,
+            stderr=raw_stderr,
+            exit_code=exit_code,
+        )
+
 
 @dataclass
 class MissionState:
@@ -198,6 +216,18 @@ class MissionState:
             "last_verified_revision": self.last_verified_revision,
             "learning_refs": self.learning_refs,
         }
+
+    def attach_evidence_package(self, package: Any) -> None:
+        """Binds a deterministic EvidencePackage to this mission's state."""
+        pkg_dict = package.to_dict() if hasattr(package, "to_dict") else dict(package)
+        ev_hash = package.compute_evidence_hash() if hasattr(package, "compute_evidence_hash") else ""
+        self.evidence_refs.append({
+            "package_id": pkg_dict.get("package_id"),
+            "evidence_hash": ev_hash,
+            "final_verdict": pkg_dict.get("final_verdict", "INCONCLUSIVE"),
+            "item_count": len(pkg_dict.get("evidence_items", [])),
+        })
+        self.verification_state = pkg_dict.get("final_verdict", "INCONCLUSIVE")
 
     def to_handoffs_json(self) -> Dict[str, Any]:
         return {

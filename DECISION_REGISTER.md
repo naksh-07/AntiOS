@@ -734,4 +734,35 @@
 - **CONSEQUENCES**: Verification audits verify the exit code and SHA-256 digest; agent prompts remain strictly token-bounded.
 - **REVERSIBILITY**: High; integrated into `ToolOutputClassifier`.
 
+---
+
+## DECISION 74: Canonical Evidence Model & Epistemic Separation (Phase 90)
+- **DECISION**: Implement the canonical Evidence Architecture in `framework/core/evidence.py`. Codify the strict epistemic separation axiom: `OBSERVATION ≠ EVIDENCE ≠ VERDICT ≠ INFERENCE ≠ DECISION`. Prohibit agent assertions from being registered as `EVIDENCE` without physical verification. Define 6 canonical evidence states: `OBSERVED`, `VERIFIED`, `INVALIDATED`, `SUPERSEDED`, `MISSING`, and `CONFLICTING`. Implement `ArtifactFingerprint` and `EvidencePackage` bounded to $\le 50$ artifacts, $\le 100$ items, and $\le 30$ invariants. Integrate with `ToolOutputClassifier` to compact outputs $> 2000$ characters with SHA-256 digests. Enforce mandatory non-empty provenance on all evidence items.
+- **EVIDENCE**: Multi-agent systems hallucinate completion when conversational claims are conflated with verified facts. Distinguishing raw observations, verified evidence, and agent inferences with cryptographic artifact fingerprints guarantees auditable and reproducible mission conclusions.
+- **ALTERNATIVES**: Unstructured execution logs; allowing agents to self-declare verification; or trusting exit codes without before/after SHA-256 file fingerprints.
+- **WHY SELECTED**: Guarantees deterministic epistemic ground truth, bounds context and disk usage, and enforces complete provenance across all workstreams.
+- **CONSEQUENCES**: Mission completion requires authoritative physical evidence; unbacked worker claims fail closed immediately.
+- **REVERSIBILITY**: High; isolated core model in `framework/core/evidence.py`.
+
+---
+
+## DECISION 75: Deterministic Mission Evaluation Engine & Independent Verification (Phase 91)
+- **DECISION**: Implement `MissionEvaluationEngine` in `framework/core/mission_evaluation.py` evaluating missions across 11 canonical engineering dimensions (`FUNCTIONAL_CORRECTNESS`, `ACCEPTANCE_CRITERIA_SATISFACTION`, `TEST_VERIFICATION`, `INVARIANT_COMPLIANCE`, `REPOSITORY_INTEGRITY`, `CHANGE_SET_INTEGRITY`, `WORKFORCE_GOVERNANCE`, `CONTEXT_GOVERNANCE`, `EVIDENCE_COMPLETENESS`, `FRESHNESS_REALITY_ALIGNMENT`, `RECOVERY_INTEGRITY`). Enforce 4 deterministic statuses: `PASS`, `FAIL`, `BLOCKED`, `INCONCLUSIVE`. Require physical test execution for MEDIUM/HIGH risk missions. Strengthen Maker-Checker separation via `IndependentVerifierContract`, forbidding worker self-certification on HIGH risk tasks. Emit bounded `MissionEvaluationCard` ($\le 25$ lines).
+- **EVIDENCE**: Simple binary exit codes fail to capture subtle governance, context, or freshness regressions. Multi-dimensional evaluation coupled with independent verifier context ensures changes are robust, bounded, and constitutionally compliant.
+- **ALTERNATIVES**: Binary pass/fail based solely on worker exit codes; LLM self-evaluation without structured criteria; or monolithic test runners without governance checks.
+- **WHY SELECTED**: Provides deterministic, fail-closed mission verification without context bloat or circular self-certification.
+- **CONSEQUENCES**: Completed missions receive a comprehensive 11-dimension audit card; conflicting or incomplete evidence deterministically resolves to `INCONCLUSIVE` or `FAIL`.
+- **REVERSIBILITY**: High; cleanly modularized in `framework/core/mission_evaluation.py`.
+
+---
+
+## DECISION 76: Agent-Native Mission Benchmark & Controlled Proving Grounds (Phase 92)
+- **DECISION**: Implement `MissionBenchmarkEngine` in `framework/core/mission_benchmark.py` to evaluate agent engineering workflow quality (not LLM reasoning). Define explicitly labeled proxy metrics (`time_to_correct_location_proxy`, `unnecessary_files_inspected`, `context_consumed_tokens_proxy`, `tool_calls_count`, `workforce_launches`, `active_workers_per_wave_peak`, `mission_completion_cost_proxy`). Create the `BASELINE` (naive, unbudgeted) vs `ANTIOS` (governed, budgeted) comparative model using conservative terminology (`OBSERVED_IMPROVEMENT`, `MEASURED_DIFFERENCE`, `INSUFFICIENT_DATA`). Register 10 controlled proving-ground synthetic fixtures (Scenarios A through J). Enforce that benchmark execution preserves all constitutional limits ($\le 10$ active/wave, $\le 20$ lifetime, depth $\le 2$).
+- **EVIDENCE**: Without empirical measurement, claims of orchestration efficiency remain unproven. A controlled benchmark with synthetic scenarios demonstrates that AntiOS wayfinding, context budgeting, and wave collapse reduce tokens and exploration while preventing false completions.
+- **ALTERNATIVES**: Model-level coding benchmarks (HumanEval/SWE-bench); subjective human reviews; or claiming unverified percentage improvements.
+- **WHY SELECTED**: Measures operating system workflow quality deterministically without external API dependencies or network latency.
+- **CONSEQUENCES**: Engineering workflow improvements are measured and auditable; false passes and exploration traps are caught and penalized.
+- **REVERSIBILITY**: High; self-contained in `framework/core/mission_benchmark.py`.
+
+
 

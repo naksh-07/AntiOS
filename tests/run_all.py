@@ -163,6 +163,12 @@ import tests.test_context_freshness_compaction as test_context_freshness_compact
 import tests.test_mission_state_continuity as test_mission_state_continuity
 import tests.test_context_mission_adversarial as test_context_mission_adversarial
 
+# Phase 90-92 Evidence Architecture, Mission Evaluation & Agent-Native Benchmarking
+import tests.test_evidence_architecture as test_evidence_architecture
+import tests.test_mission_evaluation as test_mission_evaluation
+import tests.test_mission_benchmark as test_mission_benchmark
+import tests.test_evidence_evaluation_adversarial as test_evidence_evaluation_adversarial
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -302,6 +308,11 @@ def build_suite() -> unittest.TestSuite:
         test_context_freshness_compaction,
         test_mission_state_continuity,
         test_context_mission_adversarial,
+        # Phase 90-92
+        test_evidence_architecture,
+        test_mission_evaluation,
+        test_mission_benchmark,
+        test_evidence_evaluation_adversarial,
     ]
 
     loader = unittest.defaultTestLoader
