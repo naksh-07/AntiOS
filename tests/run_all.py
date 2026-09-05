@@ -146,6 +146,9 @@ import tests.test_agent_refactoring as test_agent_refactoring
 import tests.test_agent_native_certification as test_agent_native_certification
 import tests.test_phase73_78_adversarial as test_phase73_78_adversarial
 
+# Phase 79-82 Project Instance Runtime Closure
+import tests.test_runtime_closure as test_runtime_closure
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -271,6 +274,8 @@ def build_suite() -> unittest.TestSuite:
         test_agent_refactoring,
         test_agent_native_certification,
         test_phase73_78_adversarial,
+        # Phase 79-82
+        test_runtime_closure,
     ]
 
     loader = unittest.defaultTestLoader

@@ -431,6 +431,15 @@ from framework.core.docaudit import (
     DocReferenceAuditor,
 )
 
+# Phase 79: Project Instance Runtime Closure Contract
+from framework.core.runtime_contract import (
+    REQUIRED_INSTANCE_ARTIFACTS,
+    REQUIRED_RUNTIME_SCRIPTS,
+    FORBIDDEN_SOURCE_PATTERNS,
+    RuntimeClosureResult,
+    verify_runtime_closure,
+)
+
 __all__ = [
     # Phase 12-15
     "AntiOSConfig",
@@ -738,5 +747,11 @@ __all__ = [
     "AgentNativeCertificationEngine",
     "DocAuditSummary",
     "DocReferenceAuditor",
+    # Phase 79: Project Instance Runtime Closure Contract
+    "REQUIRED_INSTANCE_ARTIFACTS",
+    "REQUIRED_RUNTIME_SCRIPTS",
+    "FORBIDDEN_SOURCE_PATTERNS",
+    "RuntimeClosureResult",
+    "verify_runtime_closure",
 ]
 

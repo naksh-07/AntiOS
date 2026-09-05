@@ -644,4 +644,12 @@
 - **CONSEQUENCES**: `certify_agent_native.py` provides deterministic CLI exit codes (0 for pass, 1 for fail) for CI/CD gates.
 - **REVERSIBILITY**: High.
 
+---
 
+## DECISION 65: Project Instance Runtime Closure (`SOURCE ≠ INSTANCE`) (Phases 79–82)
+- **DECISION**: Establish physical runtime closure for compiled AntiOS target instances. The AntiOS source repository is the compiler and authority, but an installed target project instance must be 100% self-contained and independently operational without requiring the AntiOS source repository, its `framework/`, `tests/`, `docs/`, or development assets. Implement `RuntimeClosureContract` and `verify_runtime_closure()`, standalone instance runtime scripts in `.antios/runtime/` (`pre_tool_guard.py`, `stop_gate.py`, `inspect_instance.py`, `verify_runtime.py`) using only the standard library and zero imports from `framework`, eliminate all source leaks from `.agents/hooks.json` and `.agents/skills/antios/SKILL.md`, and verify runtime closure in `InstallationLifecycleManager.verify()`.
+- **EVIDENCE**: 89->99 audit identified that compiled target projects contained 14 broken references pointing to absent source repository paths (`framework/scripts/`, `../framework/`, `tests/run_all.py`), which caused runtime failures in target projects detached from the AntiOS source repository.
+- **ALTERNATIVES**: Copy the entire `framework/` and development source tree into target repositories; or require target repositories to install an external AntiOS Python package wheel.
+- **WHY SELECTED**: Copying development source bloats user repositories and pollutes project architecture; requiring an external pip package creates external dependency friction. Emitting lightweight, audited, zero-dependency runtime scripts directly into `.antios/runtime/` ensures complete autonomy, maximum performance, and zero dependency overhead.
+- **CONSEQUENCES**: Target projects operate completely offline and detached from the compiler source. `verify_runtime_closure()` and `.antios/runtime/verify_runtime.py` provide deterministic CI/CD verification of instance closure. Target instances cannot leak references back to the AntiOS development environment.
+- **REVERSIBILITY**: High; isolated within the compiler, lifecycle manager, and runtime templates.

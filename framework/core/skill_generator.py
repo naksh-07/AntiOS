@@ -48,10 +48,23 @@ class SkillGenerator:
     def compile_main_skill(cls, anatomy: ProjectAnatomy) -> str:
         """Compiles the primary user-facing entrypoint (.agents/skills/antios/SKILL.md).
         
-        Strictly respects token budget (<= 80 lines).
+        Strictly respects token budget (<= 80 lines) and achieves complete runtime closure.
         """
         runners = anatomy.test_runners
-        primary_cmd = " ".join(runners[0]["command"]) if runners else "python tests/run_all.py"
+        if runners:
+            cmd_item = runners[0].get("command") or runners[0].get("default_command") or []
+            primary_cmd = " ".join(cmd_item) if isinstance(cmd_item, list) else str(cmd_item)
+        elif anatomy.archetype in ("FULLSTACK_WEB", "FRONTEND_WEB", "NODE_SERVICE"):
+            primary_cmd = "npm test"
+        elif anatomy.archetype == "RUST_SYSTEMS":
+            primary_cmd = "cargo test"
+        elif anatomy.archetype == "GO_SERVICE":
+            primary_cmd = "go test ./..."
+        elif anatomy.project_name in ("AntiOS-Universal-Self-Adapter", "AntiOS"):
+            primary_cmd = "python tests/run_all.py"
+        else:
+            primary_cmd = "pytest"
+
         arch = anatomy.archetype
         roots = ", ".join(anatomy.source_roots[:3]) if anatomy.source_roots else "."
         tests = ", ".join(anatomy.test_roots[:2]) if anatomy.test_roots else "tests"
@@ -62,30 +75,38 @@ class SkillGenerator:
             f"description: Universal project-native control plane for {anatomy.project_name} under AntiOS 2.0 governance.",
             "---",
             "",
-            f"# {anatomy.project_name} — Project Agent OS (AntiOS 2.0)",
+            f"# {anatomy.project_name} — Project Operating Interface (`/antios`)",
             "",
-            f"Universal operating entrypoint for `{anatomy.project_name}` ({arch}).",
-            "All engineering tasks, wayfinding, dispatch, and verification flow through this skill.",
+            f"You are operating under **AntiOS 2.0 (Project Agent OS)** governance for `{anatomy.project_name}` ({arch}).",
+            "This skill is your **single authoritative control plane** (`/antios`). Follow the canonical 9-step execution pipeline.",
             "",
-            "## 1. Operating Ground Rules",
-            f"- **Source Roots**: `{roots}`",
-            f"- **Test Roots**: `{tests}`",
-            f"- **Primary Test Command**: `{primary_cmd}`",
-            "- **Zero-Regressions Law**: All existing tests must pass before concluding any turn.",
+            "## 1. Operating Axioms & Ground Rules",
+            "- **Platform (Antigravity)**: Owns execution primitives (`invoke_subagent`, `manage_subagents`), tool transport, and planning mode.",
+            "- **Project Instance**: Sovereign application governed by instance runtime (`.antios/`, `antios.config.json`).",
+            "- **Protected Zones**: `.agents/`, `.antios/`, `antios.config.json`, `.git/` are strictly immutable.",
+            f"- **Source Roots**: `{roots}` | **Test Roots**: `{tests}`",
+            f"- **Primary Test Command**: `{primary_cmd}` (must exit code 0 before completing turn).",
             "- **Single Authority**: Physical manifests and test suite ground truth supersede prose.",
-            "- **Shallow Depth Law**: Max subagent delegation depth <= 2. Non-primary agents cannot delegate.",
             "",
-            "## 2. Dispatch & Wayfinding Lifecycle",
-            "```text",
-            "USER INTENT -> /antios -> WAYFINDING -> CAPABILITY PACK -> ADAPTIVE SIZING -> DISPATCH -> STOP GATE",
-            "```",
+            "## 2. Canonical 9-Step Dispatch Pipeline",
+            "1. `UNDERSTAND`: Clarify user objective, scope, constraints, and non-goals.",
+            "2. `CHECK STATE`: Read `.antios/knowledge.json` and `docs/ACTIVE_CONTEXT.md` (must be <= 60 lines).",
+            "3. `LOCATE`: Query wayfinding via `python .antios/runtime/inspect_instance.py --query \"<query>\"` or native search (`grep_search`, `find_by_name`).",
+            "4. `CLASSIFY`: Classify TaskClass (`FEATURE`|`BUG`|`REFACTOR`|`INVESTIGATION`|`DOCS`|`RELEASE`) and RiskTier.",
+            "5. `SELECT WORKFORCE`: Sizing: SOLO (0 workers), FOCUSED (1 specialist), SMALL/PARALLEL (2–4 workers), STAGED.",
+            "   - Hard Limits: <= 10 active subagents per wave, <= 20 lifetime launches per mission, depth <= 2.",
+            "6. `EXECUTE`: Single controlled writer default. Parallel writes require disjoint paths and `Workspace='branch'`.",
+            f"7. `VERIFY`: Run physical test suite (`{primary_cmd}`). On High-Risk tasks, dispatch independent Checker.",
+            "8. `STOP GATE`: Confirms zero git conflict markers and clean test pass (exit 0) before turn completion.",
+            "9. `REMEMBER`: Record lessons in `docs/ACTIVE_CONTEXT.md` and `.antios/learning_observations.json`.",
             "",
-            "1. **Locate**: Identify affected subsystem, authoritative entrypoints, and blast radius.",
-            "2. **Check Before Modify**: Inspect covering tests, governing rules, and downstream consumers.",
-            "3. **Controlled Write**: Single controlled writer for tightly-coupled edits; verify clean git diff.",
-            "4. **Ratchet**: Run test runners; verify exit code 0 before completing turn.",
+            "## 3. Internal Specialist Procedures (Selected by /antios)",
+            "- **Feature Engineering & Refactoring**: Locate subsystem -> plan surgical edits -> verify clean diff -> Same Change Set docs.",
+            "- **Root-Cause Debugging**: Reproduce failure with covering test -> formulate hypothesis -> minimal patch -> verify test exit 0.",
+            "- **Independent Verification (Maker-Checker)**: Dispatch fresh-context Checker via `invoke_subagent(TypeName='self')`. Checker audits diff, runs test suite, verifies zero regressions, and emits structured JSON verdict:",
+            f'  `{{"status": "PASS"|"FAIL", "tests": [{{"command": "{primary_cmd}", "exit_code": 0}}], "summary": "..."}}`.',
             "",
-            "## 3. Tool Tier Preference",
+            "## 4. Tool Tier Preference",
             "`NATIVE (1) -> SCRIPT (2) -> PROJECT (3) -> EXTERNAL (4) -> SERVICE (5) -> MCP (6)`",
             "",
             "AntiOS operates natively within Antigravity. Execute tasks cleanly with minimum context friction.",

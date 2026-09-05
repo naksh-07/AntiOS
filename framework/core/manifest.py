@@ -119,7 +119,7 @@ class ProjectManifest:
     managed_paths: Dict[str, ArtifactRecord] = field(default_factory=dict)
     generated_paths: Dict[str, ArtifactRecord] = field(default_factory=dict)
     user_owned_paths: List[str] = field(default_factory=list)
-    protected_paths: List[str] = field(default_factory=lambda: [".agents", "framework", "antios.config.json"])
+    protected_paths: List[str] = field(default_factory=lambda: [".agents", ".antios", "antios.config.json"])
     stale_paths: List[str] = field(default_factory=list)
     project_profile_reference: str = ".antios/project_profile.json"
     knowledge_revision: str = "1.0"

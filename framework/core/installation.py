@@ -342,6 +342,10 @@ class InstallationLifecycleManager:
                 ".antios/knowledge.json",
                 ".antios/agent_topology.json",
                 ".antios/tool_policy.json",
+                ".antios/runtime/pre_tool_guard.py",
+                ".antios/runtime/stop_gate.py",
+                ".antios/runtime/inspect_instance.py",
+                ".antios/runtime/verify_runtime.py",
                 ".agents/skills/antios/SKILL.md",
                 "antios.config.json",
             ]
@@ -423,6 +427,17 @@ class InstallationLifecycleManager:
                 issues.append("Manifest fingerprint drift: target manifests have changed since last adaptation.")
         except Exception as e:
             issues.append(f"Failed to verify manifest fingerprint: {e}")
+
+        # 4. Check runtime closure (Phases 79–82)
+        try:
+            from framework.core.runtime_contract import verify_runtime_closure
+            closure_res = verify_runtime_closure(self.target_root)
+            if not closure_res.is_closed:
+                for viol in closure_res.violations:
+                    if viol not in issues:
+                        issues.append(viol)
+        except Exception as e:
+            issues.append(f"Failed to verify runtime closure: {e}")
 
         status = "SUCCESS" if len(issues) == 0 else "ERROR"
         if status == "SUCCESS" and len(conflicts) > 0:

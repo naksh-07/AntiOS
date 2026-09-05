@@ -25,8 +25,9 @@
 | **Adaptive Mission Orchestration** | AntiOS Adaptive Orchestration Model | `docs/architecture/ORCHESTRATION_MODEL.md` | **PRIMARY SPEC** | Adaptive workforce sizing (SOLO to MAX), wave lifecycle, dual dispatch gates, resource ledger. |
 | **Primary Skill Control Plane** | AntiOS Primary Skill Architecture | `docs/architecture/ANTIOS_SKILL_MODEL.md` | **PRIMARY SPEC** | Authoritative control plane specification for `/antios` skill and progressive disclosure. |
 | **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
-| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–50) recording why decisions were made. |
-| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 447 certified tests. |
+| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–65) recording why decisions were made. |
+| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 684 certified tests. |
+| **Project Instance Runtime & Closure** | Instance Runtime & Closure Contract | `framework/core/runtime_contract.py` / `.antios/runtime/` | **RUNTIME CLOSURE** | Self-contained instance execution, PreToolUse and Stop gates, and closure contract. |
 | **Formal System Certification** | AntiOS Formal Certification Matrix | `docs/architecture/CERTIFICATION_MATRIX.md` | **CERTIFICATION LEDGER** | Complete verification ledger across all 50 capability dimensions. |
 | **Core vs Adapter Contract** | Core vs Project Adapter Specification | `docs/architecture/CORE_VS_ADAPTER.md` | **BOUNDARY CONTRACT** | Strict demarcation between universal Core logic and declarative project adapters. |
 | **Safety Boundaries & Path Protection** | Pre-Tool Guard Hook Implementation | `framework/scripts/hooks/pre_tool_guard.py` | **CODE / RUNTIME** | Physical Python script is authoritative over any prompt or documentation text. |
@@ -60,7 +61,7 @@ Rank 5: Master Architecture Specification (ANTIOS_V1.md)
         +-- Canonical system blueprint. Overrides older subsystem proposals.
 
 Rank 6: Master Decision Register (DECISION_REGISTER.md)
-        +-- Recorded consensus (Decisions 01–50). Overrides informal proposals.
+        +-- Recorded consensus (Decisions 01–65). Overrides informal proposals.
 
 Rank 7: Active Engineering Skills (.agents/skills/*)
         +-- Progressive procedural workflows. Overrides generic prompting.

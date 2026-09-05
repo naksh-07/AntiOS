@@ -35,3 +35,6 @@ venv/
 *.swo
 .DS_Store
 Thumbs.db
+# AntiOS session execution junction
+.agents/framework/
+

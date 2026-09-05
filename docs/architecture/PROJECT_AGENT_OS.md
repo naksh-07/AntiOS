@@ -51,7 +51,7 @@ AntiOS 2.0 classifies all filesystem artifacts into five distinct ownership tier
 | :--- | :--- | :--- | :--- |
 | **Tier 1** | **Canonical Source** | Canonical framework core (`framework/`), test suites (`tests/`), and reference documentation. | Resides solely in canonical source repository. Never shipped to targets. |
 | **Tier 2** | **Managed Config & Hooks** | `antios.config.json`, `.agents/hooks.json`. | Managed by AntiOS. User edits are strictly preserved; updates surface conflicts rather than overwriting. |
-| **Tier 3** | **Generated Intelligence** | `.antios/manifest.json`, `project_profile.json`, `knowledge.json`, `agent_topology.json`, `tool_policy.json`. | Deterministically compiled from project traits. Safely regenerated during `adapt` when project manifests change. |
+| **Tier 3** | **Generated Intelligence & Runtime** | `.antios/manifest.json`, `project_profile.json`, `knowledge.json`, `agent_topology.json`, `tool_policy.json`, `.antios/runtime/*.py`. | Deterministically compiled from project traits. Standalone runtime scripts execute locally without framework imports. |
 | **Tier 4** | **Operating Interface** | `.agents/skills/antios/SKILL.md`. | Primary user-facing `/antios` skill interface. Self-contained; guides agents through standard lifecycle. |
 | **Tier 5** | **Target Project Source** | Application source code, existing `.agents/` skills, user instructions, build manifests. | Sovereign project property. AntiOS never clobbers, renames, or mutates user files without explicit consent. |
 
@@ -85,6 +85,10 @@ The Project Manifest is the cryptographic and provenance foundation of an instal
     ".antios/project_profile.json": { ... },
     ".antios/agent_topology.json": { ... },
     ".antios/tool_policy.json": { ... },
+    ".antios/runtime/pre_tool_guard.py": { ... },
+    ".antios/runtime/stop_gate.py": { ... },
+    ".antios/runtime/inspect_instance.py": { ... },
+    ".antios/runtime/verify_runtime.py": { ... },
     ".agents/skills/antios/SKILL.md": { ... }
   },
   "user_owned_paths": [
@@ -92,9 +96,8 @@ The Project Manifest is the cryptographic and provenance foundation of an instal
   ],
   "protected_paths": [
     ".agents",
-    "framework",
-    "antios.config.json",
-    ".antios"
+    ".antios",
+    "antios.config.json"
   ],
   "stale_paths": []
 }
@@ -130,3 +133,22 @@ AntiOS 2.0 incorporates the proven orchestration principles of the Adaptive Orch
   Every wave must consolidate structured handoffs and completely collapse active subagents before the parent agent dispatches the next wave.
 - **Dead-End Memory**: Subagents must report dead ends, blockers, and rejected paths to prevent subsequent waves from repeating failed trajectories.
 - **Maker-Checker Invariant**: Verification must be executed by an independent verifier subagent with fresh context, evaluating physical test outputs and diffs rather than conversational attestations.
+
+---
+
+## 6. Project Instance Runtime Closure (`SOURCE ≠ INSTANCE`)
+
+Phases 79–82 establish complete physical runtime closure for compiled AntiOS project instances:
+
+1. **Constitutional Invariant**:
+   - The AntiOS source repository is the **compiler** and **authority**.
+   - The compiled Project Agent OS instance is **self-contained** and independently operational.
+   - Target repositories **never** require `framework/`, `tests/`, or development assets from the source repository.
+2. **Instance Runtime Subsystem (`.antios/runtime/`)**:
+   - `pre_tool_guard.py`: Standalone, standard-library-only PreToolUse guard hook enforcing boundary protection and path canonicalization.
+   - `stop_gate.py`: Standalone, standard-library-only Stop Gate hook running git conflict marker checks and dynamic project test runners.
+   - `inspect_instance.py`: Architecture inspector and deterministic wayfinder for the `/antios` control plane.
+   - `verify_runtime.py`: Local runtime closure verifier validating that all required assets exist and zero source leaks are present.
+3. **Zero Framework Imports**:
+   - All runtime scripts have zero external dependencies and zero imports from `framework`.
+   - Verified via AST inspection (`check_ast_for_framework_imports()`) and physical detached subprocess execution (`verify_runtime_closure()`).

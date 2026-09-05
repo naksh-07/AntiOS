@@ -235,10 +235,17 @@ def generate_adapter_config(profile: ProjectProfile, proposal: AdaptationProposa
     config = base_config or AntiOSConfig()
     config.name = f"AntiOS-{profile.identity.name}-Adapter"
 
-    # Always ensure immutable core zones are preserved
-    for zone in [".agents", "framework"]:
+    # Always ensure immutable core zones are preserved (.agents and .antios)
+    for zone in [".agents", ".antios"]:
         if zone not in config.protected_zones:
             config.protected_zones.append(zone)
+
+    # Protect framework only for the AntiOS development repository itself
+    if profile.identity.name in ("AntiOS", "AntiOS-Universal-Self-Adapter") or any(
+        getattr(s, "subsystem_id", "") == "framework" for s in profile.subsystems
+    ):
+        if "framework" not in config.protected_zones:
+            config.protected_zones.append("framework")
 
     # Add test runners
     existing_runner_names = {r.name for r in config.test_runners}

@@ -105,10 +105,14 @@ class ProjectBoundaryCompiler:
             proposal = analyze_adaptation(profile)
             adapter_config = generate_adapter_config(profile, proposal)
 
-        # Ensure core protected zones exist in config
-        for zone in [".agents", "framework"]:
+        # Ensure core protected zones exist in config (.agents and .antios)
+        for zone in [".agents", ".antios"]:
             if zone not in adapter_config.protected_zones:
                 adapter_config.protected_zones.append(zone)
+
+        # Protect framework only when compiling within the AntiOS source repository itself
+        if self.target_root == self.source_root and "framework" not in adapter_config.protected_zones:
+            adapter_config.protected_zones.append("framework")
 
         # 3. Compile Project Profile (.antios/project_profile.json)
         profile_content = json.dumps(profile.to_dict(), indent=2)
@@ -168,7 +172,7 @@ class ProjectBoundaryCompiler:
         config_content = json.dumps(config_dict, indent=2)
         compiled_files["antios.config.json"] = config_content
 
-        # 8. Compile .agents/skills/antios/SKILL.md & project-specific skills [Phase 57]
+        # 8. Compile .agents/skills/antios/SKILL.md & project-specific skills [Phases 57, 82]
         template_skill_path = self.source_root / "framework/templates/skills/antios/SKILL.md"
         if template_skill_path.is_file():
             main_skill_content = template_skill_path.read_text(encoding="utf-8")
@@ -185,7 +189,19 @@ class ProjectBoundaryCompiler:
             compiled_files[sp] = SkillGenerator.generate_skill_content(spec, anatomy)
             generated_skill_paths.append(sp)
 
-        # 9. Compile .agents/hooks.json
+        # 9. Compile .antios/runtime/ assets & .agents/hooks.json [Phases 80–81]
+        runtime_dir = self.source_root / "framework/templates/runtime"
+        runtime_script_names = [
+            "pre_tool_guard.py",
+            "stop_gate.py",
+            "inspect_instance.py",
+            "verify_runtime.py",
+        ]
+        for sname in runtime_script_names:
+            src_script = runtime_dir / sname
+            if src_script.is_file():
+                compiled_files[f".antios/runtime/{sname}"] = src_script.read_text(encoding="utf-8")
+
         hooks_data = {
             "antios-guard": {
                 "PreToolUse": [
@@ -194,7 +210,7 @@ class ProjectBoundaryCompiler:
                         "hooks": [
                             {
                                 "type": "command",
-                                "command": "python framework/scripts/hooks/pre_tool_guard.py"
+                                "command": "python .antios/runtime/pre_tool_guard.py"
                             }
                         ]
                     }
@@ -202,7 +218,7 @@ class ProjectBoundaryCompiler:
                 "Stop": [
                     {
                         "type": "command",
-                        "command": "python framework/scripts/hooks/stop_gate.py"
+                        "command": "python .antios/runtime/stop_gate.py"
                     }
                 ]
             }
@@ -247,7 +263,7 @@ class ProjectBoundaryCompiler:
                     source_template=k,
                 )
 
-        # Generated paths (intelligence & operating skills)
+        # Generated paths (intelligence, runtime scripts, and operating skills)
         generated_keys = {
             ".antios/project_profile.json",
             ".antios/project_anatomy.json",
@@ -256,6 +272,10 @@ class ProjectBoundaryCompiler:
             ".antios/tool_policy.json",
             ".antios/learning_observations.json",
             ".antios/learning_proposals.json",
+            ".antios/runtime/pre_tool_guard.py",
+            ".antios/runtime/stop_gate.py",
+            ".antios/runtime/inspect_instance.py",
+            ".antios/runtime/verify_runtime.py",
             ".agents/skills/antios/SKILL.md",
         }
         for gsp in generated_skill_paths:

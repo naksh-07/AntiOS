@@ -64,7 +64,7 @@ When invoked, `/antios` guides the executing agent through a strict 9-stage sequ
    Read .antios/knowledge.json and docs/ACTIVE_CONTEXT.md (<= 60 lines).
          ↓
 3. LOCATE
-   Query WayfindingEngine (`python framework/scripts/tools/navigate_repo.py --query "<query>"`).
+   Query Wayfinding (`python .antios/runtime/inspect_instance.py --query "<query>"` in target instances, or native search tools).
          ↓
 4. CLASSIFY
    Determine TaskClass (FEATURE | BUG | REFACTOR | INVESTIGATION | DOCUMENTATION | RELEASE) and RiskTier.
@@ -115,5 +115,5 @@ implementation rules.   and surgical patch.     JSON verdict schema.
 AntiOS strictly separates the Core framework source from target project installations:
 
 - **Source AntiOS Repository**: Contains core governance engines (`framework/core/`), scripts (`framework/scripts/`), and test harnesses (`tests/`).
-- **Target Project Instance**: Contains **only** the compiled `.antios/` metadata directory, `.agents/skills/antios/SKILL.md`, and `.agents/hooks.json`.
-- The source repository is **never** copied into target repositories. Target project code and user-authored skills remain sovereign and protected.
+- **Target Project Instance**: Contains the compiled `.antios/` intelligence directory, `.antios/runtime/` standalone scripts (`pre_tool_guard.py`, `stop_gate.py`, `inspect_instance.py`, `verify_runtime.py`), `.agents/skills/antios/SKILL.md`, and `.agents/hooks.json`.
+- The source repository is **never** copied into target repositories. Target project instances run completely detached with zero dependencies on `framework/` or external packages. Target project code and user-authored skills remain sovereign and protected.

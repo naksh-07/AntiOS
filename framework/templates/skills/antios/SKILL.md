@@ -20,14 +20,14 @@ This skill is your **single authoritative control plane** (`/antios`). Follow th
 ## 2. Canonical 9-Step Dispatch Pipeline
 1. `UNDERSTAND`: Clarify user objective, scope, constraints, and non-goals.
 2. `CHECK STATE`: Read `.antios/knowledge.json` and `docs/ACTIVE_CONTEXT.md` (must be $\le 60$ lines).
-3. `LOCATE`: Run wayfinding via `python framework/scripts/tools/navigate_repo.py --query "<query>"`.
+3. `LOCATE`: Run wayfinding via `python .antios/runtime/inspect_instance.py --query "<query>"` or native search tools.
 4. `CLASSIFY`: Classify TaskClass (`FEATURE`|`BUG`|`REFACTOR`|`INVESTIGATION`|`DOCUMENTATION`|`RELEASE`) and RiskTier.
 5. `SELECT CAPABILITIES`: Resolve skills, rules, and tools via `CapabilityRouter`.
 6. `SELECT WORKFORCE`: Evaluate Gate A (Pre-Planning) and Gate B (Execution Dispatch).
 7. `EXECUTE`: Controlled single writer or disjoint parallel workers (`Workspace='branch'`).
 8. `VERIFY`: Physical test suite (exit code 0) + Maker-Checker audit via `antios-verifier`.
 9. `REMEMBER`: Record observations, distill lessons via learning engine, update `docs/ACTIVE_CONTEXT.md`.
-*CLI Helper*: `python framework/scripts/tools/dispatch_task.py "<task summary>" [--json]`
+*Dispatch Helper*: Automated dispatch logic via dispatch_task.py or native `/antios` 9-step pipeline.
 
 ## 3. Adaptive Workforce Sizing & Constitutional Limits
 Select the minimal effective workforce:
@@ -58,6 +58,6 @@ Activate specialized skills only when justified:
 
 ## 6. Stop Gate & Task Completion
 1. Ensure all active workers are collapsed (`manage_subagents(Action='kill', ...)`).
-2. Execute configured test runner (e.g., `python tests/run_all.py` must exit code 0).
+2. Execute configured test runner (from `antios.config.json`, must exit code 0).
 3. Ensure `docs/ACTIVE_CONTEXT.md` is updated and strictly $\le 60$ lines.
 4. Stop Gate will physically verify test pass before turn completion.
