@@ -65,6 +65,18 @@ from framework.core.learning import (
     Observation,
     ObservationType,
 )
+from framework.core.project_proof import (
+    EvidenceDistillationEngine,
+    ProjectProofStore,
+    ProofStatus,
+    ProofSubject,
+)
+from framework.core.drift_health import (
+    DriftAction,
+    DriftSeverity,
+    ProjectDriftEngine,
+)
+
 
 from framework.core.orchestration import (
     AdaptiveWorkforcePlanner,
@@ -427,6 +439,18 @@ class TaskDispatchPipeline:
         if exec_gate.reasons:
             reasons.extend(exec_gate.reasons)
 
+        # Stage 2: CHECK STATE - Audit Drift & Project Proofs
+        proof_store = ProjectProofStore(self.workspace_root)
+        drift_findings = ProjectDriftEngine.evaluate_drift(
+            workspace_root=self.workspace_root,
+            proof_store=proof_store,
+        )
+        for df in drift_findings:
+            if df.severity == DriftSeverity.CRITICAL_DRIFT:
+                reasons.append(f"CRITICAL DRIFT: {df.description}")
+            elif df.severity == DriftSeverity.SIGNIFICANT_DRIFT:
+                reasons.append(f"Drift Alert: {df.description}")
+
         mission_id = f"mission-{abs(hash(task_query)) % 10000:04d}"
 
         # 11. Context Budget Governance & Freshness (Stage 7: BUILD CONTEXT)
@@ -474,6 +498,23 @@ class TaskDispatchPipeline:
                 )
             except Exception:
                 pass
+
+        # Inject valid Durable Project Proofs (excluding invalidated/stale)
+        proof_store.verify_physical_reality()
+        for proof in proof_store.list_proofs():
+            if proof.status in (ProofStatus.DURABLE, ProofStatus.VALIDATED):
+                candidate_sources.append(
+                    ContextSourceItem.create(
+                        source_id=f"proof-{proof.proof_id}",
+                        source_type=ContextSourceType.COMPONENT_INTELLIGENCE,
+                        title=f"Durable Proof: {proof.subject.value}",
+                        content=f"{proof.statement} [Proof: {proof.proof_id}]",
+                        is_safety_critical=(proof.subject == ProofSubject.VERIFIED_INVARIANT),
+                        provenance=f"origin_mission:{proof.origin_mission_id}",
+                        epistemic_weight=1.0,
+                        target_files=proof.tracked_paths,
+                    )
+                )
 
         budget_governor = ContextBudgetGovernor()
         context_result = budget_governor.evaluate(
@@ -548,7 +589,8 @@ class TaskDispatchPipeline:
         evidence_package: EvidencePackage,
         lessons: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
-        """Stage 10 (REMEMBER): Stores bounded references to validated evidence and durable lessons.
+        """Stage 10 (REMEMBER): Stores bounded references to validated evidence, durable lessons,
+        and distills verified knowledge into Durable Project Proofs.
         
         Strictly preserves the invariant: Never duplicate entire mission history into project learning.
         """
@@ -581,13 +623,49 @@ class TaskDispatchPipeline:
             )
             obs_refs.append(obs.observation_id)
 
+        # Distill verified evidence into durable project proofs
+        proof_refs = []
+        if evaluation_result.overall_status == EvaluationStatus.PASS:
+            proof_store = ProjectProofStore(self.workspace_root)
+            for item in evidence_package.evidence_items:
+                if (
+                    item.state == EvidenceState.VERIFIED
+                    and item.epistemic_category == EpistemicCategory.EVIDENCE
+                ):
+                    try:
+                        candidate = EvidenceDistillationEngine.distill_proof(
+                            evidence_item=item,
+                            subject=(
+                                ProofSubject.VERIFIED_FILE_LOCATION
+                                if item.artifact_hashes
+                                else ProofSubject.VERIFIED_COMMAND
+                            ),
+                            statement=f"Verified execution: {item.intent[:200] if item.intent else 'operation'}",
+                            project_fingerprint=evaluation_result.evidence_hash or "clean-fingerprint",
+                            workspace_root=self.workspace_root,
+                            tracked_paths=list(item.artifact_hashes.keys()) if item.artifact_hashes else [],
+                        )
+                        durable = EvidenceDistillationEngine.promote_proof(
+                            proof=candidate,
+                            evaluation_result=evaluation_result,
+                            current_fingerprint=evaluation_result.evidence_hash or "clean-fingerprint",
+                            recurrence_count=2,
+                        )
+                        proof_store.add_or_update_proof(durable)
+                        proof_refs.append(durable.proof_id)
+                    except Exception:
+                        pass
+
         return {
             "mission_id": plan.mission_id,
             "overall_status": evaluation_result.overall_status.value,
             "evidence_hash": evaluation_result.evidence_hash,
             "lessons_recorded": len(obs_refs),
             "observation_refs": obs_refs,
+            "proofs_distilled": len(proof_refs),
+            "proof_refs": proof_refs,
             "stored_bounded_references": True,
         }
+
 
 

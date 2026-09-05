@@ -169,6 +169,13 @@ import tests.test_mission_evaluation as test_mission_evaluation
 import tests.test_mission_benchmark as test_mission_benchmark
 import tests.test_evidence_evaluation_adversarial as test_evidence_evaluation_adversarial
 
+# Phase 93-95 Durable Proofs, Runtime Drift Detection & Long-Horizon Certification
+import tests.test_project_proof as test_project_proof
+import tests.test_drift_health as test_drift_health
+import tests.test_release_certification as test_release_certification
+import tests.test_phase93_95_adversarial as test_phase93_95_adversarial
+
+
 
 def build_suite() -> unittest.TestSuite:
     suite = unittest.TestSuite()
@@ -313,6 +320,11 @@ def build_suite() -> unittest.TestSuite:
         test_mission_evaluation,
         test_mission_benchmark,
         test_evidence_evaluation_adversarial,
+        # Phase 93-95
+        test_project_proof,
+        test_drift_health,
+        test_release_certification,
+        test_phase93_95_adversarial,
     ]
 
     loader = unittest.defaultTestLoader

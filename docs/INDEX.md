@@ -22,7 +22,11 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Evidence Architecture](architecture/EVIDENCE_ARCHITECTURE.md) — Epistemic separation, 6 evidence states, cryptographic artifact fingerprints, and bounded packages.
 - [Mission Evaluation Engine](architecture/MISSION_EVALUATION.md) — 11-dimension evaluation engine, 4 statuses, and independent Maker-Checker contract.
 - [Agent-Native Mission Benchmark](architecture/MISSION_BENCHMARK.md) — Engineering workflow quality metrics, Baseline vs AntiOS comparison, and proving grounds A–J.
+- [Durable Project Proofs](architecture/DURABLE_PROOFS.md) — Canonical ProjectProof abstraction, 13 subjects, 7 lifecycle states, and physical hash grounding.
+- [Runtime Drift & Intelligence Health](architecture/DRIFT_AND_HEALTH.md) — Event-driven drift detection across 10 domains, 7-dimension health model, and proposal-governed repair.
+- [Long-Horizon Release Certification](architecture/RELEASE_CERTIFICATION.md) — 12-dimension evidence-driven release certification, bounded window, and verifiable certification receipts.
 - [Project Learning & Evolution Model](architecture/PROJECT_LEARNING.md) — Epistemic segregation, evidence promotion ladder, safe evolution proposals, and knowledge decay.
+
 - [Two-Way Adaptation Contract](architecture/TWO_WAY_ADAPTATION.md) — Four-tier boundary demarcation, epistemic segregation, and Core Immutability Law.
 - [Capability Gap & Tool Escalation Model](architecture/CAPABILITY_GAP_MODEL.md) — 9-class failure taxonomy, gap lifecycle state machine, and 6-tier tool escalation.
 - [Controlled Evolution Governance](architecture/EVOLUTION_GOVERNANCE.md) — Structured proposals, 3-tier approval classes, snapshotting, and atomic rollback.
@@ -65,7 +69,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Configuration Reference](reference/CONFIGURATION.md) — Complete specification of `antios.config.json` options.
 - [Tool, Provider & MCP Policy](reference/MCP_POLICY.md) — 8-tier hybrid capability matrix and canonical MCP escalation rules.
 - [AntiOS Failure Taxonomy](reference/FAILURE_TAXONOMY.md) — Deterministic vs. agent failure classification and mitigations.
-- [Testing & Verification Guide](operations/TESTING.md) — Test suite architecture, 807 tests across 119 modules, and commands.
+- [Testing & Verification Guide](operations/TESTING.md) — Test suite architecture, 842 tests across 123 modules, and commands.
 - [Security Architecture & Threat Model](SECURITY.md) — Process confinement, protected zone immutability, and boundary rules.
 
 ## 5. Historical Archive & Research (`reports/archive/`)

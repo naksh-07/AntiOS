@@ -764,5 +764,36 @@
 - **CONSEQUENCES**: Engineering workflow improvements are measured and auditable; false passes and exploration traps are caught and penalized.
 - **REVERSIBILITY**: High; self-contained in `framework/core/mission_benchmark.py`.
 
+---
+
+## DECISION 77: Durable Project Proofs & Evidence Distillation (Phase 93)
+- **DECISION**: Implement the Durable Project Proofs architecture in `framework/core/project_proof.py`. Codify the epistemic distillation axiom: `MISSION EVIDENCE -> (validation) -> DURABLE PROJECT PROOF`, while strictly prohibiting raw `OBSERVATION`, `INFERENCE`, or unverified claims from becoming proof. Define 13 canonical proof subjects and 7 lifecycle states (`CANDIDATE`, `VALIDATED`, `DURABLE`, `AGING`, `STALE`, `INVALIDATED`, `SUPERSEDED`). Bind proofs directly to physical disk reality via `tracked_paths` and `path_hashes`. Audit on-disk SHA-256 digests via `ProjectProofStore.verify_physical_reality()`, demoting modified or missing tracked files to `INVALIDATED`. Enforce bounded store capacity (`MAX_DURABLE_PROOFS = 50`, `MAX_REFERENCES_PER_PROOF = 10`) with retention priority, and emit token-bounded `ProjectProofCard` ($\le 25$ lines).
+- **EVIDENCE**: Individual missions verify point-in-time criteria, but over long development horizons, changes to files invalidate past assumptions. Cryptographically binding verified facts to tracked file hashes ensures that agent intelligence never operates on stale or disproven project knowledge.
+- **ALTERNATIVES**: Storing unbounded mission histories; storing all raw execution logs; or trusting agent memories without physical filesystem hash checks.
+- **WHY SELECTED**: Enforces physical grounding (`REALITY > REASONING`), bounds storage, and guarantees verifiable provenance across missions.
+- **CONSEQUENCES**: Stage 10 (`REMEMBER`) distills passing mission evidence into durable proofs; Stage 7 (`BUILD CONTEXT`) filters and loads only verified, physically fresh proofs.
+- **REVERSIBILITY**: High; clean isolated store in `.antios/proofs/` with zero database dependencies.
+
+---
+
+## DECISION 78: Runtime Drift Detection & Project Intelligence Health (Phase 94)
+- **DECISION**: Implement `ProjectDriftEngine`, `IntelligenceHealthEngine`, and `IntelligenceRepairEngine` in `framework/core/drift_health.py`. Detect drift across 10 canonical domains (`FILE_STRUCTURE`, `COMPONENT_OWNERSHIP`, `PROJECT_MANIFEST`, `ADAPTER_CONFIGURATION`, `SKILLS`, `DOCUMENTATION`, `TEST_OWNERSHIP`, `CAPABILITY_MAPPINGS`, `DURABLE_PROOFS`, `ARCHITECTURE_ASSUMPTIONS`) on an event-driven basis (zero background daemons). Classify findings into 5 severities (`NO_DRIFT`, `MINOR_DRIFT`, `SIGNIFICANT_DRIFT`, `CRITICAL_DRIFT`, `UNKNOWN`) mapping to 6 actions (`NONE`, `REFRESH`, `REVERIFY`, `REPLAN`, `REBUILD_INTELLIGENCE`, `BLOCK`). Evaluate intelligence health across 7 defensible dimensions into 4 status classes (`HEALTHY`, `DEGRADED`, `STALE`, `UNTRUSTED`). Prohibit autonomous architecture mutation; emit bounded `RepairProposal` objects ($\le 10$) and token-bounded `DriftHealthCard` ($\le 25$ lines).
+- **EVIDENCE**: Out-of-band edits, branch switches, or dirty working trees silently degrade wayfinding, adapter configurations, and documentation. A deterministic, explainable health engine prevents agents from operating under corrupted assumptions.
+- **ALTERNATIVES**: Continuous background watcher daemons; autonomous self-mutation of architecture; or opaque AI-generated confidence scores.
+- **WHY SELECTED**: Event-driven execution preserves system resources; proposal-governed repair upholds constitutional evolution boundaries.
+- **CONSEQUENCES**: Stage 2 (`CHECK STATE`) detects critical drift and halts or warns before plan execution; detected drift produces explicit, auditable repair proposals.
+- **REVERSIBILITY**: High; deterministic standard library checks in `framework/core/drift_health.py`.
+
+---
+
+## DECISION 79: Long-Horizon Release Certification Engine (Phase 95)
+- **DECISION**: Implement `ReleaseCertificationEngine` in `framework/core/release_certification.py` evaluating releases across 12 canonical dimensions (`FUNCTIONAL_STABILITY`, `TEST_INTEGRITY`, `GOVERNANCE_INTEGRITY`, `EVIDENCE_INTEGRITY`, `PROJECT_INTELLIGENCE_HEALTH`, `DURABLE_PROOF_FRESHNESS`, `REPOSITORY_INTEGRITY`, `CHANGE_SET_INTEGRITY`, `CAPABILITY_INTEGRITY`, `RECOVERY_INTEGRITY`, `LONG_HORIZON_DRIFT`, `UNRESOLVED_UNCERTAINTY`). Enforce 5 certification levels: `CERTIFIED`, `CONDITIONALLY_CERTIFIED`, `DEGRADED`, `BLOCKED`, `UNKNOWN`. Codify the fundamental rule that current physical reality outranks historical certifications. Bound the certification window to $\le 10$ recent missions while collapsing older history into a cryptographic SHA-256 digest. Emit token-bounded `LongHorizonCertificationCard` ($\le 25$ lines).
+- **EVIDENCE**: Verifying individual tasks is insufficient to establish release-level confidence after extensive refactors. Evaluating multi-mission stability, test integrity, evidence completeness, and cumulative drift guarantees long-term trust without CI bloat.
+- **ALTERNATIVES**: Relying solely on git tags; trusting single-mission test exits; or unbounded historical logging.
+- **WHY SELECTED**: Evidence-grounded, bounded, and independently auditable by Maker-Checker verifiers.
+- **CONSEQUENCES**: Release certification is explicitly invoked as an AntiOS governance operation; certificates are fail-closed and invalidated upon repository drift.
+- **REVERSIBILITY**: High; modular governance layer in `framework/core/release_certification.py`.
+
+
 
 

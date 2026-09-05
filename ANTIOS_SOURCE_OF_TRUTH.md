@@ -64,11 +64,15 @@ Rank 5: Master Architecture Specification (ANTIOS_V1.md)
         +-- Canonical system blueprint. Overrides older subsystem proposals.
 
 Rank 6: Master Decision Register (DECISION_REGISTER.md)
-        +-- Recorded consensus (Decisions 01–65). Overrides informal proposals.
+        +-- Recorded consensus (Decisions 01–79). Overrides informal proposals.
 
 Rank 7: Active Engineering Skills (.agents/skills/*)
         +-- Progressive procedural workflows. Overrides generic prompting.
 
-Rank 8: Active Working Memory (docs/ACTIVE_CONTEXT.md)
+Rank 8: Durable Project Proofs & Release Certification (.antios/proofs/)
+        +-- Cryptographically grounded project proofs and release cards. Physically tied to Rank 3.
+
+Rank 9: Active Working Memory (docs/ACTIVE_CONTEXT.md)
         +-- Ephemeral task tracking. Must yield to all higher layers if out of sync.
 ```
+

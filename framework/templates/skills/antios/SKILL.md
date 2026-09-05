@@ -29,47 +29,25 @@ This skill is your **single authoritative control plane** (`/antios`). AntiOS co
 9. `VERIFY`: Independent Maker-Checker audit (`antios-verifier`) and test suite (exit code 0).
 10. `REMEMBER`: Distill durable lessons and refresh active context.
 
-## 3. Adaptive Workforce Sizing & Cost Reasoning (Phase 84)
-Evaluates 12 inputs to select mode with token-bounded cost card (**Why this**, **Why not fewer**, **Why not more**):
-- Modes: `SOLO` (0 subagents), `FOCUSED` (1 specialist), `SMALL` (2 specialists), `PARALLEL` (2–4 specialists), `STAGED` (sequential waves), `HIERARCHICAL` (coordinator + 1–2 children), `MAX` (constitutional ceiling).
+## 3. Adaptive Workforce Sizing & Anti-Hydra Waves (Phases 84–85)
+- **Modes**: `SOLO` (0 subagents), `FOCUSED` (1 specialist), `SMALL` (2 specialists), `PARALLEL` (2–4 specialists), `STAGED` (sequential waves), `HIERARCHICAL` (coordinator + 1–2 children), `MAX` (constitutional ceiling).
+- **Constitutional Limits**: Max Active Subagents Per Wave: 10. Max Lifetime Launches Per Mission: 20. Shallow Depth Law: $\le 2$. Mandatory Wave Collapse. Read-Parallel, Write-Controlled: Single writer default.
 
-## 4. Teamwork-Grade Waves & Anti-Hydra Protection (Phase 85)
-- **Constitutional Limits**:
-  - Max Active Subagents Per Wave: 10.
-  - Max Lifetime Launches Per Mission: 20.
-  - Shallow Depth Law: Depth bounded $\le 2$ (`Root=0 -> Child=1 -> Grandchild=2`). Leaf specialists cannot delegate.
-  - Mandatory Wave Collapse: `NEXT_WAVE` strictly blocked while `ACTIVE_TOTAL != 0`.
-- **Anti-Hydra Specialist Protection**:
-  - Valid `WorkerMetadata` required (no anonymous workers).
-  - Duplicate specialist roles with identical goals or overlapping write boundaries rejected.
-  - Runaway retry limit: Max 2 consecutive failures per role before fail-closed.
-  - Wave persistence: `.antios/wave_state.json` saved at each transition for crash recovery.
-- **Read-Parallel, Write-Controlled**: Single writer default. Parallel writes require disjoint boundaries (`Workspace='branch'`).
+## 4. Capability Matrix & Context Budget Governor (Phases 86–88)
+- **Matrix**: 1. Native -> 2. Skill -> 3. Script -> 4. Runtime -> 5. Specialist -> 6. CLI -> 7. Service -> 8. MCP. Local Git CLI over MCP.
+- **Context & Freshness**: Classify (`MANDATORY` to `REDUNDANT`), govern (`LOAD` to `REFRESH`), and ground against physical file SHAs.
 
-## 5. 8-Tier Capability Matrix & Governed MCP Escalation (Phase 86)
-Priority: 1. Native -> 2. Project Skill -> 3. Script -> 4. Runtime -> 5. Specialist -> 6. CLI -> 7. Service -> 8. MCP.
-- *Local Git Invariant*: Local Git CLI (Tier 6) is strictly preferred over GitHub MCP (Tier 8) for local operations.
-- *MCP Escalation*: Mandatory 7-field report (`capability_sought`, `why_native_failed`, `least_privilege_scope`, `risk_assessment`, `rollback_plan`, `user_approval_required`, `audit_trail_entry`).
+## 5. Mission State & Evidence Architecture (Phases 89–92)
+- **Continuity**: Crash recovery (`RESUME` to `ABORT`) and bounded tool outputs (`RAW`, `RELEVANT`, `SUMMARIZED`, `DISCARDED`).
+- **Epistemic Law**: `OBSERVATION ≠ EVIDENCE ≠ VERDICT ≠ INFERENCE ≠ DECISION`. 6 states (`OBSERVED` to `CONFLICTING`).
+- **Evaluation & Benchmark**: 11-dimension evaluator (`PASS` to `INCONCLUSIVE`) and agent-native benchmark grounds (Scenarios A–J).
 
-## 6. Context Budget Governor & Freshness (Phases 87–88)
-- **Context Classification**: `MANDATORY`, `RELEVANT`, `OPTIONAL`, `STALE`, `REDUNDANT`, `UNKNOWN`.
-- **Governor Actions**: `LOAD`, `DEFER`, `SUMMARIZE`, `DISCARD`, `REFRESH`.
-- **Epistemic Freshness**: Evaluates against physical file SHAs, manifest fingerprints, and git HEAD. Stale context is never silently authoritative.
-- **Safe Compaction**: Preserves facts, decisions, constraints, acceptance criteria, and evidence references. Never converts inference into fact; never strips provenance.
+## 6. Durable Proofs, Runtime Drift & Release Certification (Phases 93–95)
+- **Durable Proofs (93)**: Epistemic distillation into `ProjectProof` across 13 subjects, 7 states, bounded store ($\le 50$).
+- **Runtime Drift & Health (94)**: 10 domains, 7 dimensions, proposal-governed repair. Zero daemons.
+- **Release Certification (95)**: 12 dimensions, 5 levels (`CERTIFIED_RELEASE` to `UNKNOWN`), bounded card ($\le 25$ lines).
 
-## 7. Mission State Continuity & Output Bounding (Phase 89)
-- **Persistence Threshold**: Trivial tasks (single file, LOW risk, SOLO) use ephemeral in-memory state; complex tasks persist to `.antios/missions/<mission-id>/` (`mission.json`, `progress.json`, `evidence.json`, `handoffs.json`).
-- **Crash Recovery**: Audits interrupted waves, active agent remnants, and fingerprint drift to deterministically select `RESUME`, `REPLAN`, `REFRESH`, `ROLLBACK`, or `ABORT`.
-- **Tool Output Bounding**: Classifies tool stdout/stderr as `RAW`, `RELEVANT`, `SUMMARIZED`, or `DISCARDED` (truncates large output while storing verifiable SHA-256).
-
-## 8. Evidence Architecture & Mission Evaluation (Phases 90–92)
-- **Epistemic Separation**: `OBSERVATION ≠ EVIDENCE ≠ VERDICT ≠ INFERENCE ≠ DECISION`. Worker assertions are never evidence.
-- **6 Evidence States**: `OBSERVED`, `VERIFIED`, `INVALIDATED`, `SUPERSEDED`, `MISSING`, `CONFLICTING`.
-- **Bounded Evidence Package**: Contains mission intent, criteria, artifact fingerprints (before/after SHA-256), commands, test results, invariants, and bounded excerpts.
-- **Deterministic 11-Dimension Evaluator**: Emits `PASS`, `FAIL`, `BLOCKED`, or `INCONCLUSIVE` alongside bounded `MissionEvaluationCard` ($\le 25$ lines).
-- **Agent-Native Workflow Benchmark**: Controlled proving grounds (Scenarios A–J) comparing Baseline vs AntiOS with conservative outcome classifications.
-
-## 9. Stop Gate & Task Completion
+## 7. Stop Gate & Task Completion
 1. Collapse all active workers: `manage_subagents(Action='kill', ...)`.
 2. Execute configured test runner (from `antios.config.json`, must exit code 0).
 3. Ensure `docs/ACTIVE_CONTEXT.md` is updated and strictly $\le 60$ lines.

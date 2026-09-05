@@ -539,6 +539,50 @@ from framework.core.mission_benchmark import (
     MissionBenchmarkEngine,
 )
 
+# Phase 93: Durable Project Proofs
+from framework.core.project_proof import (
+    MAX_DURABLE_PROOFS,
+    MAX_REFERENCES_PER_PROOF,
+    MAX_TRACKED_PATHS_PER_PROOF,
+    ProofSubject,
+    ProofStatus,
+    RevalidationPolicy,
+    ProjectProof,
+    ProjectProofCard,
+    EvidenceDistillationEngine,
+    ProjectProofStore,
+)
+
+# Phase 94: Runtime Drift Detection & Intelligence Health
+from framework.core.drift_health import (
+    MAX_DRIFT_FINDINGS,
+    MAX_REPAIR_PROPOSALS,
+    DriftDomain,
+    DriftSeverity,
+    DriftAction,
+    IntelligenceHealthStatus,
+    RepairActionType,
+    DriftFinding,
+    RepairProposal,
+    IntelligenceHealthResult,
+    DriftHealthCard,
+    ProjectDriftEngine,
+    IntelligenceHealthEngine,
+    IntelligenceRepairEngine,
+)
+
+# Phase 95: Long-Horizon Release Certification
+from framework.core.release_certification import (
+    MAX_CERTIFICATION_MISSIONS,
+    CertificationLevel,
+    CertificationDimension,
+    CertificationWindow,
+    LongHorizonCertificationCard,
+    CertificationResult,
+    ReleaseCertificationEngine,
+)
+
+
 __all__ = [
 
     # Phase 12-15
@@ -923,7 +967,42 @@ __all__ = [
     "ProvingGroundScenario",
     "ProvingGroundScenarioRegistry",
     "MissionBenchmarkEngine",
+    # Phase 93: Durable Project Proofs
+    "MAX_DURABLE_PROOFS",
+    "MAX_REFERENCES_PER_PROOF",
+    "MAX_TRACKED_PATHS_PER_PROOF",
+    "ProofSubject",
+    "ProofStatus",
+    "RevalidationPolicy",
+    "ProjectProof",
+    "ProjectProofCard",
+    "EvidenceDistillationEngine",
+    "ProjectProofStore",
+    # Phase 94: Runtime Drift Detection & Intelligence Health
+    "MAX_DRIFT_FINDINGS",
+    "MAX_REPAIR_PROPOSALS",
+    "DriftDomain",
+    "DriftSeverity",
+    "DriftAction",
+    "IntelligenceHealthStatus",
+    "RepairActionType",
+    "DriftFinding",
+    "RepairProposal",
+    "IntelligenceHealthResult",
+    "DriftHealthCard",
+    "ProjectDriftEngine",
+    "IntelligenceHealthEngine",
+    "IntelligenceRepairEngine",
+    # Phase 95: Long-Horizon Release Certification
+    "MAX_CERTIFICATION_MISSIONS",
+    "CertificationLevel",
+    "CertificationDimension",
+    "CertificationWindow",
+    "LongHorizonCertificationCard",
+    "CertificationResult",
+    "ReleaseCertificationEngine",
 ]
+
 
 
 
