@@ -3,10 +3,10 @@
 **Universal, Domain-Agnostic Agent-Native Engineering OS for Google Antigravity**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-807%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
+[![Tests](https://img.shields.io/badge/tests-882%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](ANTIOS_CONSTITUTION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/version-v2.0.0--EVIDENCE--GRADE-green.svg)](ANTIOS_V1.md)
+[![Status](https://img.shields.io/badge/version-v2.0.0--LONG--HORIZON--GRADE-green.svg)](ANTIOS_V1.md)
 
 ---
 
@@ -38,6 +38,12 @@ Antigravity Platform
 - **Deterministic Evidence Architecture**: Strictly enforces $\text{OBSERVATION} \ne \text{EVIDENCE} \ne \text{VERDICT} \ne \text{INFERENCE} \ne \text{DECISION}$, tracks 6 evidence states, and produces bounded, auditable evidence packages.
 - **Multi-Dimensional Mission Evaluation**: Evaluates completed missions across 11 canonical engineering dimensions into deterministic `PASS`, `FAIL`, `BLOCKED`, or `INCONCLUSIVE` verdicts.
 - **Agent-Native Mission Benchmarking**: Empirically benchmarks engineering workflow quality across 10 controlled proving grounds (Scenarios A–J) against naive baselines.
+- **Durable Project Proofs**: Cryptographically grounds verified project facts to on-disk file SHA-256 hashes across 13 canonical subjects and 7 lifecycle states.
+- **Runtime Drift & Intelligence Health**: Event-driven drift detection across 10 domains with 7-dimension health modeling and proposal-governed repairs (zero background daemons).
+- **Long-Horizon Release Certification**: Evaluates multi-mission stability across 12 canonical dimensions over a bounded window ($\le 10$ missions).
+- **Real Antigravity Proving Ground**: Evaluates workflows against 8 canonical real-world scenarios (A–H) with strict separation between `NATIVE_EXECUTION` and `SIMULATED_TRACE`.
+- **Failure Injection Matrix & Recovery**: 16 canonical failure modes mapped to a deterministic recovery action matrix (`RESUME`, `REPLAN`, `REFRESH`, `ROLLBACK`, `ABORT`, `BLOCK`, `REQUIRE_HUMAN_APPROVAL`) with partial write safety.
+- **Long-Horizon Adaptive Engineering**: Validates continuous multi-step sequences (RUN-01 through RUN-05) proving compounding knowledge reuse and measurable efficiency gains.
 - **Universal Project Adapter**: Declarative `antios.config.json` configuration binds any software stack (Python, TypeScript, Rust, Go, polyglot) to AntiOS without modifying core code.
 - **Deterministic Repository Wayfinding**: Sub-millisecond navigation tool resolves task intent to owning subsystems, test suites, and blast radius.
 - **Strict 8-Tier Hybrid Capability Matrix & MCP Policy**: Prioritizes local, deterministic tools over unvetted Model Context Protocol servers.
@@ -84,7 +90,7 @@ Explore the full documentation portal in [`docs/INDEX.md`](docs/INDEX.md):
 | **Architecture** | [`docs/architecture/CERTIFICATION_MATRIX.md`](docs/architecture/CERTIFICATION_MATRIX.md) | 50 canonical certification rules (C-01 to C-50) |
 | **Governance** | [`ANTIOS_CONSTITUTION.md`](ANTIOS_CONSTITUTION.md) | Universal non-negotiable axioms and invariants |
 | **Governance** | [`ANTIOS_SOURCE_OF_TRUTH.md`](ANTIOS_SOURCE_OF_TRUTH.md) | Definitive system source of truth |
-| **Decisions** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Architectural Decision Register (ADR 01-76) |
+| **Decisions** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Architectural Decision Register (ADR 01-82) |
 | **Operations** | [`.agents/skills/`](.agents/skills/antios-engineer/SKILL.md) | Canonical agent skills (`antios-engineer`, `antios-verifier`, etc.) |
 | **Guides** | [`docs/guides/ADOPT_ANTIOS.md`](docs/guides/ADOPT_ANTIOS.md) | Step-by-step onboarding guide for any repo |
 | **Guides** | [`docs/guides/PROJECT_ADAPTER.md`](docs/guides/PROJECT_ADAPTER.md) | Guide on `antios.config.json` customization |
@@ -113,7 +119,7 @@ AntiOS provides 8 standard library CLI tools in `framework/scripts/tools/`:
 
 ## Running Tests
 
-AntiOS includes 766 deterministic automated tests covering all core modules, contracts, and safety gates:
+AntiOS includes 882 deterministic automated tests covering all core modules, contracts, and safety gates:
 
 ```bash
 python tests/run_all.py
@@ -122,7 +128,7 @@ python tests/run_all.py
 ```
 ======================================================================
 AntiOS Master Test Suite
-Ran 766 tests in 30.9s
+Ran 882 tests in 34.9s
 OK (100% passed, 0 failures, 0 errors)
 ======================================================================
 ```

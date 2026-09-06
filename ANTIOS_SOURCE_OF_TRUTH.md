@@ -1,7 +1,7 @@
 # AntiOS Master Source of Truth (`ANTIOS_SOURCE_OF_TRUTH.md`)
 
-**Date**: 2026-09-04  
-**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1–42 Consolidated)  
+**Date**: 2026-09-06  
+**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1–98 Consolidated)  
 **Objective**: Establish the single authoritative source of truth for every architectural, operational, and governance dimension of AntiOS, eliminating dual-truth risks, documentation drift, and authority fragmentation.
 
 ---
@@ -25,11 +25,17 @@
 | **Adaptive Mission Orchestration** | AntiOS Adaptive Orchestration Model | `docs/architecture/ORCHESTRATION_MODEL.md` | **PRIMARY SPEC** | Adaptive workforce sizing (SOLO to MAX), wave lifecycle, dual dispatch gates, resource ledger. |
 | **Primary Skill Control Plane** | AntiOS Primary Skill Architecture | `docs/architecture/ANTIOS_SKILL_MODEL.md` | **PRIMARY SPEC** | Authoritative control plane specification for `/antios` skill and progressive disclosure. |
 | **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
-| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–76) recording why decisions were made. |
+| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–82) recording why decisions were made. |
 | **Evidence Architecture** | AntiOS Evidence Architecture Specification | `docs/architecture/EVIDENCE_ARCHITECTURE.md` | **PRIMARY SPEC** | Authoritative epistemic separation, 6 evidence states, and bounded packaging. |
 | **Mission Evaluation Engine** | AntiOS Mission Evaluation Specification | `docs/architecture/MISSION_EVALUATION.md` | **PRIMARY SPEC** | 11-dimension deterministic evaluation, 4 statuses, and Maker-Checker enforcement. |
 | **Agent-Native Mission Benchmark** | AntiOS Mission Benchmark Specification | `docs/architecture/MISSION_BENCHMARK.md` | **PRIMARY SPEC** | Workflow quality benchmark, Baseline vs AntiOS comparison, and proving grounds A–J. |
-| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 807 certified tests. |
+| **Durable Project Proofs** | Durable Project Proofs Specification | `docs/architecture/DURABLE_PROOFS.md` | **PRIMARY SPEC** | 13 proof subjects, 7 states, bounded store (<= 50), physical hash grounding. |
+| **Runtime Drift & Intelligence Health** | Runtime Drift & Intelligence Health Specification | `docs/architecture/DRIFT_AND_HEALTH.md` | **PRIMARY SPEC** | Event-driven drift detection across 10 domains, 7-dimension health model, proposal-governed repair. |
+| **Long-Horizon Release Certification** | Long-Horizon Release Certification Specification | `docs/architecture/RELEASE_CERTIFICATION.md` | **PRIMARY SPEC** | 12-dimension evidence-driven release certification, bounded window (<= 10), fail-closed certification cards. |
+| **Real Antigravity Proving Ground** | Real Antigravity Proving Ground Specification | `docs/architecture/PROVING_GROUND.md` | **PRIMARY SPEC** | 8 canonical scenarios (A–H), native vs simulated trace boundary, bounded trace logs. |
+| **Failure Injection & Recovery** | Failure Injection & Recovery Specification | `docs/architecture/FAILURE_INJECTION.md` | **PRIMARY SPEC** | 16 failure modes, deterministic recovery matrix, partial write safety. |
+| **Long-Horizon Engineering Evaluation** | Long-Horizon Adaptive Evaluation Specification | `docs/architecture/LONG_HORIZON.md` | **PRIMARY SPEC** | RUN-01 to RUN-05 sequences, adaptive knowledge feedback, before/after benchmark comparisons. |
+| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 882 certified tests. |
 | **Project Instance Runtime & Closure** | Instance Runtime & Closure Contract | `framework/core/runtime_contract.py` / `.antios/runtime/` | **RUNTIME CLOSURE** | Self-contained instance execution, PreToolUse and Stop gates, and closure contract. |
 | **Formal System Certification** | AntiOS Formal Certification Matrix | `docs/architecture/CERTIFICATION_MATRIX.md` | **CERTIFICATION LEDGER** | Complete verification ledger across all 50 capability dimensions. |
 | **Core vs Adapter Contract** | Core vs Project Adapter Specification | `docs/architecture/CORE_VS_ADAPTER.md` | **BOUNDARY CONTRACT** | Strict demarcation between universal Core logic and declarative project adapters. |
@@ -64,7 +70,7 @@ Rank 5: Master Architecture Specification (ANTIOS_V1.md)
         +-- Canonical system blueprint. Overrides older subsystem proposals.
 
 Rank 6: Master Decision Register (DECISION_REGISTER.md)
-        +-- Recorded consensus (Decisions 01–79). Overrides informal proposals.
+        +-- Recorded consensus (Decisions 01–82). Overrides informal proposals.
 
 Rank 7: Active Engineering Skills (.agents/skills/*)
         +-- Progressive procedural workflows. Overrides generic prompting.

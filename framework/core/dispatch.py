@@ -562,6 +562,19 @@ class TaskDispatchPipeline:
             mission_state_mode=persistence_mode.value,
         )
 
+    def dispatch_task(
+        self,
+        task_query: str,
+        target_files: Optional[List[str]] = None,
+        mission_id: Optional[str] = None,
+        **kwargs: Any,
+    ) -> MissionPlan:
+        """Convenience dispatcher supporting explicit mission_id and forwarding kwargs."""
+        plan = self.dispatch(task_query=task_query, target_files=target_files, **kwargs)
+        if mission_id:
+            plan.mission_id = mission_id
+        return plan
+
     def verify_mission(
         self,
         plan: MissionPlan,

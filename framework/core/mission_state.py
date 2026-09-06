@@ -50,6 +50,8 @@ class MissionRecoveryAction(str, Enum):
     REFRESH = "REFRESH"          # Fingerprint drift or clean file changes: refresh context & continue
     ROLLBACK = "ROLLBACK"        # Partial/corrupted writes detected: revert uncommitted changes
     ABORT = "ABORT"              # Tampering, security violation, or unrecoverable corruption
+    BLOCK = "BLOCK"              # Hard stop on security boundary or governance violation
+    REQUIRE_HUMAN_APPROVAL = "REQUIRE_HUMAN_APPROVAL"  # Escalation requiring explicit operator approval
 
 
 class ToolOutputClassification(str, Enum):

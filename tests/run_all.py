@@ -175,6 +175,12 @@ import tests.test_drift_health as test_drift_health
 import tests.test_release_certification as test_release_certification
 import tests.test_phase93_95_adversarial as test_phase93_95_adversarial
 
+# Phase 96-98 Real Proving Ground, Failure Injection & Long-Horizon Adaptive Engineering
+import tests.test_proving_ground as test_proving_ground
+import tests.test_failure_injection as test_failure_injection
+import tests.test_long_horizon as test_long_horizon
+import tests.test_phase96_98_adversarial as test_phase96_98_adversarial
+
 
 
 def build_suite() -> unittest.TestSuite:
@@ -325,6 +331,11 @@ def build_suite() -> unittest.TestSuite:
         test_drift_health,
         test_release_certification,
         test_phase93_95_adversarial,
+        # Phase 96-98
+        test_proving_ground,
+        test_failure_injection,
+        test_long_horizon,
+        test_phase96_98_adversarial,
     ]
 
     loader = unittest.defaultTestLoader

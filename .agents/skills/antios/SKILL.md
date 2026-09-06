@@ -42,10 +42,10 @@ This skill is your **single authoritative control plane** (`/antios`). AntiOS co
 - **Epistemic Law**: `OBSERVATION ≠ EVIDENCE ≠ VERDICT ≠ INFERENCE ≠ DECISION`. 6 states (`OBSERVED` to `CONFLICTING`).
 - **Evaluation & Benchmark**: 11-dimension evaluator (`PASS` to `INCONCLUSIVE`) and agent-native benchmark grounds (Scenarios A–J).
 
-## 6. Durable Proofs, Runtime Drift & Release Certification (Phases 93–95)
-- **Durable Proofs (93)**: Epistemic distillation into `ProjectProof` across 13 subjects, 7 states, bounded store ($\le 50$).
-- **Runtime Drift & Health (94)**: 10 domains, 7 dimensions, proposal-governed repair. Zero daemons.
-- **Release Certification (95)**: 12 dimensions, 5 levels (`CERTIFIED_RELEASE` to `UNKNOWN`), bounded card ($\le 25$ lines).
+## 6. Proofs, Certification, Proving Ground & Recovery (Phases 93–98)
+- **Proofs & Certification (93–95)**: Durable proofs ($\le 50$), event drift (10 domains), release certification (12 dims).
+- **Proving Ground (96)**: Real proving ground (Scenarios A–H), bounded `MissionTrace`, native vs simulated trace.
+- **Failure Matrix & Long-Horizon (97–98)**: 16 failure modes, deterministic recovery matrix, RUN-01 to RUN-05 adaptation.
 
 ## 7. Stop Gate & Task Completion
 1. Collapse all active workers: `manage_subagents(Action='kill', ...)`.

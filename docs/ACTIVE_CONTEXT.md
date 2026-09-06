@@ -1,40 +1,39 @@
 # Active Context (`docs/ACTIVE_CONTEXT.md`)
 
-**Mission**: AntiOS 2.0 — Phases 93–95 Durable Proofs, Runtime Drift & Certification
-**Class**: GOVERNANCE_AND_CERTIFICATION | **Risk**: HIGH
+**Mission**: AntiOS 2.0 — Phases 96–98 Proving Ground, Failure Injection & Long Horizon
+**Class**: ENGINE_AND_EVALUATION | **Risk**: HIGH
 **Stage**: COMPLETE | **Status**: CERTIFIED_AND_VERIFIED
 **Version**: 2.0.0-LONG-HORIZON-GRADE | **Mode**: OPERATIONAL
-**Active Subsystem**: Project Proofs, Runtime Drift & Health, Release Certification
+**Active Subsystem**: Proving Ground, Failure Injection Matrix, Long-Horizon Evaluation
 
 ## 1. Active Checklist
-- [x] Phase 93: Durable Project Proofs (`project_proof.py`, 13 subjects, 7 states, bounded store)
-- [x] Phase 94: Runtime Drift & Intelligence Health (`drift_health.py`, 10 domains, 7 dimensions)
-- [x] Phase 95: Long-Horizon Release Certification (`release_certification.py`, 12 dims, 5 levels)
-- [x] Pipeline Integration: Stage 2 (Drift), Stage 7 (Proofs), Stage 10 (Distillation) in `dispatch.py`
-- [x] Comprehensive Test Suites: 4 test modules, 35 new tests, 15 adversarial vectors (842/842 passing)
-- [x] Architecture Docs & ADRs 77–79 Synchronized (`DECISION_REGISTER.md`, `ANTIOS_SOURCE_OF_TRUTH.md`)
+- [x] Phase 96: Real Antigravity Proving Ground (`proving_ground.py`, Scenarios A–H, bounded traces)
+- [x] Phase 97: Failure Injection & Recovery Matrix (`failure_injection.py`, 16 modes, write safety)
+- [x] Phase 98: Long-Horizon Adaptive Evaluation (`long_horizon.py`, RUN-01 to RUN-05, knowledge loop)
+- [x] Pipeline Integration: Recovery actions `BLOCK`/`REQUIRE_HUMAN_APPROVAL`, `dispatch_task` alias
+- [x] Comprehensive Test Suites: 4 modules, 40 new tests, 16 adversarial vectors (882/882 passing)
+- [x] Architecture Specs & ADRs 80–82 Synchronized (`DECISION_REGISTER.md`, `ANTIOS_SOURCE_OF_TRUTH.md`)
 - [x] Skills Synchronized (`.agents/skills/antios/SKILL.md`, `framework/templates/skills/antios/SKILL.md`)
-- [x] Maker-Checker Audit: Independent verification via `antios-verifier`
+- [x] Maker-Checker Audit: Independent verification via `antios-verifier` (Status: PASS)
 
 ## 2. Blockers & Invariants
-- Invariant: Current physical reality strictly outranks historical claims or certificates.
-- Invariant: Epistemic Law: `OBSERVATION ≠ EVIDENCE ≠ VERDICT ≠ INFERENCE ≠ DECISION`.
-- Invariant: Bounded storage & cards: $\le 50$ proofs, $\le 20$ drift findings, cards $\le 25$ lines.
-- Invariant: Zero background daemons, zero custom runtime/swarm, zero autonomous mutation.
+- Invariant: Demarcation between `NATIVE_EXECUTION` and `SIMULATED_TRACE` strictly enforced.
+- Invariant: Isolated sandboxes only; zero modifications to host or production repositories.
+- Invariant: Bounded traces: $\le 20$ stages, $\le 30$ tool calls, $\le 30$ files; cards $\le 25$ lines.
+- Invariant: Zero background daemons, zero custom runtime/swarm, zero legacy workflows.
 - Invariant: Active Context strictly bounded $\le 60$ lines.
 
 ## 3. Changed Files & Verification State
-- Core: `project_proof.py`, `drift_health.py`, `release_certification.py`, `dispatch.py`, `__init__.py`
-- Skills: `.agents/skills/antios/SKILL.md`, `framework/templates/skills/antios/SKILL.md`
-- Tests: `test_project_proof.py`, `test_drift_health.py`, `test_release_certification.py`, `test_phase93_95_adversarial.py`, `run_all.py`
-- Docs: `DURABLE_PROOFS.md`, `DRIFT_AND_HEALTH.md`, `RELEASE_CERTIFICATION.md`, `DECISION_REGISTER.md`, `ANTIOS_SOURCE_OF_TRUTH.md`, `INDEX.md`
-- Verdict: PASS (All 842 tests pass cleanly with 0 failures)
+- Core: `proving_ground.py`, `failure_injection.py`, `long_horizon.py`, `mission_state.py`, `dispatch.py`, `__init__.py`
+- Tests: `test_proving_ground.py`, `test_failure_injection.py`, `test_long_horizon.py`, `test_phase96_98_adversarial.py`, `run_all.py`
+- Docs: `PROVING_GROUND.md`, `FAILURE_INJECTION.md`, `LONG_HORIZON.md`, `DECISION_REGISTER.md`, `ANTIOS_SOURCE_OF_TRUTH.md`, `INDEX.md`, `README.md`
+- Verdict: PASS (All 882 tests pass cleanly with 0 failures, 0 errors, 0 skips)
 
 ## 4. Dead-End Memory & Validated Lessons
-- `EvidenceItem.test_results` must be `List[Dict[str, Any]]` as `to_dict()` invokes `dict(t)`.
-- `EvidencePackage` validates coherence via `has_conflicting_evidence()`, not `is_complete()`.
-- Empty mission histories must yield `CertificationLevel.UNKNOWN`, never `BLOCKED` or synthetic pass.
-- Proof distillation requires corroboration $\ge 2$ or Maker-Checker status; uncorroborated evidence cannot distill.
+- `test_skills.py` forbids literal project names; safety target lists use b64 decoding.
+- `EvidenceItem` uses `EvidenceState.INVALIDATED` (not `FALSIFIED`) for falsification.
+- `EvidencePackage` requires `mission_id`, `intent`, `acceptance_criteria` in constructor.
+- Partial write safety must roll back uncommitted changes upon tool or test failures.
 
 ## 5. Next Immediate Action
-Phases 93–95 complete, verified, and certified. Ready for independent Maker-Checker audit.
+Phases 96–98 fully verified and certified. Ready for mission walkthrough presentation.

@@ -794,6 +794,32 @@
 - **CONSEQUENCES**: Release certification is explicitly invoked as an AntiOS governance operation; certificates are fail-closed and invalidated upon repository drift.
 - **REVERSIBILITY**: High; modular governance layer in `framework/core/release_certification.py`.
 
+---
 
+## DECISION 80: Real Antigravity Proving Ground & Scenario Architecture (Phase 96)
+- **DECISION**: Implement `RealProvingGround` and `ScenarioCatalog` in `framework/core/proving_ground.py`. Define 8 canonical engineering scenarios (Scenarios A through H) spanning diverse development topologies: Single-File Bug Fix, Multi-File Refactor with Breaking Interface, Incomplete Specification, Contradictory Requirements, Upstream Dependency Breaking Change, Transient Test Flakiness, Out-of-Band Physical Drift, and Multi-Agent Concurrent Edit Collision. Codify strict epistemic boundaries distinguishing `NATIVE_EXECUTION` from `SIMULATED_TRACE`. Enforce bounded `MissionTrace` invariants ($\le 20$ stages, $\le 30$ tool calls, $\le 30$ inspected files, $\le 30$ modified files) and token-bounded `ProvingGroundExecutionCard` ($\le 25$ lines). Prohibit touching production codebases; sandboxes run exclusively in isolated synthetic fixtures.
+- **EVIDENCE**: Abstract benchmarks fail to stress edge cases like dirty working trees, flake tests, and concurrent collisions. Realistic scenario topologies with strict execution mode demarcation prevent agents from conflating mock replay with real runtime verification while guaranteeing zero pollution of host filesystems.
+- **ALTERNATIVES**: Testing solely against unit tests; running uncontained tests against live repositories; or using unbounded trace loggers.
+- **WHY SELECTED**: Grounded in physical fixtures, deterministic, fully token-bounded, and guarantees zero side effects outside designated scratch sandboxes.
+- **CONSEQUENCES**: Any workflow claim must be proven across the 8 canonical scenarios; native vs simulated status is cryptographically captured in every mission trace.
+- **REVERSIBILITY**: High; isolated module in `framework/core/proving_ground.py`.
 
+---
 
+## DECISION 81: Failure Injection Matrix & Deterministic Recovery Certification (Phase 97)
+- **DECISION**: Implement `FailureInjectionHarness` and `FailureMatrixCatalog` in `framework/core/failure_injection.py`. Formalize 16 canonical failure modes spanning tool failures, test failures, context degradation, workforce anomalies, state corruption, external interruptions, and drift. Codify a deterministic recovery decision matrix mapping each failure mode to exact canonical recovery actions: `RESUME`, `REPLAN`, `REFRESH`, `ROLLBACK`, `ABORT`, `BLOCK`, or `REQUIRE_HUMAN_APPROVAL`. Enforce partial write safety: whenever uncommitted modifications are detected after tool or test failures, the harness guarantees either an atomic rollback or an explicit safe block. Emit token-bounded `FailureRecoveryCard` ($\le 25$ lines).
+- **EVIDENCE**: Real-world agent deployments inevitably experience flaky commands, context truncation, file permission denial, and dirty trees. An ad-hoc recovery mechanism risks repeating failed tool calls in infinite loops or leaving dirty uncommitted partial edits. A deterministic matrix guarantees fail-closed safety and bounded retries.
+- **ALTERNATIVES**: Infinite retry loops; blind rollback on every warning; or manual human intervention for all failures.
+- **WHY SELECTED**: Guarantees deterministic, fail-safe recovery paths with strict boundaries against runaway tool loops and corrupted workspaces.
+- **CONSEQUENCES**: Stage 9 (`VERIFY`) and recovery handlers deterministically route errors through the failure matrix; unrecoverable corruption fails closed with `BLOCK` or `REQUIRE_HUMAN_APPROVAL`.
+- **REVERSIBILITY**: High; cleanly encapsulated in `framework/core/failure_injection.py`.
+
+---
+
+## DECISION 82: Long-Horizon Adaptive Engineering Evaluation (Phase 98)
+- **DECISION**: Implement `LongHorizonEvaluationEngine` in `framework/core/long_horizon.py` executing multi-step sequences RUN-01 through RUN-05. Codify the adaptive feedback loop: knowledge and proofs produced in earlier runs must be discoverable and leveraged in subsequent runs, demonstrating measured improvement (`OBSERVED_IMPROVEMENT`, `NO_MEASURABLE_CHANGE`, `REGRESSION_DETECTED`). Enforce bounded sequence execution ($\le 10$ steps per sequence, $\le 30$ cumulative tool calls, bounded history summaries) and emit token-bounded `LongHorizonSequenceCard` ($\le 25$ lines).
+- **EVIDENCE**: Multi-turn agent productivity compounds when lessons, durable proofs, and context maps persist across discrete tasks. Validating that RUN-02 through RUN-05 require fewer exploratory steps and tool calls than RUN-01 provides empirical proof of long-horizon compounding intelligence.
+- **ALTERNATIVES**: Evaluating tasks as completely isolated, stateless events; or allowing unbounded context accumulators across long sessions.
+- **WHY SELECTED**: Provides empirical, repeatable evidence of compounding efficiency while strictly enforcing token and memory boundedness.
+- **CONSEQUENCES**: Multi-mission workflows systematically test knowledge reuse and adaptation; regressions in efficiency are flagged and diagnosed.
+- **REVERSIBILITY**: High; modular evaluation suite in `framework/core/long_horizon.py`.

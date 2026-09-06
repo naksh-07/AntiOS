@@ -9,7 +9,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Master Source of Truth](../ANTIOS_SOURCE_OF_TRUTH.md) — Canonical authority hierarchy and precedence model (Phases 1–42 consolidated).
 - [Universal Constitution](../ANTIOS_CONSTITUTION.md) — The 7 non-negotiable engineering invariants (Protected zones, Same Change Set, etc.).
 - [Master Architecture Specification (v1.0.0-GA)](../ANTIOS_V1.md) — Canonical 4-tier model, 7 subsystems, 63 core modules.
-- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-76).
+- [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-82).
 - [Project Agent OS Specification (AntiOS 2.0)](architecture/PROJECT_AGENT_OS.md) - Universal boundary compiler, 5-tier artifact model, lifecycle engine, and orchestration limits.
 - [Contributing Guide](../CONTRIBUTING.md) — Engineering standards, Same Change Set policy, and test validation.
 
@@ -25,6 +25,9 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Durable Project Proofs](architecture/DURABLE_PROOFS.md) — Canonical ProjectProof abstraction, 13 subjects, 7 lifecycle states, and physical hash grounding.
 - [Runtime Drift & Intelligence Health](architecture/DRIFT_AND_HEALTH.md) — Event-driven drift detection across 10 domains, 7-dimension health model, and proposal-governed repair.
 - [Long-Horizon Release Certification](architecture/RELEASE_CERTIFICATION.md) — 12-dimension evidence-driven release certification, bounded window, and verifiable certification receipts.
+- [Real Antigravity Proving Ground](architecture/PROVING_GROUND.md) — 8 canonical engineering scenarios (A–H), native vs simulated trace boundary, and bounded execution cards.
+- [Failure Injection & Recovery Matrix](architecture/FAILURE_INJECTION.md) — 16 canonical failure modes, deterministic recovery action matrix, and partial write safety.
+- [Long-Horizon Adaptive Engineering](architecture/LONG_HORIZON.md) — RUN-01 to RUN-05 sequences, adaptive knowledge feedback loop, and workflow comparisons.
 - [Project Learning & Evolution Model](architecture/PROJECT_LEARNING.md) — Epistemic segregation, evidence promotion ladder, safe evolution proposals, and knowledge decay.
 
 - [Two-Way Adaptation Contract](architecture/TWO_WAY_ADAPTATION.md) — Four-tier boundary demarcation, epistemic segregation, and Core Immutability Law.
@@ -69,7 +72,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Configuration Reference](reference/CONFIGURATION.md) — Complete specification of `antios.config.json` options.
 - [Tool, Provider & MCP Policy](reference/MCP_POLICY.md) — 8-tier hybrid capability matrix and canonical MCP escalation rules.
 - [AntiOS Failure Taxonomy](reference/FAILURE_TAXONOMY.md) — Deterministic vs. agent failure classification and mitigations.
-- [Testing & Verification Guide](operations/TESTING.md) — Test suite architecture, 842 tests across 123 modules, and commands.
+- [Testing & Verification Guide](operations/TESTING.md) — Test suite architecture, 882 tests across 127 modules, and commands.
 - [Security Architecture & Threat Model](SECURITY.md) — Process confinement, protected zone immutability, and boundary rules.
 
 ## 5. Historical Archive & Research (`reports/archive/`)
