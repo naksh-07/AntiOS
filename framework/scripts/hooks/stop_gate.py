@@ -35,6 +35,22 @@ def main() -> None:
 
         input_data = json.loads(raw_input)
         decision, reason = evaluate_stop_gate(input_data)
+
+        # Telemetry Ingestion Hook (Phase 105)
+        # Bounded, non-blocking: Telemetry failure != task failure
+        try:
+            from framework.core.telemetry_bridge import AntigravityEventBridge
+            bridge = AntigravityEventBridge(project_root=REPO_ROOT)
+            if bridge.is_enabled():
+                bridge.ingest_from_hook_payload(
+                    payload=input_data,
+                    hook_type="Stop",
+                    stop_gate_decision=decision,
+                    stop_gate_reason=reason,
+                )
+        except Exception:
+            pass  # Fail-safe: telemetry failure must never impede stop gate verdict
+
         output_decision(decision, reason)
 
     except Exception as e:

@@ -198,6 +198,9 @@ import tests.test_experience_foundation as test_experience_foundation
 # Phase 104 Telemetry Sanitizer & Privacy Engine
 import tests.test_telemetry_sanitizer as test_telemetry_sanitizer
 
+# Phase 105 Antigravity Event Bridge & Experience Ingestion
+import tests.test_telemetry_bridge as test_telemetry_bridge
+
 
 
 
@@ -367,6 +370,8 @@ def build_suite() -> unittest.TestSuite:
         test_experience_foundation,
         # Phase 104 Telemetry Sanitizer & Privacy Engine
         test_telemetry_sanitizer,
+        # Phase 105 Antigravity Event Bridge & Experience Ingestion
+        test_telemetry_bridge,
     ]
 
 

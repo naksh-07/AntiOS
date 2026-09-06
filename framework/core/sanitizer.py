@@ -947,15 +947,20 @@ class TelemetrySanitizer:
             if cls.is_sensitive_path(item):
                 return "[REDACTED_SENSITIVE_PATH]"
 
-            # Check if this string looks like a path
-            if ("/" in item or "\\" in item) and len(item) < 300:
-                cls_type, safe_rel = cls.classify_path(item, project_root)
-                if cls_type == PathClassification.SAFE_PROJECT_PATH and safe_rel:
-                    return safe_rel
-                elif cls_type == PathClassification.SENSITIVE_PROJECT_PATH:
-                    return "[REDACTED_SENSITIVE_PATH]"
-                elif cls_type == PathClassification.OUTSIDE_PROJECT:
-                    return "[OUT_OF_WORKSPACE_PATH]"
+            # Check if this string looks like a discrete file path (not multi-token command or text)
+            looks_like_path = ("/" in item or "\\" in item) and len(item) < 300 and not any(c in item for c in "\n\r\t")
+            if looks_like_path:
+                tokens = item.strip().split()
+                # A path is either a single token or an existing filesystem path
+                if len(tokens) == 1 or (len(tokens) > 1 and Path(item).exists()):
+                    cls_type, safe_rel = cls.classify_path(item, project_root)
+                    if cls_type == PathClassification.SAFE_PROJECT_PATH and safe_rel:
+                        scrubbed_path, _ = cls.sanitize_text(safe_rel)
+                        return scrubbed_path
+                    elif cls_type == PathClassification.SENSITIVE_PROJECT_PATH:
+                        return "[REDACTED_SENSITIVE_PATH]"
+                    elif cls_type == PathClassification.OUTSIDE_PROJECT:
+                        return "[OUT_OF_WORKSPACE_PATH]"
 
             # Sanitize string content for secrets
             scrubbed, _ = cls.sanitize_text(item, max_length=MAX_ARG_STRING_CHARS)

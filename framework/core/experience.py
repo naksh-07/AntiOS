@@ -24,6 +24,8 @@ import shutil
 import sqlite3
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Union
 
+from framework.core.sanitizer import SafeEngineeringEvent, SafeToolCall
+
 # Current storage schema version
 CURRENT_STORAGE_SCHEMA_VERSION = "2.1.0"
 DEFAULT_BUSY_TIMEOUT_MS = 5000
@@ -418,6 +420,21 @@ CREATE TABLE IF NOT EXISTS engineering_events (
     created_at TEXT NOT NULL
 );
 
+-- Ingestion Checkpoints Entity (Phase 105)
+CREATE TABLE IF NOT EXISTS ingestion_checkpoints (
+    checkpoint_id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    source_type TEXT NOT NULL,
+    source_path TEXT NOT NULL,
+    last_byte_offset INTEGER DEFAULT 0,
+    last_step_idx INTEGER DEFAULT -1,
+    file_sha256 TEXT,
+    file_size_bytes INTEGER DEFAULT 0,
+    records_ingested INTEGER DEFAULT 0,
+    updated_at TEXT NOT NULL
+);
+
 -- Relational Foreign Key B-Tree Indexes
 CREATE INDEX IF NOT EXISTS idx_sessions_project ON sessions(project_id);
 CREATE INDEX IF NOT EXISTS idx_missions_session ON missions(session_id);
@@ -430,6 +447,8 @@ CREATE INDEX IF NOT EXISTS idx_events_mission ON engineering_events(mission_id);
 CREATE INDEX IF NOT EXISTS idx_events_project ON engineering_events(project_id);
 CREATE INDEX IF NOT EXISTS idx_events_project_type_time ON engineering_events(project_id, event_type, created_at);
 CREATE INDEX IF NOT EXISTS idx_events_signature ON engineering_events(event_signature);
+CREATE INDEX IF NOT EXISTS idx_checkpoints_session ON ingestion_checkpoints(session_id);
+CREATE INDEX IF NOT EXISTS idx_checkpoints_project ON ingestion_checkpoints(project_id);
 """
 
 
@@ -462,6 +481,28 @@ def init_experience_db(db_path: Union[str, Path]) -> None:
             already_applied = cursor.fetchone() is not None
 
         if already_applied:
+            # Ensure ingestion_checkpoints table and indexes exist for existing databases
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='ingestion_checkpoints';"
+            )
+            if not cursor.fetchone():
+                cursor.executescript("""
+                CREATE TABLE IF NOT EXISTS ingestion_checkpoints (
+                    checkpoint_id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+                    source_type TEXT NOT NULL,
+                    source_path TEXT NOT NULL,
+                    last_byte_offset INTEGER DEFAULT 0,
+                    last_step_idx INTEGER DEFAULT -1,
+                    file_sha256 TEXT,
+                    file_size_bytes INTEGER DEFAULT 0,
+                    records_ingested INTEGER DEFAULT 0,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_checkpoints_session ON ingestion_checkpoints(session_id);
+                CREATE INDEX IF NOT EXISTS idx_checkpoints_project ON ingestion_checkpoints(project_id);
+                """)
             return  # Idempotent no-op
 
         # Execute migration atomically
@@ -796,3 +837,510 @@ def get_storage_status(
         is_healthy=is_healthy,
         issues=issues,
     )
+
+
+# =====================================================================
+# Ingestion Checkpoint & Experience Repository (Phase 105)
+# =====================================================================
+
+@dataclass
+class IngestionCheckpoint:
+    """Tracks incremental ingestion position for a transcript source."""
+    checkpoint_id: str
+    project_id: str
+    session_id: str
+    source_type: str  # transcript_jsonl, transcript_full_jsonl, hook_metadata, cli_stream
+    source_path: str
+    last_byte_offset: int = 0
+    last_step_idx: int = -1
+    file_sha256: Optional[str] = None
+    file_size_bytes: int = 0
+    records_ingested: int = 0
+    updated_at: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+class ExperienceRepository:
+    """ACID-compliant repository for persisting and querying engineering telemetry."""
+
+    def __init__(self, db_path: Union[str, Path], timeout: float = 5.0):
+        self.db_path = Path(db_path).resolve()
+        self.timeout = timeout
+        # Ensure database and tables exist
+        init_experience_db(self.db_path)
+
+    def record_session(
+        self,
+        session_id: str,
+        project_id: str,
+        surface: str = "DESKTOP",
+        started_at: Optional[str] = None,
+        ended_at: Optional[str] = None,
+        total_turns: int = 0,
+        token_usage_json: str = "{}",
+        metadata_json: str = "{}",
+    ) -> None:
+        """Upserts a session record."""
+        now_utc = datetime.now(timezone.utc).isoformat()
+        start = started_at or now_utc
+
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                cursor.execute(
+                    """INSERT INTO sessions 
+                       (session_id, project_id, surface, started_at, ended_at, total_turns, token_usage_json, metadata_json)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(session_id) DO UPDATE SET
+                           ended_at = COALESCE(excluded.ended_at, sessions.ended_at),
+                           total_turns = MAX(sessions.total_turns, excluded.total_turns),
+                           token_usage_json = CASE WHEN excluded.token_usage_json != '{}' THEN excluded.token_usage_json ELSE sessions.token_usage_json END,
+                           metadata_json = CASE WHEN excluded.metadata_json != '{}' THEN excluded.metadata_json ELSE sessions.metadata_json END;""",
+                    (session_id, project_id, surface, start, ended_at, total_turns, token_usage_json, metadata_json),
+                )
+                cursor.execute("COMMIT;")
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to record session {session_id}: {e}") from e
+
+    def record_mission(
+        self,
+        mission_id: str,
+        session_id: str,
+        project_id: str,
+        intent_query: Optional[str] = None,
+        task_class: Optional[str] = None,
+        risk_tier: Optional[str] = None,
+        workforce_mode: Optional[str] = None,
+        status: str = "ACTIVE",
+        stop_gate_exit_code: Optional[int] = None,
+        created_at: Optional[str] = None,
+        completed_at: Optional[str] = None,
+        metadata_json: str = "{}",
+    ) -> None:
+        """Upserts a mission record."""
+        now_utc = datetime.now(timezone.utc).isoformat()
+        created = created_at or now_utc
+
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                cursor.execute(
+                    """INSERT INTO missions 
+                       (mission_id, session_id, project_id, intent_query, task_class, risk_tier, workforce_mode, status, stop_gate_exit_code, created_at, completed_at, metadata_json)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(mission_id) DO UPDATE SET
+                           status = excluded.status,
+                           stop_gate_exit_code = COALESCE(excluded.stop_gate_exit_code, missions.stop_gate_exit_code),
+                           completed_at = COALESCE(excluded.completed_at, missions.completed_at),
+                           metadata_json = CASE WHEN excluded.metadata_json != '{}' THEN excluded.metadata_json ELSE missions.metadata_json END;""",
+                    (mission_id, session_id, project_id, intent_query, task_class, risk_tier, workforce_mode, status, stop_gate_exit_code, created, completed_at, metadata_json),
+                )
+                cursor.execute("COMMIT;")
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to record mission {mission_id}: {e}") from e
+
+    def record_turn(
+        self,
+        turn_id: str,
+        mission_id: str,
+        step_idx: int,
+        agent_role: str = "PrimaryEngineer",
+        agent_conversation_id: Optional[str] = None,
+        duration_ms: int = 0,
+        created_at: Optional[str] = None,
+        metadata_json: str = "{}",
+    ) -> None:
+        """Upserts a turn record."""
+        now_utc = datetime.now(timezone.utc).isoformat()
+        created = created_at or now_utc
+
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                cursor.execute(
+                    """INSERT INTO turns 
+                       (turn_id, mission_id, step_idx, agent_role, agent_conversation_id, duration_ms, created_at, metadata_json)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(turn_id) DO UPDATE SET
+                           duration_ms = MAX(turns.duration_ms, excluded.duration_ms),
+                           metadata_json = CASE WHEN excluded.metadata_json != '{}' THEN excluded.metadata_json ELSE turns.metadata_json END;""",
+                    (turn_id, mission_id, step_idx, agent_role, agent_conversation_id, duration_ms, created, metadata_json),
+                )
+                cursor.execute("COMMIT;")
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to record turn {turn_id}: {e}") from e
+
+    def record_tool_call(self, tool_call: SafeToolCall) -> bool:
+        """Records a single sanitized tool call. Returns True if inserted, False if already existed."""
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                cursor.execute(
+                    """INSERT OR IGNORE INTO tool_calls 
+                       (call_id, turn_id, tool_name, sanitized_args_json, exit_code, status, output_sha256, output_summary, duration_ms, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);""",
+                    (
+                        tool_call.call_id,
+                        tool_call.turn_id,
+                        tool_call.tool_name,
+                        tool_call.sanitized_args_json,
+                        tool_call.exit_code,
+                        tool_call.status,
+                        tool_call.output_sha256,
+                        tool_call.output_summary,
+                        tool_call.duration_ms,
+                        tool_call.created_at,
+                    ),
+                )
+                inserted = cursor.rowcount > 0
+                cursor.execute("COMMIT;")
+                return inserted
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to record tool call {tool_call.call_id}: {e}") from e
+
+    def record_tool_calls(self, tool_calls: List[SafeToolCall]) -> int:
+        """Batch records sanitized tool calls. Returns count of newly inserted records."""
+        if not tool_calls:
+            return 0
+        inserted_count = 0
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                for tc in tool_calls:
+                    cursor.execute(
+                        """INSERT OR IGNORE INTO tool_calls 
+                           (call_id, turn_id, tool_name, sanitized_args_json, exit_code, status, output_sha256, output_summary, duration_ms, created_at)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);""",
+                        (
+                            tc.call_id,
+                            tc.turn_id,
+                            tc.tool_name,
+                            tc.sanitized_args_json,
+                            tc.exit_code,
+                            tc.status,
+                            tc.output_sha256,
+                            tc.output_summary,
+                            tc.duration_ms,
+                            tc.created_at,
+                        ),
+                    )
+                    if cursor.rowcount > 0:
+                        inserted_count += 1
+                cursor.execute("COMMIT;")
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to record batch tool calls: {e}") from e
+        return inserted_count
+
+    def record_engineering_event(self, event: SafeEngineeringEvent) -> bool:
+        """Records a single sanitized engineering event with deterministic deduplication.
+        
+        Returns True if inserted, False if duplicate.
+        """
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                # Deduplication check via event_signature if present
+                if event.event_signature:
+                    cursor.execute(
+                        "SELECT 1 FROM engineering_events WHERE project_id = ? AND event_signature = ?;",
+                        (event.project_id, event.event_signature),
+                    )
+                    if cursor.fetchone():
+                        cursor.execute("COMMIT;")
+                        return False
+
+                cursor.execute(
+                    """INSERT OR IGNORE INTO engineering_events 
+                       (event_id, mission_id, project_id, event_type, epistemic_grade, affected_file, event_signature, payload_json, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);""",
+                    (
+                        event.event_id,
+                        event.mission_id,
+                        event.project_id,
+                        event.event_type,
+                        event.epistemic_grade,
+                        event.affected_file,
+                        event.event_signature,
+                        event.payload_json,
+                        event.created_at,
+                    ),
+                )
+                inserted = cursor.rowcount > 0
+                cursor.execute("COMMIT;")
+                return inserted
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to record engineering event {event.event_id}: {e}") from e
+
+    def record_engineering_events(self, events: List[SafeEngineeringEvent]) -> int:
+        """Batch records sanitized engineering events with signature deduplication.
+        
+        Returns count of newly inserted events.
+        """
+        if not events:
+            return 0
+        inserted_count = 0
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                for ev in events:
+                    if ev.event_signature:
+                        cursor.execute(
+                            "SELECT 1 FROM engineering_events WHERE project_id = ? AND event_signature = ?;",
+                            (ev.project_id, ev.event_signature),
+                        )
+                        if cursor.fetchone():
+                            continue
+
+                    cursor.execute(
+                        """INSERT OR IGNORE INTO engineering_events 
+                           (event_id, mission_id, project_id, event_type, epistemic_grade, affected_file, event_signature, payload_json, created_at)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);""",
+                        (
+                            ev.event_id,
+                            ev.mission_id,
+                            ev.project_id,
+                            ev.event_type,
+                            ev.epistemic_grade,
+                            ev.affected_file,
+                            ev.event_signature,
+                            ev.payload_json,
+                            ev.created_at,
+                        ),
+                    )
+                    if cursor.rowcount > 0:
+                        inserted_count += 1
+                cursor.execute("COMMIT;")
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to record batch engineering events: {e}") from e
+        return inserted_count
+
+    def save_checkpoint(self, checkpoint: IngestionCheckpoint) -> None:
+        """Persists or updates an ingestion checkpoint."""
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                cursor.execute(
+                    """INSERT INTO ingestion_checkpoints 
+                       (checkpoint_id, project_id, session_id, source_type, source_path, last_byte_offset, last_step_idx, file_sha256, file_size_bytes, records_ingested, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(checkpoint_id) DO UPDATE SET
+                           last_byte_offset = excluded.last_byte_offset,
+                           last_step_idx = excluded.last_step_idx,
+                           file_sha256 = excluded.file_sha256,
+                           file_size_bytes = excluded.file_size_bytes,
+                           records_ingested = excluded.records_ingested,
+                           updated_at = excluded.updated_at;""",
+                    (
+                        checkpoint.checkpoint_id,
+                        checkpoint.project_id,
+                        checkpoint.session_id,
+                        checkpoint.source_type,
+                        checkpoint.source_path,
+                        checkpoint.last_byte_offset,
+                        checkpoint.last_step_idx,
+                        checkpoint.file_sha256,
+                        checkpoint.file_size_bytes,
+                        checkpoint.records_ingested,
+                        checkpoint.updated_at or datetime.now(timezone.utc).isoformat(),
+                    ),
+                )
+                cursor.execute("COMMIT;")
+            except Exception as e:
+                cursor.execute("ROLLBACK;")
+                raise StorageError(f"Failed to save checkpoint {checkpoint.checkpoint_id}: {e}") from e
+
+    def load_checkpoint(self, checkpoint_id: str) -> Optional[IngestionCheckpoint]:
+        """Loads an ingestion checkpoint by ID."""
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """SELECT checkpoint_id, project_id, session_id, source_type, source_path, 
+                          last_byte_offset, last_step_idx, file_sha256, file_size_bytes, records_ingested, updated_at
+                   FROM ingestion_checkpoints WHERE checkpoint_id = ?;""",
+                (checkpoint_id,),
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+            return IngestionCheckpoint(
+                checkpoint_id=row["checkpoint_id"],
+                project_id=row["project_id"],
+                session_id=row["session_id"],
+                source_type=row["source_type"],
+                source_path=row["source_path"],
+                last_byte_offset=row["last_byte_offset"],
+                last_step_idx=row["last_step_idx"],
+                file_sha256=row["file_sha256"],
+                file_size_bytes=row["file_size_bytes"],
+                records_ingested=row["records_ingested"],
+                updated_at=row["updated_at"],
+            )
+
+    def load_session_checkpoint(
+        self, session_id: str, source_type: str = "transcript_jsonl"
+    ) -> Optional[IngestionCheckpoint]:
+        """Loads the most recent checkpoint for a given session and source type."""
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """SELECT checkpoint_id, project_id, session_id, source_type, source_path, 
+                          last_byte_offset, last_step_idx, file_sha256, file_size_bytes, records_ingested, updated_at
+                   FROM ingestion_checkpoints 
+                   WHERE session_id = ? AND source_type = ?
+                   ORDER BY updated_at DESC LIMIT 1;""",
+                (session_id, source_type),
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+            return IngestionCheckpoint(
+                checkpoint_id=row["checkpoint_id"],
+                project_id=row["project_id"],
+                session_id=row["session_id"],
+                source_type=row["source_type"],
+                source_path=row["source_path"],
+                last_byte_offset=row["last_byte_offset"],
+                last_step_idx=row["last_step_idx"],
+                file_sha256=row["file_sha256"],
+                file_size_bytes=row["file_size_bytes"],
+                records_ingested=row["records_ingested"],
+                updated_at=row["updated_at"],
+            )
+
+    def query_events(
+        self,
+        project_id: str,
+        event_type: Optional[str] = None,
+        session_id: Optional[str] = None,
+        mission_id: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Dict[str, Any]]:
+        """Queries engineering events with mandatory project tenant scoping."""
+        query = ["SELECT * FROM engineering_events WHERE project_id = ?"]
+        params: List[Any] = [project_id]
+
+        if event_type:
+            query.append("AND event_type = ?")
+            params.append(event_type)
+        if mission_id:
+            query.append("AND mission_id = ?")
+            params.append(mission_id)
+        if session_id:
+            query.append("AND mission_id IN (SELECT mission_id FROM missions WHERE session_id = ?)")
+            params.append(session_id)
+
+        query.append("ORDER BY created_at ASC LIMIT ?;")
+        params.append(limit)
+
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute(" ".join(query), params)
+            return [dict(row) for row in cursor.fetchall()]
+
+    def query_tool_calls(
+        self,
+        turn_id: Optional[str] = None,
+        tool_name: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Dict[str, Any]]:
+        """Queries tool calls."""
+        query = ["SELECT * FROM tool_calls WHERE 1=1"]
+        params: List[Any] = []
+
+        if turn_id:
+            query.append("AND turn_id = ?")
+            params.append(turn_id)
+        if tool_name:
+            query.append("AND tool_name = ?")
+            params.append(tool_name)
+        if status:
+            query.append("AND status = ?")
+            params.append(status)
+
+        query.append("ORDER BY created_at ASC LIMIT ?;")
+        params.append(limit)
+
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute(" ".join(query), params)
+            return [dict(row) for row in cursor.fetchall()]
+
+    def query_sessions(self, project_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """Queries sessions scoped to project_id."""
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM sessions WHERE project_id = ? ORDER BY started_at DESC LIMIT ?;",
+                (project_id, limit),
+            )
+            return [dict(row) for row in cursor.fetchall()]
+
+    def query_missions(
+        self, project_id: str, session_id: Optional[str] = None, limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """Queries missions scoped to project_id."""
+        query = ["SELECT * FROM missions WHERE project_id = ?"]
+        params: List[Any] = [project_id]
+
+        if session_id:
+            query.append("AND session_id = ?")
+            params.append(session_id)
+
+        query.append("ORDER BY created_at DESC LIMIT ?;")
+        params.append(limit)
+
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute(" ".join(query), params)
+            return [dict(row) for row in cursor.fetchall()]
+
+    def query_turns(self, mission_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """Queries turns scoped to mission_id."""
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM turns WHERE mission_id = ? ORDER BY step_idx ASC LIMIT ?;",
+                (mission_id, limit),
+            )
+            return [dict(row) for row in cursor.fetchall()]
+
+    def count_records(self, table_name: str, project_id: Optional[str] = None) -> int:
+        """Returns record count for a table, optionally filtered by project_id."""
+        allowed_tables = {
+            "projects",
+            "sessions",
+            "missions",
+            "turns",
+            "tool_calls",
+            "engineering_events",
+            "ingestion_checkpoints",
+        }
+        if table_name not in allowed_tables:
+            raise StorageError(f"Table '{table_name}' is not an allowed telemetry table.")
+
+        with closing(get_db_connection(self.db_path, timeout=self.timeout)) as conn:
+            cursor = conn.cursor()
+            if project_id and table_name in {"sessions", "missions", "engineering_events", "ingestion_checkpoints"}:
+                cursor.execute(f"SELECT count(*) as cnt FROM {table_name} WHERE project_id = ?;", (project_id,))
+            else:
+                cursor.execute(f"SELECT count(*) as cnt FROM {table_name};")
+            return cursor.fetchone()["cnt"]
+

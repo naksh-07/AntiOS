@@ -39,6 +39,11 @@ from framework.core.github_capability import GitHubCapabilityEngine, IssueClass,
 from framework.core.installation import InstallationLifecycleManager
 from framework.core.manifest import load_manifest, save_manifest
 from framework.core.release_engine import ReleaseEngine
+from framework.core.telemetry_bridge import (
+    AntigravityEventBridge,
+    TelemetryCollectionMode,
+    TelemetryConfigResolver,
+)
 from framework.core.version import (
     ANTIOS_VERSION,
     compare_versions,
@@ -431,6 +436,95 @@ def cmd_data(args: argparse.Namespace) -> int:
     return 1
 
 
+def cmd_telemetry(args: argparse.Namespace) -> int:
+    """Handles antios telemetry {status,enable,disable,ingest} commands."""
+    target = _resolve_target(args)
+    action = getattr(args, "telemetry_action", None) or "status"
+    bridge = AntigravityEventBridge(project_root=target)
+
+    if action == "status":
+        mode = TelemetryConfigResolver.resolve_mode(project_root=target)
+        status_info = {
+            "telemetry_mode": mode.value,
+            "is_enabled": mode == TelemetryCollectionMode.ON,
+            "project_id": bridge.project_id,
+            "project_name": bridge.project_name,
+            "project_root": str(bridge.project_root),
+        }
+        if getattr(args, "json", False):
+            print(json.dumps(status_info, indent=2))
+        else:
+            print("=" * 60)
+            print("AntiOS Engineering Intelligence: Telemetry Status")
+            print("=" * 60)
+            print(f"Collection Mode:        {mode.value}")
+            print(f"Collection Active:      {'YES' if mode == TelemetryCollectionMode.ON else 'NO (Default: OFF)'}")
+            print(f"Project Identity:       {bridge.project_id} ({bridge.project_name})")
+            print(f"Project Root:           {bridge.project_root}")
+        return 0
+
+    if action == "enable":
+        cfg_file = target / "antios.config.json"
+        cfg_data: Dict[str, Any] = {}
+        if cfg_file.is_file():
+            try:
+                with open(cfg_file, "r", encoding="utf-8-sig") as f:
+                    cfg_data = json.load(f)
+            except Exception:
+                cfg_data = {}
+        if "telemetry" not in cfg_data or not isinstance(cfg_data["telemetry"], dict):
+            cfg_data["telemetry"] = {}
+        cfg_data["telemetry"]["enabled"] = True
+        cfg_data["telemetry"]["mode"] = "ON"
+        with open(cfg_file, "w", encoding="utf-8") as f:
+            json.dump(cfg_data, f, indent=2)
+        print(f"[SUCCESS] Telemetry collection ENABLED for project '{bridge.project_name}' in antios.config.json")
+        return 0
+
+    if action == "disable":
+        cfg_file = target / "antios.config.json"
+        cfg_data: Dict[str, Any] = {}
+        if cfg_file.is_file():
+            try:
+                with open(cfg_file, "r", encoding="utf-8-sig") as f:
+                    cfg_data = json.load(f)
+            except Exception:
+                cfg_data = {}
+        if "telemetry" not in cfg_data or not isinstance(cfg_data["telemetry"], dict):
+            cfg_data["telemetry"] = {}
+        cfg_data["telemetry"]["enabled"] = False
+        cfg_data["telemetry"]["mode"] = "OFF"
+        with open(cfg_file, "w", encoding="utf-8") as f:
+            json.dump(cfg_data, f, indent=2)
+        print(f"[SUCCESS] Telemetry collection DISABLED for project '{bridge.project_name}' in antios.config.json")
+        return 0
+
+    if action == "ingest":
+        transcript_path = getattr(args, "transcript", None)
+        if not transcript_path:
+            print("Error: --transcript <path> is required for ingestion.")
+            return 1
+        res = bridge.ingest_transcript(
+            transcript_path=transcript_path,
+            session_id=getattr(args, "session_id", None),
+        )
+        if getattr(args, "json", False):
+            print(json.dumps(res.to_dict(), indent=2))
+        else:
+            print(f"Ingestion Status:       {'SUCCESS' if res.success else 'FAILED'}")
+            print(f"Mode:                   {res.mode.value}")
+            print(f"Events Ingested:        {res.events_ingested}")
+            print(f"Tool Calls Ingested:    {res.tool_calls_ingested}")
+            print(f"Turns Ingested:         {res.turns_ingested}")
+            print(f"Bytes Processed:        {res.bytes_processed}")
+            if res.error:
+                print(f"Diagnostic Error:       {res.error}")
+        return 0 if res.success else 1
+
+    print("Usage: antios telemetry {status,enable,disable,ingest} ...")
+    return 1
+
+
 # ==========================================
 # CLI Parser Setup
 # ==========================================
@@ -574,8 +668,29 @@ def build_parser() -> argparse.ArgumentParser:
     p_data_set.add_argument("directory", help="Target data directory path")
     p_data_set.add_argument("--path", help="Target project root directory")
     p_data_set.add_argument("--json", action="store_true", help="Output machine-readable JSON")
-
     p_data.set_defaults(func=cmd_data)
+
+    # telemetry
+    p_telem = subparsers.add_parser("telemetry", help="AntiOS Engineering Intelligence telemetry inspection & ingestion")
+    p_telem_sub = p_telem.add_subparsers(dest="telemetry_action", help="Telemetry actions")
+
+    p_telem_stat = p_telem_sub.add_parser("status", help="Inspect telemetry collection status and mode")
+    p_telem_stat.add_argument("--path", help="Target project root directory")
+    p_telem_stat.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_telem_en = p_telem_sub.add_parser("enable", help="Enable telemetry collection in project configuration")
+    p_telem_en.add_argument("--path", help="Target project root directory")
+
+    p_telem_dis = p_telem_sub.add_parser("disable", help="Disable telemetry collection in project configuration")
+    p_telem_dis.add_argument("--path", help="Target project root directory")
+
+    p_telem_ing = p_telem_sub.add_parser("ingest", help="Manually ingest Antigravity transcript file")
+    p_telem_ing.add_argument("--transcript", required=True, help="Path to transcript.jsonl file")
+    p_telem_ing.add_argument("--session-id", help="Explicit session/conversation ID override")
+    p_telem_ing.add_argument("--path", help="Target project root directory")
+    p_telem_ing.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_telem.set_defaults(func=cmd_telemetry)
 
     return parser
 
