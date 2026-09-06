@@ -23,7 +23,7 @@ import sys
 from typing import Any, Dict, Optional, Tuple
 
 # Canonical single source of truth
-ANTIOS_VERSION: str = "2.0.0-beta.1"
+ANTIOS_VERSION: str = "2.1.0-beta.1"
 CURRENT_SCHEMA_VERSION: str = "2.0.0"
 ADAPTER_SCHEMA_VERSION: str = "1.0"
 

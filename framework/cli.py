@@ -196,7 +196,18 @@ def cmd_repair(args: argparse.Namespace) -> int:
     source = _resolve_source()
     mgr = InstallationLifecycleManager(source_root=source, target_root=target)
 
-    plan_only = getattr(args, "plan", False) or getattr(args, "check", False)
+    is_apply = getattr(args, "apply", False)
+    is_plan = getattr(args, "plan", False)
+    is_check = getattr(args, "check", False)
+
+    if is_apply and (is_plan or is_check):
+        if getattr(args, "json", False):
+            print(json.dumps({"status": "ERROR", "error": "--apply cannot be combined with --plan or --check."}, indent=2))
+        else:
+            print("Error: --apply cannot be combined with --plan or --check.")
+        return 1
+
+    plan_only = is_plan or is_check
     dry_run = getattr(args, "dry_run", False) or plan_only
 
     res = mgr.repair(dry_run=dry_run, plan_only=plan_only)
@@ -343,6 +354,13 @@ def cmd_data(args: argparse.Namespace) -> int:
     target = _resolve_target(args)
     action = getattr(args, "data_action", None) or "status"
 
+    def _emit_error(msg: Any) -> int:
+        if getattr(args, "json", False):
+            print(json.dumps({"status": "ERROR", "error": str(msg)}, indent=2))
+        else:
+            print(f"Error: {msg}")
+        return 1
+
     if action == "status":
         explicit_dd = getattr(args, "data_dir", None)
         stat = get_storage_status(data_dir=explicit_dd, project_root=target)
@@ -386,12 +404,10 @@ def cmd_data(args: argparse.Namespace) -> int:
     if action == "set-dir":
         new_dir = getattr(args, "directory", None)
         if not new_dir:
-            print("Error: must specify directory path.")
-            return 1
+            return _emit_error("must specify directory path.")
         new_path = Path(new_dir).resolve()
         if new_path == target or target in new_path.parents:
-            print("Error: AntiOS Data Directory cannot be located inside the target project repository.")
-            return 1
+            return _emit_error("AntiOS Data Directory cannot be located inside the target project repository.")
 
         # Establish directory & database
         target_dd, db_path = init_data_directory(new_path)
@@ -449,11 +465,9 @@ def cmd_data(args: argparse.Namespace) -> int:
                 explicit_dir=getattr(args, "data_dir", None),
             )
         except Exception as e:
-            print(f"Error: {e}")
-            return 1
+            return _emit_error(e)
         if not context.db_path.is_file():
-            print(f"Error: Experience database does not exist: {context.db_path}")
-            return 1
+            return _emit_error(f"Experience database does not exist: {context.db_path}")
         out = getattr(args, "output", None)
         try:
             result_path = backup_database(context.db_path, out)
@@ -463,8 +477,7 @@ def cmd_data(args: argparse.Namespace) -> int:
                 print(f"[SUCCESS] Backup created: {result_path}")
             return 0
         except Exception as e:
-            print(f"Error: Backup failed: {e}")
-            return 1
+            return _emit_error(f"Backup failed: {e}")
 
     if action == "restore":
         try:
@@ -473,12 +486,10 @@ def cmd_data(args: argparse.Namespace) -> int:
                 explicit_dir=getattr(args, "data_dir", None),
             )
         except Exception as e:
-            print(f"Error: {e}")
-            return 1
+            return _emit_error(e)
         backup_file = getattr(args, "backup", None)
         if not backup_file:
-            print("Error: --backup <path> is required for restore.")
-            return 1
+            return _emit_error("--backup <path> is required for restore.")
         is_dry_run = getattr(args, "dry_run", False)
         is_confirmed = getattr(args, "confirm", False)
         try:
@@ -504,8 +515,9 @@ def cmd_data(args: argparse.Namespace) -> int:
                         print(f"  Pre-restore backup:  {result['pre_restore_backup']}")
             return 0
         except StorageError as e:
-            print(f"Error: {e}")
-            return 1
+            return _emit_error(e)
+        except Exception as e:
+            return _emit_error(e)
 
     if action == "purge":
         try:
@@ -514,11 +526,9 @@ def cmd_data(args: argparse.Namespace) -> int:
                 explicit_dir=getattr(args, "data_dir", None),
             )
         except Exception as e:
-            print(f"Error: {e}")
-            return 1
+            return _emit_error(e)
         if not context.db_path.is_file():
-            print(f"Error: Experience database does not exist: {context.db_path}")
-            return 1
+            return _emit_error(f"Experience database does not exist: {context.db_path}")
         proj = getattr(args, "project", None)
         purge_all = getattr(args, "purge_all", False)
         older_than = getattr(args, "older_than", None)
@@ -551,8 +561,9 @@ def cmd_data(args: argparse.Namespace) -> int:
                         print(f"  Pre-purge backup:    {result['pre_purge_backup']}")
             return 0
         except StorageError as e:
-            print(f"Error: {e}")
-            return 1
+            return _emit_error(e)
+        except Exception as e:
+            return _emit_error(e)
 
     if action == "vacuum":
         try:
@@ -561,11 +572,9 @@ def cmd_data(args: argparse.Namespace) -> int:
                 explicit_dir=getattr(args, "data_dir", None),
             )
         except Exception as e:
-            print(f"Error: {e}")
-            return 1
+            return _emit_error(e)
         if not context.db_path.is_file():
-            print(f"Error: Experience database does not exist: {context.db_path}")
-            return 1
+            return _emit_error(f"Experience database does not exist: {context.db_path}")
         is_full = getattr(args, "full", False)
         try:
             result = vacuum_database(context.db_path, full=is_full)
@@ -578,8 +587,7 @@ def cmd_data(args: argparse.Namespace) -> int:
                 print(f"  Reclaimed:           {result['reclaimed_bytes']} bytes")
             return 0
         except Exception as e:
-            print(f"Error: Vacuum failed: {e}")
-            return 1
+            return _emit_error(f"Vacuum failed: {e}")
 
     if action == "export":
         try:
@@ -588,11 +596,9 @@ def cmd_data(args: argparse.Namespace) -> int:
                 explicit_dir=getattr(args, "data_dir", None),
             )
         except Exception as e:
-            print(f"Error: {e}")
-            return 1
+            return _emit_error(e)
         if not context.db_path.is_file():
-            print(f"Error: Experience database does not exist: {context.db_path}")
-            return 1
+            return _emit_error(f"Experience database does not exist: {context.db_path}")
         proj = getattr(args, "project", None) or context.project_id
         out = getattr(args, "output", None)
         if not out:
@@ -607,8 +613,7 @@ def cmd_data(args: argparse.Namespace) -> int:
                 print(f"[SUCCESS] Raw experience exported to: {result_path}")
             return 0
         except Exception as e:
-            print(f"Error: Export failed: {e}")
-            return 1
+            return _emit_error(f"Export failed: {e}")
 
     print("Usage: antios data {status,set-dir,backup,restore,purge,vacuum,export} ...")
     return 1
@@ -803,7 +808,7 @@ def cmd_experience(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="antios",
-        description="AntiOS 2.0 — Project Agent OS for Universal Engineering Governance & Autonomous Development",
+        description="AntiOS 2.1 - Project Agent OS for Universal Engineering Governance & Autonomous Development",
     )
     subparsers = parser.add_subparsers(dest="command", help="AntiOS commands")
 

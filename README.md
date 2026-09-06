@@ -3,10 +3,10 @@
 **Universal, Domain-Agnostic Project Agent OS for Google Antigravity**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-920%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
+[![Tests](https://img.shields.io/badge/tests-1086%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](ANTIOS_CONSTITUTION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/version-v2.0.0--beta.1-green.svg)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/version-v2.1.0--beta.1-green.svg)](CHANGELOG.md)
 
 ---
 

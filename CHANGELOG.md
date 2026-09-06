@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0-beta.1] - 2026-09-06
+
+### Added
+- **Local Engineering Intelligence & Experience Plane (Phases 103–107)**:
+  - **Storage & Central Data Directory (Phase 103)**: Deterministic external data directory resolution (`AntiOSDataResolver`) strictly outside target repositories (INV-10), housing WAL-mode `experience.db` for central operational intelligence.
+  - **Telemetry Sanitizer & Privacy Engine (Phase 104)**: Rigorous multi-provider secret scrubbing (Google, GitHub, AWS, OpenAI, Anthropic, tokens, keys), strict path-traversal normalization (`realpath`, `normcase`), prompt-injection defanging, and fail-closed collection.
+  - **Antigravity Event Bridge (Phase 105)**: Passive background transcript parser with byte-offset checkpointing, malformed/truncated JSONL resilience, and duplicate event deduplication.
+  - **Experience Intelligence Engine (Phase 106)**: External analytical engine (`ExperienceAnalyticsEngine`) providing project-scoped and global cross-project aggregation, failure intelligence, workflow friction detection, and empirical metrics without modifying target project state.
+  - **Experience Lifecycle Operations (Phase 107)**: Automated hot backups, pre-restore/pre-purge snapshotting, incremental database vacuuming, and raw JSONL export (`antios data {status,set-dir,backup,restore,purge,vacuum,export}`).
+- **Pre-Release Audit Remediations**:
+  - Remediated modern setuptools (PEP 639) build failure by removing superseded license classifier from `pyproject.toml`.
+  - Added missing `import sys` to `framework/core/release_engine.py` ensuring test runner pre-flight execution in `antios release check`.
+  - Enforced structured JSON output on error paths across all `antios data` subcommands when `--json` is specified.
+  - Hardened `cmd_repair` with explicit `--apply` validation and exclusivity checking.
+  - Standardized Windows console ASCII formatting across CLI entry points.
+  - Silenced pytest test collection warning on `ResultItem` dataclass.
+
+### Security
+- Cryptographically verified System A (Project Learning/Memory) vs System B (Experience Plane) absolute decoupling: 0 circular dependencies, 0 cross-plane imports, and byte-for-byte repository immutability during all experience operations.
+- Passive, fail-closed telemetry collection default requiring explicit activation.
+
+---
+
 ## [2.0.0-beta.1] - 2026-09-06
 
 ### Added

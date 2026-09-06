@@ -143,10 +143,10 @@ class TestMigrationContract(unittest.TestCase):
         """Test executing a migration plan that upgrades schema version."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             manifest = ProjectManifest(
-                antios_version="2.0.0",
+                antios_version=CURRENT_ANTIOS_VERSION,
                 schema_version="1.0.0",
                 project_fingerprint="test-fp",
-                source_revision="v2.0.0",
+                source_revision=f"v{CURRENT_ANTIOS_VERSION}",
                 capability_revision="1.0",
             )
             save_manifest(manifest, tmp_dir)
@@ -154,8 +154,8 @@ class TestMigrationContract(unittest.TestCase):
             plan = MigrationPlan(
                 plan_id="plan-test-01",
                 target_root=tmp_dir,
-                source_version="2.0.0",
-                instance_version="2.0.0",
+                source_version=CURRENT_ANTIOS_VERSION,
+                instance_version=CURRENT_ANTIOS_VERSION,
                 source_schema="2.0.0",
                 instance_schema="1.0.0",
                 compatibility_state=CompatibilityState.MIGRATION_REQUIRED,

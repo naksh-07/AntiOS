@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 @dataclass
 class ResultItem:
+    __test__ = False
     command: str
     exit_code: int
     passed: bool
@@ -21,6 +22,7 @@ class ResultItem:
 
 # Alias for backward compatibility
 TestResult = ResultItem
+TestResult.__test__ = False
 
 
 @dataclass

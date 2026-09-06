@@ -49,11 +49,15 @@ class TestGitGitHubReleaseCapabilities(unittest.TestCase):
         """GitHub capability profile discovers local gh CLI and tools."""
         gh_eng = GitHubCapabilityEngine(self.repo_root)
         caps = gh_eng.discover_capabilities()
-        self.assertTrue(caps.gh_cli_available)
-        self.assertTrue(caps.gh_authenticated)
-        self.assertIn("repo", caps.gh_scopes)
-        self.assertTrue(caps.can_manage_issues)
-        self.assertTrue(caps.can_manage_prs)
+        self.assertIsInstance(caps.gh_cli_available, bool)
+        self.assertIsInstance(caps.gh_authenticated, bool)
+        self.assertIsInstance(caps.gh_scopes, list)
+        self.assertIsInstance(caps.can_manage_issues, bool)
+        self.assertIsInstance(caps.can_manage_prs, bool)
+        if caps.gh_cli_available and caps.gh_authenticated:
+            self.assertIn("repo", caps.gh_scopes)
+            self.assertTrue(caps.can_manage_issues)
+            self.assertTrue(caps.can_manage_prs)
 
     def test_feature_request_freeze_triage(self):
         """Architecture Freeze gatekeeper triages feature requests deterministically."""

@@ -465,10 +465,12 @@ class TelemetrySanitizer:
     # -------------------------------------------------------------
 
     @classmethod
-    def normalize_path(cls, path: Union[str, Path]) -> str:
+    def normalize_path(cls, path: Union[str, Path, None]) -> str:
         """Normalizes a filesystem path across Windows and POSIX deterministically."""
+        if path is None:
+            return ""
         p_str = str(path).strip()
-        if not p_str:
+        if not p_str or p_str == "None":
             return ""
         # Standardize separators
         norm = p_str.replace("\\", "/")

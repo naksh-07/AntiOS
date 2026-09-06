@@ -22,6 +22,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from framework.core.git_capability import GitCapabilityEngine
