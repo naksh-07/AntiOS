@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antios"
-version = "1.0.0"
+version = "2.0.0"
 description = "Universal autonomous engineering governance and verification framework for AI coding agents"
 readme = "README.md"
 requires-python = ">=3.8"

@@ -535,3 +535,8 @@ class LongHorizonEvaluationEngine:
             knowledge_reuse_validated=True,
             summary="RUN-05 completed: Conflicting evidence handled safely with REPLAN and subsequent clean pass.",
         )
+
+
+# Canonical aliases
+EvaluationSequence = LongHorizonSequenceId
+StepEvaluation = LongHorizonStepResult

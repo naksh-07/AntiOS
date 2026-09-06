@@ -1,7 +1,7 @@
 # AntiOS Master Source of Truth (`ANTIOS_SOURCE_OF_TRUTH.md`)
 
 **Date**: 2026-09-06  
-**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1–98 Consolidated)  
+**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1–101 Consolidated & Architecture Freeze)  
 **Objective**: Establish the single authoritative source of truth for every architectural, operational, and governance dimension of AntiOS, eliminating dual-truth risks, documentation drift, and authority fragmentation.
 
 ---
@@ -20,12 +20,18 @@
 | Architectural Domain | Canonical Source of Truth | Location / File Path | Authority Level | Precedence When Conflicting |
 | :--- | :--- | :--- | :---: | :--- |
 | **Engineering Invariants & Constitution** | AntiOS Master Constitution | `ANTIOS_CONSTITUTION.md` | **CONSTITUTION** | Highest architectural policy; defines invariants, boundaries, and immutable rules. |
+| **System Invariant Registry** | AntiOS Canonical Invariant Registry | `INVARIANT_REGISTRY.md` | **INVARIANT REGISTRY** | 20 canonical invariants (INV-01 to INV-20), verification mechanisms, and enforcement rules. |
 | **System Architecture** | AntiOS Master Architecture Specification | `ANTIOS_V1.md` | **PRIMARY SPEC** | Comprehensive system specification: 4-tier model, 7 subsystems, 63 core modules. |
+| **Architecture Freeze Ratification** | AntiOS Architecture Freeze Ratification | `ARCHITECTURE_FREEZE.md` | **FREEZE RATIFICATION** | Core freeze ratification, banned architectures, permitted maintenance classes, and 3.0 triggers. |
+| **Production Readiness Evaluation** | AntiOS Production Readiness Audit | `PRODUCTION_READINESS.md` | **READINESS AUDIT** | 15 dimensions evaluated, zero-infrastructure profile, operational and deployment checklist. |
+| **Universal Project Adoption** | AntiOS Universal Adoption Specification | `UNIVERSAL_ADOPTION.md` | **ADOPTION SPEC** | 19-step adoption audit, two-way contract, categorization, and execution mode labels. |
+| **Final System Certification** | AntiOS Final Certification Ledger | `FINAL_CERTIFICATION.md` | **CERTIFICATION LEDGER** | Complete 12-dimension verification across all proving grounds, failure modes, and 900 tests. |
+| **System Limitations & Boundaries** | AntiOS Known Limitations & Epistemic Boundaries | `KNOWN_LIMITATIONS.md` | **SYSTEM BOUNDARIES** | Explicit operational boundaries, non-goals, host constraints, and single-workspace scope. |
 | **Project Agent OS Architecture** | AntiOS 2.0 Project Agent OS Specification | `docs/architecture/PROJECT_AGENT_OS.md` | **PRIMARY SPEC** | Compilation contract, 5-tier ownership, 6-phase lifecycle, and orchestration limits. |
 | **Adaptive Mission Orchestration** | AntiOS Adaptive Orchestration Model | `docs/architecture/ORCHESTRATION_MODEL.md` | **PRIMARY SPEC** | Adaptive workforce sizing (SOLO to MAX), wave lifecycle, dual dispatch gates, resource ledger. |
 | **Primary Skill Control Plane** | AntiOS Primary Skill Architecture | `docs/architecture/ANTIOS_SKILL_MODEL.md` | **PRIMARY SPEC** | Authoritative control plane specification for `/antios` skill and progressive disclosure. |
 | **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
-| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–82) recording why decisions were made. |
+| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–85) recording why decisions were made. |
 | **Evidence Architecture** | AntiOS Evidence Architecture Specification | `docs/architecture/EVIDENCE_ARCHITECTURE.md` | **PRIMARY SPEC** | Authoritative epistemic separation, 6 evidence states, and bounded packaging. |
 | **Mission Evaluation Engine** | AntiOS Mission Evaluation Specification | `docs/architecture/MISSION_EVALUATION.md` | **PRIMARY SPEC** | 11-dimension deterministic evaluation, 4 statuses, and Maker-Checker enforcement. |
 | **Agent-Native Mission Benchmark** | AntiOS Mission Benchmark Specification | `docs/architecture/MISSION_BENCHMARK.md` | **PRIMARY SPEC** | Workflow quality benchmark, Baseline vs AntiOS comparison, and proving grounds A–J. |
@@ -35,7 +41,7 @@
 | **Real Antigravity Proving Ground** | Real Antigravity Proving Ground Specification | `docs/architecture/PROVING_GROUND.md` | **PRIMARY SPEC** | 8 canonical scenarios (A–H), native vs simulated trace boundary, bounded trace logs. |
 | **Failure Injection & Recovery** | Failure Injection & Recovery Specification | `docs/architecture/FAILURE_INJECTION.md` | **PRIMARY SPEC** | 16 failure modes, deterministic recovery matrix, partial write safety. |
 | **Long-Horizon Engineering Evaluation** | Long-Horizon Adaptive Evaluation Specification | `docs/architecture/LONG_HORIZON.md` | **PRIMARY SPEC** | RUN-01 to RUN-05 sequences, adaptive knowledge feedback, before/after benchmark comparisons. |
-| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 882 certified tests. |
+| **Capability Inventory & Layering** | AntiOS Capability Matrix | `docs/architecture/CAPABILITY_MATRIX.md` | **CAPABILITY MATRIX** | Authoritative 18-layer capability disposition across all 900 certified tests. |
 | **Project Instance Runtime & Closure** | Instance Runtime & Closure Contract | `framework/core/runtime_contract.py` / `.antios/runtime/` | **RUNTIME CLOSURE** | Self-contained instance execution, PreToolUse and Stop gates, and closure contract. |
 | **Formal System Certification** | AntiOS Formal Certification Matrix | `docs/architecture/CERTIFICATION_MATRIX.md` | **CERTIFICATION LEDGER** | Complete verification ledger across all 50 capability dimensions. |
 | **Core vs Adapter Contract** | Core vs Project Adapter Specification | `docs/architecture/CORE_VS_ADAPTER.md` | **BOUNDARY CONTRACT** | Strict demarcation between universal Core logic and declarative project adapters. |
@@ -63,19 +69,19 @@ Rank 2: Explicit Human User Directive
 Rank 3: Git Commit Log & Working Tree Status (git status, git diff)
         +-- Physical filesystem reality on disk. Overrides markdown memory.
 
-Rank 4: Master Engineering Constitution (ANTIOS_CONSTITUTION.md)
-        +-- Foundational project invariants, protected zones, and boundary rules.
+Rank 4: Master Engineering Constitution (ANTIOS_CONSTITUTION.md) & Invariant Registry (INVARIANT_REGISTRY.md)
+        +-- Foundational project invariants, protected zones, and boundary rules (INV-01 to INV-20).
 
-Rank 5: Master Architecture Specification (ANTIOS_V1.md)
-        +-- Canonical system blueprint. Overrides older subsystem proposals.
+Rank 5: Master Architecture Specification (ANTIOS_V1.md) & Architecture Freeze (ARCHITECTURE_FREEZE.md)
+        +-- Canonical system blueprint and freeze ratification. Overrides informal proposals.
 
 Rank 6: Master Decision Register (DECISION_REGISTER.md)
-        +-- Recorded consensus (Decisions 01–82). Overrides informal proposals.
+        +-- Recorded consensus (Decisions 01–85). Overrides informal proposals.
 
 Rank 7: Active Engineering Skills (.agents/skills/*)
         +-- Progressive procedural workflows. Overrides generic prompting.
 
-Rank 8: Durable Project Proofs & Release Certification (.antios/proofs/)
+Rank 8: Durable Project Proofs & Release Certification (.antios/proofs/, FINAL_CERTIFICATION.md)
         +-- Cryptographically grounded project proofs and release cards. Physically tied to Rank 3.
 
 Rank 9: Active Working Memory (docs/ACTIVE_CONTEXT.md)

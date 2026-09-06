@@ -181,6 +181,11 @@ import tests.test_failure_injection as test_failure_injection
 import tests.test_long_horizon as test_long_horizon
 import tests.test_phase96_98_adversarial as test_phase96_98_adversarial
 
+# Phase 99-101 Full System Certification, Universal Adoption & Architecture Freeze
+import tests.test_system_certification as test_system_certification
+import tests.test_universal_adoption as test_universal_adoption
+import tests.test_production_readiness as test_production_readiness
+
 
 
 def build_suite() -> unittest.TestSuite:
@@ -336,6 +341,10 @@ def build_suite() -> unittest.TestSuite:
         test_failure_injection,
         test_long_horizon,
         test_phase96_98_adversarial,
+        # Phase 99-101
+        test_system_certification,
+        test_universal_adoption,
+        test_production_readiness,
     ]
 
     loader = unittest.defaultTestLoader

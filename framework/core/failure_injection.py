@@ -600,3 +600,8 @@ class FailureInjectionHarness:
         for f_class in FailureClass:
             results[f_class] = self.inject_failure(f_class)
         return results
+
+
+# Canonical aliases
+FailureMode = FailureClass
+RecoveryAction = MissionRecoveryAction

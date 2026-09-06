@@ -582,6 +582,72 @@ from framework.core.release_certification import (
     ReleaseCertificationEngine,
 )
 
+# Phase 96: Real Antigravity Proving Ground
+from framework.core.proving_ground import (
+    EngineeringScenario,
+    ExecutionMode,
+    MissionTrace,
+    ProvingGroundResult,
+    RealProvingGround,
+    ScenarioCatalog,
+)
+
+# Phase 97: Failure Injection & Recovery Matrix
+from framework.core.failure_injection import (
+    FailureClass,
+    FailureInjectionHarness,
+    FailureInjectionResult,
+    FailureMatrixCatalog,
+    FailureMode,
+    FailureSpec,
+    RecoveryAction,
+)
+
+# Phase 98: Long-Horizon Adaptive Evaluation
+from framework.core.long_horizon import (
+    EvaluationSequence,
+    LongHorizonEvaluationEngine,
+    LongHorizonSequenceId,
+    LongHorizonSequenceReport,
+    LongHorizonStepResult,
+    StepEvaluation,
+)
+
+# Phase 99: Full System Certification Audit
+from framework.core.certification_audit import (
+    AreaAuditResult,
+    AuditArea,
+    AuditFinding,
+    AuditStatus,
+    SystemCertificationAuditCard,
+    SystemCertificationAuditEngine,
+    SystemCertificationAuditReport,
+)
+
+# Phase 100: Fresh Project Universal Adoption Proving Ground
+from framework.core.universal_adoption import (
+    AdoptionStepResult,
+    ExecutionLabel,
+    TwoWayAdaptationAudit,
+    UniversalAdoptionCard,
+    UniversalAdoptionProvingGround,
+    UniversalAdoptionReport,
+)
+
+# Phase 101: Production Readiness & Architecture Freeze
+from framework.core.architecture_freeze import (
+    ArchitectureFreezeValidator,
+    CriticalInvariant,
+    DimensionEvaluation as FreezeDimensionEvaluation,
+    InvariantRegistry,
+    InvariantStatus,
+    ProductionReadinessCard,
+    ProductionReadinessEngine,
+    ProductionReadinessReport,
+    ReadinessDimension,
+    ReadinessStatus,
+)
+
 
 __all__ = [
 
@@ -1001,6 +1067,54 @@ __all__ = [
     "LongHorizonCertificationCard",
     "CertificationResult",
     "ReleaseCertificationEngine",
+    # Phase 96: Real Antigravity Proving Ground
+    "EngineeringScenario",
+    "ExecutionMode",
+    "MissionTrace",
+    "ProvingGroundResult",
+    "RealProvingGround",
+    "ScenarioCatalog",
+    # Phase 97: Failure Injection & Recovery Matrix
+    "FailureClass",
+    "FailureInjectionHarness",
+    "FailureInjectionResult",
+    "FailureMatrixCatalog",
+    "FailureMode",
+    "FailureSpec",
+    "RecoveryAction",
+    # Phase 98: Long-Horizon Adaptive Evaluation
+    "EvaluationSequence",
+    "LongHorizonEvaluationEngine",
+    "LongHorizonSequenceId",
+    "LongHorizonSequenceReport",
+    "LongHorizonStepResult",
+    "StepEvaluation",
+    # Phase 99: Full System Certification Audit
+    "AreaAuditResult",
+    "AuditArea",
+    "AuditFinding",
+    "AuditStatus",
+    "SystemCertificationAuditCard",
+    "SystemCertificationAuditEngine",
+    "SystemCertificationAuditReport",
+    # Phase 100: Fresh Project Universal Adoption Proving Ground
+    "AdoptionStepResult",
+    "ExecutionLabel",
+    "TwoWayAdaptationAudit",
+    "UniversalAdoptionCard",
+    "UniversalAdoptionProvingGround",
+    "UniversalAdoptionReport",
+    # Phase 101: Production Readiness & Architecture Freeze
+    "ArchitectureFreezeValidator",
+    "CriticalInvariant",
+    "FreezeDimensionEvaluation",
+    "InvariantRegistry",
+    "InvariantStatus",
+    "ProductionReadinessCard",
+    "ProductionReadinessEngine",
+    "ProductionReadinessReport",
+    "ReadinessDimension",
+    "ReadinessStatus",
 ]
 
 

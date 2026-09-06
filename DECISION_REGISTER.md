@@ -823,3 +823,33 @@
 - **WHY SELECTED**: Provides empirical, repeatable evidence of compounding efficiency while strictly enforcing token and memory boundedness.
 - **CONSEQUENCES**: Multi-mission workflows systematically test knowledge reuse and adaptation; regressions in efficiency are flagged and diagnosed.
 - **REVERSIBILITY**: High; modular evaluation suite in `framework/core/long_horizon.py`.
+
+---
+
+## DECISION 83: Full System Certification Audit Engine (Phase 99)
+- **DECISION**: Implement `SystemCertificationAuditEngine` in `framework/core/certification_audit.py` auditing the 12 canonical system integrity dimensions (`ARCHITECTURAL_INTEGRITY`, `DISPATCH_INTEGRITY`, `CONTEXT_INTEGRITY`, `EVIDENCE_INTEGRITY`, `LEARNING_INTEGRITY`, `PROJECT_INTELLIGENCE_INTEGRITY`, `RUNTIME_INTEGRITY`, `DRIFT_INTEGRITY`, `PROOF_INTEGRITY`, `CERTIFICATION_INTEGRITY`, `FAILURE_INTEGRITY`, `UNIVERSAL_APPLICABILITY`). Deterministically evaluate each dimension into `VERIFIED`, `PARTIALLY_VERIFIED`, `UNVERIFIED`, `FAILED`, or `NOT_APPLICABLE` based on physical test passes, fixtures, and code inspection. Emit token-bounded `SystemCertificationAuditCard` ($\le 25$ lines).
+- **EVIDENCE**: Whole-system certification requires end-to-end verification that all architectural boundaries, dispatch gates, and epistemic separations remain intact across every phase without regression or responsibility leakage.
+- **ALTERNATIVES**: Informal prose claims; relying on single-mission test exits without multi-dimensional cross-verification.
+- **WHY SELECTED**: Grounded in physical reality, automated, reproducible, and verifiable by independent Maker-Checker agents.
+- **CONSEQUENCES**: Full certification audit is deterministically executable via API and test runner; any regression demotes overall system status immediately.
+- **REVERSIBILITY**: High; isolated core governance module in `framework/core/certification_audit.py`.
+
+---
+
+## DECISION 84: Fresh Project Universal Adoption Proving Ground (Phase 100)
+- **DECISION**: Implement `UniversalAdoptionProvingGround` in `framework/core/universal_adoption.py`. Prove that AntiOS 2.0 can adopt an isolated, independent software repository of distinct architecture (`order-processor-service`) across all 19 lifecycle operations (install, discovery, anatomy, adapter, documentation, wayfinding, skills, task classification, capability selection, verification, evidence capture, learning, drift detection, repair proposals, update, verify, repair, remove, and re-adaptation). Enforce two-way adaptation contract with 0 mutations to AntiOS Core. Strictly label execution capabilities: `NATIVE`, `SIMULATED`, `HARNESS-ONLY`. Emit token-bounded `UniversalAdoptionCard` ($\le 25$ lines).
+- **EVIDENCE**: Claiming that AntiOS is universally adoptable requires empirical proof that a non-StudyLab, non-AntiOS project can be onboarded, governed, verified, and uninstalled cleanly without altering the operating system core.
+- **ALTERNATIVES**: Testing solely on synthetic mock objects; mutating AntiOS Core to accommodate specific project quirks; or masquerading simulated turns as native.
+- **WHY SELECTED**: Guarantees true universal applicability, clean boundary separation, and total uninstallation cleanliness.
+- **CONSEQUENCES**: Any new project can become agent-native through declarative configuration; Core remains universal and untangled.
+- **REVERSIBILITY**: High; isolated proving ground harness in `framework/core/universal_adoption.py`.
+
+---
+
+## DECISION 85: AntiOS 2.0 Production Readiness, Architecture Freeze & Invariant Registry (Phase 101)
+- **DECISION**: Implement `ProductionReadinessEngine`, `InvariantRegistry`, and `ArchitectureFreezeValidator` in `framework/core/architecture_freeze.py`. Evaluate 15 production readiness dimensions to `PRODUCTION_READY` status with 1.00 score. Codify all 20 critical engineering invariants (`INV-01` to `INV-20`) in a single canonical registry (`INVARIANT_REGISTRY.md`). Ratify the Architecture Freeze Charter for AntiOS 2.0.0; permanently prohibit background daemons, custom runtimes, custom schedulers, swarms, and vector databases. Restrict all future repository changes to 8 permitted maintenance categories (`BUG_FIX`, `SECURITY_FIX`, `CORRECTNESS_IMPROVEMENT`, `PERFORMANCE_IMPROVEMENT`, `DOCUMENTATION_CORRECTION`, `COMPATIBILITY_IMPROVEMENT`, `NEW_PROJECT_ADAPTER`, `ANTIOS_3_PROPOSAL`).
+- **EVIDENCE**: Continuous feature accretion without an architectural freeze causes cognitive saturation, maintenance fragility, and false complexity. Freezing the architecture ensures stability, predictability, and production trust.
+- **ALTERNATIVES**: Continuing speculative phase expansion; leaving architectural boundaries open to unbounded drift.
+- **WHY SELECTED**: Establishes a hardened, production-ready, bounded standard with immutable constitutional invariants and clear operational contracts.
+- **CONSEQUENCES**: Architecture is formally frozen at Version 2.0.0-GA; unapproved subsystem additions fail closed at the Stop Gate.
+- **REVERSIBILITY**: Low by design; changes require explicit ADR approval and rigorous evidence backing.
