@@ -663,6 +663,41 @@ from framework.core.architecture_freeze import (
     ReadinessStatus,
 )
 
+# Phase 103: Storage & Data Directory Foundation
+from framework.core.experience import (
+    CURRENT_STORAGE_SCHEMA_VERSION,
+    StorageError,
+    DataDirectoryNotConfiguredError,
+    DataDirectoryNotFoundError,
+    TenantIsolationViolationError,
+    MigrationError,
+    StorageContext,
+    StorageStatus,
+    AntiOSDataResolver,
+    init_data_directory,
+    get_db_connection,
+    init_experience_db,
+    register_project,
+    verify_project_isolation,
+    backup_database,
+    get_storage_status,
+)
+
+# Phase 104: Telemetry Sanitizer & Privacy Engine
+from framework.core.sanitizer import (
+    SANITIZER_VERSION,
+    MAX_OUTPUT_SUMMARY_CHARS,
+    MAX_EVENT_PAYLOAD_CHARS,
+    MAX_ARG_STRING_CHARS,
+    SanitizerDecision,
+    SanitizerReason,
+    PathClassification,
+    SafeToolCall,
+    SafeEngineeringEvent,
+    SanitizationAuditRecord,
+    TelemetrySanitizer,
+)
+
 
 __all__ = [
 
@@ -1130,6 +1165,35 @@ __all__ = [
     "ProductionReadinessReport",
     "ReadinessDimension",
     "ReadinessStatus",
+    # Phase 103: Storage Foundation
+    "CURRENT_STORAGE_SCHEMA_VERSION",
+    "StorageError",
+    "DataDirectoryNotConfiguredError",
+    "DataDirectoryNotFoundError",
+    "TenantIsolationViolationError",
+    "MigrationError",
+    "StorageContext",
+    "StorageStatus",
+    "AntiOSDataResolver",
+    "init_data_directory",
+    "get_db_connection",
+    "init_experience_db",
+    "register_project",
+    "verify_project_isolation",
+    "backup_database",
+    "get_storage_status",
+    # Phase 104: Telemetry Sanitizer & Privacy Engine
+    "SANITIZER_VERSION",
+    "MAX_OUTPUT_SUMMARY_CHARS",
+    "MAX_EVENT_PAYLOAD_CHARS",
+    "MAX_ARG_STRING_CHARS",
+    "SanitizerDecision",
+    "SanitizerReason",
+    "PathClassification",
+    "SafeToolCall",
+    "SafeEngineeringEvent",
+    "SanitizationAuditRecord",
+    "TelemetrySanitizer",
 ]
 
 

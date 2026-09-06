@@ -195,6 +195,9 @@ import tests.test_beta_productization_e2e as test_beta_productization_e2e
 # Phase 103 Local Engineering Intelligence: Storage & Data Directory Foundation
 import tests.test_experience_foundation as test_experience_foundation
 
+# Phase 104 Telemetry Sanitizer & Privacy Engine
+import tests.test_telemetry_sanitizer as test_telemetry_sanitizer
+
 
 
 
@@ -362,6 +365,8 @@ def build_suite() -> unittest.TestSuite:
         test_beta_productization_e2e,
         # Phase 103 Local Engineering Intelligence: Storage & Data Directory Foundation
         test_experience_foundation,
+        # Phase 104 Telemetry Sanitizer & Privacy Engine
+        test_telemetry_sanitizer,
     ]
 
 
