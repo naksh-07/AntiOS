@@ -132,9 +132,58 @@ Exports a deterministic, machine-readable snapshot to `<data-dir>/exports/` or a
 
 ---
 
-## 6. Safety, Determinism & Privacy Guarantees
+## 6. Experience Lifecycle Operations (Phase 107)
+
+Phase 107 introduces complete operational control over the Experience Plane via `antios data`:
+
+### 1. Online Hot Backup
+```bash
+antios data backup [--output <path>] [--data-dir <dir>] [--json]
+```
+Creates an atomic, consistent SQLite online backup using `sqlite3.backup()` into `<data-dir>/backups/`.
+
+### 2. Database Restore
+```bash
+antios data restore --backup <path> [--confirm] [--dry-run] [--data-dir <dir>] [--json]
+```
+Restores database state from a verified backup with:
+- Pre-flight `PRAGMA quick_check` integrity validation
+- Mandatory `--confirm` safety gate (fail-closed without it)
+- Automatic pre-restore hot backup before overwriting
+- `--dry-run` inspection mode
+
+### 3. Data Purge & Retention
+```bash
+antios data purge [--project <id> | --all] [--older-than <days>] [--confirm] [--dry-run] [--data-dir <dir>] [--json]
+```
+Safely deletes experience records with:
+- Mandatory tenant scoping (`--project <id>` or `--all`)
+- Mandatory `--confirm` flag
+- Automatic pre-purge hot backup
+- Transactional cascade across relational tables
+- Immediate post-purge incremental vacuum
+- `--dry-run` record count preview
+
+### 4. Database Vacuum & Space Reclamation
+```bash
+antios data vacuum [--full] [--data-dir <dir>] [--json]
+```
+Reclaims fragmented disk space using `PRAGMA incremental_vacuum` (or `VACUUM` with `--full`).
+
+### 5. Raw Experience Export
+```bash
+antios data export [--project <id>] [--output <file>] [--data-dir <dir>] [--json]
+```
+Streams raw sessions, missions, turns, tool_calls, and engineering_events to portable JSONL.
+
+---
+
+## 7. Safety, Determinism & Privacy Guarantees
 
 - **Zero Background Daemons**: 100% on-demand CLI and API invocation.
 - **Zero Vector Embeddings / External Services**: Pure Python standard library and SQLite WAL queries.
-- **Fail-Closed Isolation**: Telemetry or database errors never crash the host engineering task.
-- **Cryptographic Immutability**: Verified by automated regression tests proving byte-for-byte non-mutation of target project files.
+- **Fail-Closed Isolation**: Telemetry or database errors never crash the host engineering task; collection mode defaults to `OFF`.
+- **Cryptographic Immutability**: Verified by automated regression tests (`test_experience_learning_separation.py`, `test_experience_operations.py`) proving byte-for-byte non-mutation of target project files.
+- **Adversarial Privacy & Redaction**: Multi-tier secret scrubbing (Google API keys, GitHub PATs, JWTs, PEM keys, credential URIs, KV assignments) and prompt injection defanging verified under adversarial conditions.
+- **Restart Idempotency**: Byte-offset checkpointing, SHA-256 event signatures, and `INSERT OR IGNORE` ensure zero duplicate event multiplication across crashes or restarts.
+

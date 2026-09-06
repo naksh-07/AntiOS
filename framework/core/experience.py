@@ -659,8 +659,388 @@ def backup_database(
 
 
 # =====================================================================
-# Diagnostic Health & Status Inspector
+# Database Restore Utility
 # =====================================================================
+
+def restore_database(
+    db_path: Union[str, Path],
+    backup_path: Union[str, Path],
+    force: bool = False,
+    create_pre_restore_backup: bool = True,
+    dry_run: bool = False,
+) -> Dict[str, Any]:
+    """Restores the experience database from a backup file.
+
+    Safety guarantees:
+    - Requires force=True as explicit confirmation.
+    - Validates backup integrity before restore (PRAGMA quick_check).
+    - Creates automatic pre-restore backup unless disabled.
+    - Uses sqlite3.backup() for atomic restore.
+
+    Returns:
+        Dict with status, paths, and diagnostic information.
+    """
+    source_backup = Path(backup_path).resolve()
+    target_db = Path(db_path).resolve()
+
+    if not source_backup.is_file():
+        raise StorageError(f"Backup file not found: {source_backup}")
+
+    # Validate backup is a valid SQLite database
+    try:
+        with closing(sqlite3.connect(str(source_backup))) as check_conn:
+            check_conn.row_factory = sqlite3.Row
+            cursor = check_conn.cursor()
+            cursor.execute("PRAGMA quick_check;")
+            check_result = cursor.fetchone()
+            if check_result is None or str(check_result[0]).lower() != "ok":
+                raise StorageError(f"Backup file failed integrity check: {source_backup}")
+
+            # Verify it has our schema_migrations table
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations';"
+            )
+            if cursor.fetchone() is None:
+                raise StorageError(
+                    f"Backup file does not contain AntiOS experience schema: {source_backup}"
+                )
+
+            cursor.execute("SELECT version FROM schema_migrations ORDER BY applied_at DESC LIMIT 1;")
+            version_row = cursor.fetchone()
+            backup_version = str(version_row["version"]) if version_row else "unknown"
+    except sqlite3.DatabaseError as e:
+        raise StorageError(f"Backup file is not a valid SQLite database: {e}") from e
+
+    result: Dict[str, Any] = {
+        "status": "DRY_RUN" if dry_run else "PENDING",
+        "backup_source": str(source_backup),
+        "target_db": str(target_db),
+        "backup_schema_version": backup_version,
+        "target_exists": target_db.is_file(),
+        "pre_restore_backup": None,
+    }
+
+    if dry_run:
+        result["status"] = "DRY_RUN"
+        if target_db.is_file():
+            result["target_size_bytes"] = target_db.stat().st_size
+        result["backup_size_bytes"] = source_backup.stat().st_size
+        return result
+
+    if not force:
+        raise StorageError(
+            "Restore requires explicit confirmation. Pass force=True or use --confirm flag."
+        )
+
+    # Pre-restore backup
+    if create_pre_restore_backup and target_db.is_file():
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        pre_restore_path = target_db.parent / "backups" / f"pre_restore_{timestamp}.db"
+        pre_restore_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            pre_backup = backup_database(target_db, pre_restore_path)
+            result["pre_restore_backup"] = str(pre_backup)
+        except Exception as e:
+            raise StorageError(
+                f"Pre-restore backup failed — aborting restore for safety: {e}"
+            ) from e
+
+    # Perform atomic restore using sqlite3.backup()
+    try:
+        with closing(sqlite3.connect(str(source_backup))) as src_conn:
+            with closing(sqlite3.connect(str(target_db))) as dst_conn:
+                src_conn.backup(dst_conn)
+        result["status"] = "SUCCESS"
+        result["restored_size_bytes"] = target_db.stat().st_size
+    except Exception as e:
+        raise StorageError(f"Restore operation failed: {e}") from e
+
+    return result
+
+
+# =====================================================================
+# Experience Data Purge & Retention
+# =====================================================================
+
+def purge_experience_data(
+    db_path: Union[str, Path],
+    project_id: Optional[str] = None,
+    purge_all: bool = False,
+    older_than_days: Optional[int] = None,
+    dry_run: bool = False,
+    force: bool = False,
+    create_backup: bool = True,
+) -> Dict[str, Any]:
+    """Purges experience data with mandatory tenant scoping and safety guarantees.
+
+    Safety guarantees:
+    - Requires explicit project_id or purge_all=True (no default-all).
+    - Requires force=True as explicit confirmation (unless dry_run).
+    - Creates pre-purge backup before any deletion.
+    - Transactional deletion with foreign key cascade.
+    - Post-purge incremental vacuum.
+
+    Returns:
+        Dict with affected counts and status.
+    """
+    db = Path(db_path).resolve()
+    if not db.is_file():
+        raise StorageError(f"Database not found: {db}")
+
+    if not project_id and not purge_all:
+        raise StorageError(
+            "Purge requires explicit --project <id> or --all flag. "
+            "Refusing to purge without explicit scope."
+        )
+
+    # Build WHERE clauses for tenant scoping
+    where_clauses: Dict[str, str] = {}
+    where_params: Dict[str, List[Any]] = {}
+
+    if project_id and not purge_all:
+        for table in ["sessions", "missions", "engineering_events", "ingestion_checkpoints"]:
+            where_clauses[table] = "WHERE project_id = ?"
+            where_params[table] = [project_id]
+    else:
+        for table in ["sessions", "missions", "engineering_events", "ingestion_checkpoints"]:
+            where_clauses[table] = ""
+            where_params[table] = []
+
+    # Add time-based filter if specified
+    if older_than_days is not None and older_than_days > 0:
+        from datetime import timedelta
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=older_than_days)).isoformat()
+        for table in ["sessions", "missions", "engineering_events"]:
+            time_col = "started_at" if table == "sessions" else "created_at"
+            if where_clauses[table]:
+                where_clauses[table] += f" AND {time_col} < ?"
+            else:
+                where_clauses[table] = f"WHERE {time_col} < ?"
+            where_params[table].append(cutoff)
+
+    # Count affected rows
+    counts: Dict[str, int] = {}
+    with closing(get_db_connection(db)) as conn:
+        cursor = conn.cursor()
+        for table in ["sessions", "missions", "engineering_events", "ingestion_checkpoints"]:
+            wc = where_clauses.get(table, "")
+            p = where_params.get(table, [])
+            cursor.execute(f"SELECT count(*) as cnt FROM {table} {wc};", p)
+            counts[table] = cursor.fetchone()["cnt"]
+
+        # Count turns and tool_calls via mission scope
+        mission_wc = where_clauses.get("missions", "")
+        mission_p = where_params.get("missions", [])
+        if mission_wc:
+            cursor.execute(
+                f"SELECT count(*) as cnt FROM turns WHERE mission_id IN "
+                f"(SELECT mission_id FROM missions {mission_wc});",
+                mission_p,
+            )
+            counts["turns"] = cursor.fetchone()["cnt"]
+            cursor.execute(
+                f"SELECT count(*) as cnt FROM tool_calls WHERE turn_id IN "
+                f"(SELECT turn_id FROM turns WHERE mission_id IN "
+                f"(SELECT mission_id FROM missions {mission_wc}));",
+                mission_p,
+            )
+            counts["tool_calls"] = cursor.fetchone()["cnt"]
+        else:
+            cursor.execute("SELECT count(*) as cnt FROM turns;")
+            counts["turns"] = cursor.fetchone()["cnt"]
+            cursor.execute("SELECT count(*) as cnt FROM tool_calls;")
+            counts["tool_calls"] = cursor.fetchone()["cnt"]
+
+    result: Dict[str, Any] = {
+        "status": "DRY_RUN" if dry_run else "PENDING",
+        "scope": project_id or "ALL",
+        "older_than_days": older_than_days,
+        "affected_counts": counts,
+        "total_affected": sum(counts.values()),
+        "pre_purge_backup": None,
+    }
+
+    if dry_run:
+        return result
+
+    if not force:
+        raise StorageError(
+            "Purge requires explicit confirmation. Pass force=True or use --confirm flag."
+        )
+
+    # Pre-purge backup
+    if create_backup:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        pre_purge_path = db.parent / "backups" / f"pre_purge_{timestamp}.db"
+        pre_purge_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            backup_path_result = backup_database(db, pre_purge_path)
+            result["pre_purge_backup"] = str(backup_path_result)
+        except Exception as e:
+            raise StorageError(
+                f"Pre-purge backup failed — aborting purge for safety: {e}"
+            ) from e
+
+    # Execute transactional deletion
+    with closing(get_db_connection(db)) as conn:
+        cursor = conn.cursor()
+        cursor.execute("BEGIN IMMEDIATE;")
+        try:
+            # Delete in dependency order: tool_calls -> turns -> events -> missions -> sessions -> checkpoints
+            if mission_wc:
+                cursor.execute(
+                    f"DELETE FROM tool_calls WHERE turn_id IN "
+                    f"(SELECT turn_id FROM turns WHERE mission_id IN "
+                    f"(SELECT mission_id FROM missions {mission_wc}));",
+                    mission_p,
+                )
+                cursor.execute(
+                    f"DELETE FROM turns WHERE mission_id IN "
+                    f"(SELECT mission_id FROM missions {mission_wc});",
+                    mission_p,
+                )
+            else:
+                cursor.execute("DELETE FROM tool_calls;")
+                cursor.execute("DELETE FROM turns;")
+
+            for table in ["engineering_events", "missions", "sessions", "ingestion_checkpoints"]:
+                wc = where_clauses.get(table, "")
+                p = where_params.get(table, [])
+                cursor.execute(f"DELETE FROM {table} {wc};", p)
+
+            # Purge-all also clears the projects table
+            if purge_all and not project_id:
+                cursor.execute("DELETE FROM projects;")
+
+            cursor.execute("COMMIT;")
+        except Exception as e:
+            cursor.execute("ROLLBACK;")
+            raise StorageError(f"Purge operation failed: {e}") from e
+
+        # Post-purge space reclamation
+        try:
+            cursor.execute("PRAGMA incremental_vacuum;")
+        except Exception:
+            pass
+
+    result["status"] = "SUCCESS"
+    return result
+
+
+# =====================================================================
+# Database Vacuum & Maintenance
+# =====================================================================
+
+def vacuum_database(
+    db_path: Union[str, Path],
+    full: bool = False,
+) -> Dict[str, Any]:
+    """Runs vacuum/maintenance on the experience database.
+
+    Args:
+        db_path: Path to experience.db.
+        full: If True, runs VACUUM (full rebuild). Otherwise PRAGMA incremental_vacuum.
+
+    Returns:
+        Dict with size_before, size_after, and reclaimed_bytes.
+    """
+    db = Path(db_path).resolve()
+    if not db.is_file():
+        raise StorageError(f"Database not found: {db}")
+
+    size_before = db.stat().st_size
+
+    with closing(sqlite3.connect(str(db))) as conn:
+        cursor = conn.cursor()
+        if full:
+            cursor.execute("VACUUM;")
+        else:
+            cursor.execute("PRAGMA incremental_vacuum;")
+
+    size_after = db.stat().st_size
+    return {
+        "status": "SUCCESS",
+        "db_path": str(db),
+        "mode": "FULL_VACUUM" if full else "INCREMENTAL_VACUUM",
+        "size_before_bytes": size_before,
+        "size_after_bytes": size_after,
+        "reclaimed_bytes": max(0, size_before - size_after),
+    }
+
+
+# =====================================================================
+# Raw Experience Data Export
+# =====================================================================
+
+def export_raw_experience(
+    db_path: Union[str, Path],
+    output_path: Union[str, Path],
+    project_id: Optional[str] = None,
+) -> Path:
+    """Exports raw experience data as JSONL (one JSON object per line).
+
+    Exports sessions, missions, turns, tool_calls, and engineering_events
+    in a portable, inspectable format.
+
+    Args:
+        db_path: Path to experience.db.
+        output_path: Destination file path (will be created/overwritten).
+        project_id: Optional project scope filter.
+
+    Returns:
+        Path to the created export file.
+    """
+    db = Path(db_path).resolve()
+    if not db.is_file():
+        raise StorageError(f"Database not found: {db}")
+
+    out = Path(output_path).resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    tables_and_scopes = [
+        ("projects", "project_id"),
+        ("sessions", "project_id"),
+        ("missions", "project_id"),
+        ("turns", None),
+        ("tool_calls", None),
+        ("engineering_events", "project_id"),
+        ("ingestion_checkpoints", "project_id"),
+    ]
+
+    with closing(get_db_connection(db)) as conn:
+        cursor = conn.cursor()
+        with open(out, "w", encoding="utf-8") as f:
+            for table_name, scope_col in tables_and_scopes:
+                if project_id and scope_col:
+                    cursor.execute(
+                        f"SELECT * FROM {table_name} WHERE {scope_col} = ? ORDER BY rowid;",
+                        (project_id,),
+                    )
+                elif project_id and table_name == "turns":
+                    cursor.execute(
+                        "SELECT t.* FROM turns t JOIN missions m ON t.mission_id = m.mission_id "
+                        "WHERE m.project_id = ? ORDER BY t.rowid;",
+                        (project_id,),
+                    )
+                elif project_id and table_name == "tool_calls":
+                    cursor.execute(
+                        "SELECT tc.* FROM tool_calls tc JOIN turns t ON tc.turn_id = t.turn_id "
+                        "JOIN missions m ON t.mission_id = m.mission_id "
+                        "WHERE m.project_id = ? ORDER BY tc.rowid;",
+                        (project_id,),
+                    )
+                else:
+                    cursor.execute(f"SELECT * FROM {table_name} ORDER BY rowid;")
+
+                for row in cursor.fetchall():
+                    record = {"_table": table_name}
+                    record.update(dict(row))
+                    f.write(json.dumps(record, default=str) + "\n")
+
+    return out
+
+
+
 
 def get_storage_status(
     data_dir: Optional[Union[str, Path]] = None,

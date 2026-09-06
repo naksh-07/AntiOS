@@ -698,6 +698,20 @@ from framework.core.sanitizer import (
     TelemetrySanitizer,
 )
 
+# Phase 105: Telemetry Ingestion Bridge & Event Normalization
+from framework.core.experience import (
+    ExperienceRepository,
+    IngestionCheckpoint,
+)
+from framework.core.telemetry_bridge import (
+    AntigravityEventBridge,
+    TelemetryCollectionMode,
+    TelemetryConfigResolver,
+    TranscriptParser,
+    EventNormalizer,
+    IngestionResult,
+)
+
 # Phase 106: Experience Intelligence Engine
 from framework.core.experience_analytics import (
     MetricStatus,
@@ -712,6 +726,13 @@ from framework.core.experience_analytics import (
     ExperienceExporter,
 )
 
+# Phase 107: Experience Operations, Hardening & Certification
+from framework.core.experience import (
+    restore_database,
+    purge_experience_data,
+    vacuum_database,
+    export_raw_experience,
+)
 
 __all__ = [
 
@@ -1208,6 +1229,15 @@ __all__ = [
     "SafeEngineeringEvent",
     "SanitizationAuditRecord",
     "TelemetrySanitizer",
+    # Phase 105: Telemetry Ingestion Bridge & Event Normalization
+    "ExperienceRepository",
+    "IngestionCheckpoint",
+    "AntigravityEventBridge",
+    "TelemetryCollectionMode",
+    "TelemetryConfigResolver",
+    "TranscriptParser",
+    "EventNormalizer",
+    "IngestionResult",
     # Phase 106: Experience Intelligence Engine
     "MetricStatus",
     "MetricValue",
@@ -1219,6 +1249,11 @@ __all__ = [
     "ExperienceReport",
     "ExperienceAnalyticsEngine",
     "ExperienceExporter",
+    # Phase 107: Experience Operations, Hardening & Certification
+    "restore_database",
+    "purge_experience_data",
+    "vacuum_database",
+    "export_raw_experience",
 ]
 
 

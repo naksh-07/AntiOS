@@ -205,6 +205,9 @@ import tests.test_telemetry_bridge as test_telemetry_bridge
 import tests.test_experience_intelligence as test_experience_intelligence
 import tests.test_experience_learning_separation as test_experience_learning_separation
 
+# Phase 107 Experience Operations, Hardening & Certification
+import tests.test_experience_operations as test_experience_operations
+
 
 
 
@@ -379,6 +382,8 @@ def build_suite() -> unittest.TestSuite:
         # Phase 106 Experience Intelligence Engine & Separation Verification
         test_experience_intelligence,
         test_experience_learning_separation,
+        # Phase 107 Experience Operations, Hardening & Certification
+        test_experience_operations,
     ]
 
 

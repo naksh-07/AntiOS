@@ -29,10 +29,16 @@ from framework.core.discovery import discover_project
 from framework.core.doctor import DoctorEngine
 from framework.core.experience import (
     AntiOSDataResolver,
+    StorageError,
+    backup_database,
+    export_raw_experience,
     get_storage_status,
     init_data_directory,
     init_experience_db,
+    purge_experience_data,
     register_project,
+    restore_database,
+    vacuum_database,
 )
 from framework.core.experience_analytics import (
     ExperienceAnalyticsEngine,
@@ -436,7 +442,175 @@ def cmd_data(args: argparse.Namespace) -> int:
             print(f"Project identity:       {pid}")
         return 0
 
-    print("Usage: antios data {status,set-dir} ...")
+    if action == "backup":
+        try:
+            context = AntiOSDataResolver.resolve_context(
+                project_root=target,
+                explicit_dir=getattr(args, "data_dir", None),
+            )
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
+        if not context.db_path.is_file():
+            print(f"Error: Experience database does not exist: {context.db_path}")
+            return 1
+        out = getattr(args, "output", None)
+        try:
+            result_path = backup_database(context.db_path, out)
+            if getattr(args, "json", False):
+                print(json.dumps({"status": "SUCCESS", "backup_path": str(result_path)}, indent=2))
+            else:
+                print(f"[SUCCESS] Backup created: {result_path}")
+            return 0
+        except Exception as e:
+            print(f"Error: Backup failed: {e}")
+            return 1
+
+    if action == "restore":
+        try:
+            context = AntiOSDataResolver.resolve_context(
+                project_root=target,
+                explicit_dir=getattr(args, "data_dir", None),
+            )
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
+        backup_file = getattr(args, "backup", None)
+        if not backup_file:
+            print("Error: --backup <path> is required for restore.")
+            return 1
+        is_dry_run = getattr(args, "dry_run", False)
+        is_confirmed = getattr(args, "confirm", False)
+        try:
+            result = restore_database(
+                db_path=context.db_path,
+                backup_path=backup_file,
+                force=is_confirmed,
+                dry_run=is_dry_run,
+            )
+            if getattr(args, "json", False):
+                print(json.dumps(result, indent=2))
+            else:
+                if is_dry_run:
+                    print("[DRY RUN] Restore preview:")
+                    print(f"  Backup source:       {result['backup_source']}")
+                    print(f"  Target database:     {result['target_db']}")
+                    print(f"  Schema version:      {result['backup_schema_version']}")
+                    if result.get("backup_size_bytes"):
+                        print(f"  Backup size:         {result['backup_size_bytes']} bytes")
+                else:
+                    print(f"[SUCCESS] Database restored from: {result['backup_source']}")
+                    if result.get("pre_restore_backup"):
+                        print(f"  Pre-restore backup:  {result['pre_restore_backup']}")
+            return 0
+        except StorageError as e:
+            print(f"Error: {e}")
+            return 1
+
+    if action == "purge":
+        try:
+            context = AntiOSDataResolver.resolve_context(
+                project_root=target,
+                explicit_dir=getattr(args, "data_dir", None),
+            )
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
+        if not context.db_path.is_file():
+            print(f"Error: Experience database does not exist: {context.db_path}")
+            return 1
+        proj = getattr(args, "project", None)
+        purge_all = getattr(args, "purge_all", False)
+        older_than = getattr(args, "older_than", None)
+        is_dry_run = getattr(args, "dry_run", False)
+        is_confirmed = getattr(args, "confirm", False)
+        try:
+            result = purge_experience_data(
+                db_path=context.db_path,
+                project_id=proj,
+                purge_all=purge_all,
+                older_than_days=older_than,
+                dry_run=is_dry_run,
+                force=is_confirmed,
+            )
+            if getattr(args, "json", False):
+                print(json.dumps(result, indent=2))
+            else:
+                if is_dry_run:
+                    print("[DRY RUN] Purge preview:")
+                    print(f"  Scope:               {result['scope']}")
+                    if result['older_than_days']:
+                        print(f"  Older than:          {result['older_than_days']} days")
+                    print(f"  Affected records:")
+                    for table, count in result['affected_counts'].items():
+                        print(f"    - {table:<22}: {count}")
+                    print(f"  Total:               {result['total_affected']}")
+                else:
+                    print(f"[SUCCESS] Purged {result['total_affected']} records (scope: {result['scope']})")
+                    if result.get("pre_purge_backup"):
+                        print(f"  Pre-purge backup:    {result['pre_purge_backup']}")
+            return 0
+        except StorageError as e:
+            print(f"Error: {e}")
+            return 1
+
+    if action == "vacuum":
+        try:
+            context = AntiOSDataResolver.resolve_context(
+                project_root=target,
+                explicit_dir=getattr(args, "data_dir", None),
+            )
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
+        if not context.db_path.is_file():
+            print(f"Error: Experience database does not exist: {context.db_path}")
+            return 1
+        is_full = getattr(args, "full", False)
+        try:
+            result = vacuum_database(context.db_path, full=is_full)
+            if getattr(args, "json", False):
+                print(json.dumps(result, indent=2))
+            else:
+                print(f"[SUCCESS] Vacuum completed ({result['mode']})")
+                print(f"  Size before:         {result['size_before_bytes']} bytes")
+                print(f"  Size after:          {result['size_after_bytes']} bytes")
+                print(f"  Reclaimed:           {result['reclaimed_bytes']} bytes")
+            return 0
+        except Exception as e:
+            print(f"Error: Vacuum failed: {e}")
+            return 1
+
+    if action == "export":
+        try:
+            context = AntiOSDataResolver.resolve_context(
+                project_root=target,
+                explicit_dir=getattr(args, "data_dir", None),
+            )
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
+        if not context.db_path.is_file():
+            print(f"Error: Experience database does not exist: {context.db_path}")
+            return 1
+        proj = getattr(args, "project", None) or context.project_id
+        out = getattr(args, "output", None)
+        if not out:
+            from datetime import datetime as _dt, timezone as _tz
+            ts = _dt.now(_tz.utc).strftime("%Y%m%d_%H%M%S")
+            out = context.data_dir / "exports" / f"raw_experience_{ts}.jsonl"
+        try:
+            result_path = export_raw_experience(context.db_path, out, project_id=proj)
+            if getattr(args, "json", False):
+                print(json.dumps({"status": "SUCCESS", "exported_path": str(result_path)}, indent=2))
+            else:
+                print(f"[SUCCESS] Raw experience exported to: {result_path}")
+            return 0
+        except Exception as e:
+            print(f"Error: Export failed: {e}")
+            return 1
+
+    print("Usage: antios data {status,set-dir,backup,restore,purge,vacuum,export} ...")
     return 1
 
 
@@ -765,6 +939,44 @@ def build_parser() -> argparse.ArgumentParser:
     p_data_set.add_argument("directory", help="Target data directory path")
     p_data_set.add_argument("--path", help="Target project root directory")
     p_data_set.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_data_bak = p_data_sub.add_parser("backup", help="Create online hot backup of experience database")
+    p_data_bak.add_argument("--output", help="Explicit backup destination path")
+    p_data_bak.add_argument("--data-dir", help="Explicit data directory override")
+    p_data_bak.add_argument("--path", help="Target project root directory")
+    p_data_bak.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_data_rst = p_data_sub.add_parser("restore", help="Restore experience database from backup")
+    p_data_rst.add_argument("--backup", required=True, help="Path to backup .db file")
+    p_data_rst.add_argument("--confirm", action="store_true", help="Confirm destructive restore operation")
+    p_data_rst.add_argument("--dry-run", action="store_true", help="Preview restore without modifying database")
+    p_data_rst.add_argument("--data-dir", help="Explicit data directory override")
+    p_data_rst.add_argument("--path", help="Target project root directory")
+    p_data_rst.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_data_prg = p_data_sub.add_parser("purge", help="Purge experience data with mandatory scoping")
+    p_data_prg.add_argument("--project", help="Purge data for specific project ID only")
+    p_data_prg.add_argument("--all", dest="purge_all", action="store_true", help="Purge ALL experience data")
+    p_data_prg.add_argument("--older-than", type=int, help="Only purge records older than N days")
+    p_data_prg.add_argument("--confirm", action="store_true", help="Confirm destructive purge operation")
+    p_data_prg.add_argument("--dry-run", action="store_true", help="Preview purge counts without deleting")
+    p_data_prg.add_argument("--data-dir", help="Explicit data directory override")
+    p_data_prg.add_argument("--path", help="Target project root directory")
+    p_data_prg.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_data_vac = p_data_sub.add_parser("vacuum", help="Reclaim disk space in experience database")
+    p_data_vac.add_argument("--full", action="store_true", help="Full VACUUM rebuild (slower but more thorough)")
+    p_data_vac.add_argument("--data-dir", help="Explicit data directory override")
+    p_data_vac.add_argument("--path", help="Target project root directory")
+    p_data_vac.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_data_exp = p_data_sub.add_parser("export", help="Export raw experience data as JSONL")
+    p_data_exp.add_argument("--project", help="Export data for specific project ID only")
+    p_data_exp.add_argument("--output", help="Destination file path (defaults to <data-dir>/exports/)")
+    p_data_exp.add_argument("--data-dir", help="Explicit data directory override")
+    p_data_exp.add_argument("--path", help="Target project root directory")
+    p_data_exp.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
     p_data.set_defaults(func=cmd_data)
 
     # telemetry
