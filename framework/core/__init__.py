@@ -698,6 +698,20 @@ from framework.core.sanitizer import (
     TelemetrySanitizer,
 )
 
+# Phase 106: Experience Intelligence Engine
+from framework.core.experience_analytics import (
+    MetricStatus,
+    MetricValue,
+    FailurePattern,
+    FrictionPattern,
+    SuccessfulStrategy,
+    CapabilityStats,
+    SubagentStats,
+    ExperienceReport,
+    ExperienceAnalyticsEngine,
+    ExperienceExporter,
+)
+
 
 __all__ = [
 
@@ -1194,6 +1208,17 @@ __all__ = [
     "SafeEngineeringEvent",
     "SanitizationAuditRecord",
     "TelemetrySanitizer",
+    # Phase 106: Experience Intelligence Engine
+    "MetricStatus",
+    "MetricValue",
+    "FailurePattern",
+    "FrictionPattern",
+    "SuccessfulStrategy",
+    "CapabilityStats",
+    "SubagentStats",
+    "ExperienceReport",
+    "ExperienceAnalyticsEngine",
+    "ExperienceExporter",
 ]
 
 

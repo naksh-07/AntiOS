@@ -201,6 +201,10 @@ import tests.test_telemetry_sanitizer as test_telemetry_sanitizer
 # Phase 105 Antigravity Event Bridge & Experience Ingestion
 import tests.test_telemetry_bridge as test_telemetry_bridge
 
+# Phase 106 Experience Intelligence Engine & Separation Verification
+import tests.test_experience_intelligence as test_experience_intelligence
+import tests.test_experience_learning_separation as test_experience_learning_separation
+
 
 
 
@@ -372,6 +376,9 @@ def build_suite() -> unittest.TestSuite:
         test_telemetry_sanitizer,
         # Phase 105 Antigravity Event Bridge & Experience Ingestion
         test_telemetry_bridge,
+        # Phase 106 Experience Intelligence Engine & Separation Verification
+        test_experience_intelligence,
+        test_experience_learning_separation,
     ]
 
 

@@ -34,6 +34,10 @@ from framework.core.experience import (
     init_experience_db,
     register_project,
 )
+from framework.core.experience_analytics import (
+    ExperienceAnalyticsEngine,
+    ExperienceExporter,
+)
 from framework.core.git_capability import GitCapabilityEngine
 from framework.core.github_capability import GitHubCapabilityEngine, IssueClass, IssueEvidence
 from framework.core.installation import InstallationLifecycleManager
@@ -525,6 +529,99 @@ def cmd_telemetry(args: argparse.Namespace) -> int:
     return 1
 
 
+def cmd_experience(args: argparse.Namespace) -> int:
+    """Handles antios experience {analyze,report,export} commands."""
+    target = _resolve_target(args)
+    action = getattr(args, "experience_action", None) or "analyze"
+    explicit_dd = getattr(args, "data_dir", None)
+
+    try:
+        context = AntiOSDataResolver.resolve_context(
+            project_root=target,
+            explicit_dir=explicit_dd,
+        )
+    except Exception as e:
+        if getattr(args, "json", False):
+            print(json.dumps({"status": "ERROR", "error": str(e)}, indent=2))
+        else:
+            print(f"Error: Experience storage unavailable: {e}")
+        return 1
+
+    if not context.db_path.is_file():
+        if getattr(args, "json", False):
+            print(json.dumps({"status": "ERROR", "error": f"Database file not found: {context.db_path}"}, indent=2))
+        else:
+            print(f"Error: Experience database does not exist: {context.db_path}")
+        return 1
+
+    engine = ExperienceAnalyticsEngine(db_path=context.db_path)
+    is_global = getattr(args, "is_global", False)
+    project_id_arg = getattr(args, "project", None)
+
+    if is_global:
+        report = engine.analyze_global()
+    elif project_id_arg:
+        report = engine.analyze_project(project_id_arg)
+    else:
+        # Default to current project root identity
+        report = engine.analyze_project(context.project_id)
+
+    if action == "analyze":
+        if getattr(args, "json", False):
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            print(report.to_text())
+        return 0
+
+    if action == "report":
+        fmt = getattr(args, "format", "text") or "text"
+        out_file = getattr(args, "output", None)
+
+        if fmt == "json":
+            out_content = json.dumps(report.to_dict(), indent=2)
+        elif fmt in ("markdown", "md"):
+            out_content = report.to_markdown()
+        else:
+            out_content = report.to_text()
+
+        if out_file:
+            out_path = Path(out_file).resolve()
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(out_content)
+            print(f"[SUCCESS] Experience report saved to: {out_path}")
+        else:
+            print(out_content)
+        return 0
+
+    if action == "export":
+        out_path = getattr(args, "output", None)
+        if not out_path:
+            # Default to <data-dir>/exports
+            out_path = context.data_dir / "exports"
+        fmt = getattr(args, "format", "json") or "json"
+        try:
+            saved_file = ExperienceExporter.export(
+                report=report,
+                output_path=out_path,
+                export_format=fmt,
+            )
+            if getattr(args, "json", False):
+                print(json.dumps({"status": "SUCCESS", "exported_path": str(saved_file)}, indent=2))
+            else:
+                print(f"[SUCCESS] Mined intelligence exported to: {saved_file}")
+            return 0
+        except Exception as e:
+            if getattr(args, "json", False):
+                print(json.dumps({"status": "ERROR", "error": str(e)}, indent=2))
+            else:
+                print(f"Error exporting intelligence: {e}")
+            return 1
+
+    print("Usage: antios experience {analyze,report,export} ...")
+    return 1
+
+
 # ==========================================
 # CLI Parser Setup
 # ==========================================
@@ -691,6 +788,39 @@ def build_parser() -> argparse.ArgumentParser:
     p_telem_ing.add_argument("--json", action="store_true", help="Output machine-readable JSON")
 
     p_telem.set_defaults(func=cmd_telemetry)
+
+    # experience
+    p_exp = subparsers.add_parser("experience", help="AntiOS Experience Intelligence and analytics engine")
+    p_exp_sub = p_exp.add_subparsers(dest="experience_action", help="Experience actions")
+
+    # experience analyze
+    p_exp_an = p_exp_sub.add_parser("analyze", help="Deterministically analyze recorded telemetry")
+    p_exp_an.add_argument("--project", help="Target project ID (defaults to current project)")
+    p_exp_an.add_argument("--global", dest="is_global", action="store_true", help="Cross-project global aggregation")
+    p_exp_an.add_argument("--data-dir", help="Explicit data directory override")
+    p_exp_an.add_argument("--path", help="Target project root directory")
+    p_exp_an.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    # experience report
+    p_exp_rep = p_exp_sub.add_parser("report", help="Generate engineering intelligence report")
+    p_exp_rep.add_argument("--project", help="Target project ID (defaults to current project)")
+    p_exp_rep.add_argument("--global", dest="is_global", action="store_true", help="Cross-project global aggregation")
+    p_exp_rep.add_argument("--format", choices=["text", "markdown", "json"], default="text", help="Report output format")
+    p_exp_rep.add_argument("--output", help="Write report to file path")
+    p_exp_rep.add_argument("--data-dir", help="Explicit data directory override")
+    p_exp_rep.add_argument("--path", help="Target project root directory")
+
+    # experience export
+    p_exp_exp = p_exp_sub.add_parser("export", help="Export machine-readable intelligence snapshot")
+    p_exp_exp.add_argument("--project", help="Target project ID (defaults to current project)")
+    p_exp_exp.add_argument("--global", dest="is_global", action="store_true", help="Cross-project global aggregation")
+    p_exp_exp.add_argument("--output", help="Destination file or directory (defaults to <data-dir>/exports/)")
+    p_exp_exp.add_argument("--format", choices=["json", "markdown"], default="json", help="Export format")
+    p_exp_exp.add_argument("--data-dir", help="Explicit data directory override")
+    p_exp_exp.add_argument("--path", help="Target project root directory")
+    p_exp_exp.add_argument("--json", action="store_true", help="Output machine-readable status")
+
+    p_exp.set_defaults(func=cmd_experience)
 
     return parser
 
