@@ -33,6 +33,12 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from framework.core.compiler import CompilationResult, ProjectBoundaryCompiler
 from framework.core.config import AntiOSConfig, load_config
 from framework.core.discovery import discover_project, is_tool_in_path
+from framework.core.experience import (
+    AntiOSDataResolver,
+    init_data_directory,
+    init_experience_db,
+    register_project,
+)
 from framework.core.manifest import (
     AdaptationState,
     ArtifactOwnership,
@@ -113,8 +119,24 @@ class InstallationLifecycleManager:
         force: bool = False,
         target_version: Optional[str] = None,
         force_downgrade: bool = False,
+        data_dir: Optional[str] = None,
     ) -> LifecycleResult:
         """Installs AntiOS into target project. Idempotent if already installed."""
+        # 0. Validate data directory location if provided
+        effective_data_dir = data_dir or os.environ.get("ANTIOS_DATA_DIR")
+        resolved_dd: Optional[Path] = None
+        if effective_data_dir:
+            resolved_dd = Path(effective_data_dir).resolve()
+            if resolved_dd == self.target_root or self.target_root in resolved_dd.parents:
+                return LifecycleResult(
+                    operation="INSTALL",
+                    status="BLOCKED",
+                    installation_state=InstallationState.UNINSTALLED,
+                    adaptation_state=AdaptationState.UNADAPTED,
+                    issues=["AntiOS Data Directory cannot be located inside the target project repository."],
+                    summary="Installation blocked: data directory cannot be located inside the project repository.",
+                )
+
         # 1. Check if manifest already exists
         manifest_path = self.target_root / ".antios/manifest.json"
         existing_manifest: Optional[ProjectManifest] = None
@@ -163,6 +185,27 @@ class InstallationLifecycleManager:
                 # Perfectly matching fingerprint: verify files on disk
                 verification = self.verify()
                 if verification.status == "SUCCESS":
+                    if resolved_dd and not dry_run:
+                        _, db_p = init_data_directory(resolved_dd)
+                        init_experience_db(db_p)
+                        pid = register_project(db_p, self.target_root)
+                        existing_manifest.metadata["data_dir"] = str(resolved_dd)
+                        existing_manifest.metadata["project_id"] = pid
+
+                        cfg_path = self.target_root / "antios.config.json"
+                        if cfg_path.is_file():
+                            try:
+                                with open(cfg_path, "r", encoding="utf-8-sig") as f:
+                                    cfg_dict = json.load(f)
+                                cfg_dict["data_dir"] = str(resolved_dd)
+                                with open(cfg_path, "w", encoding="utf-8") as f:
+                                    json.dump(cfg_dict, f, indent=2)
+                                if "antios.config.json" in existing_manifest.managed_paths:
+                                    existing_manifest.managed_paths["antios.config.json"].sha256 = compute_file_sha256(cfg_path)
+                            except Exception:
+                                pass
+                        save_manifest(existing_manifest, self.target_root)
+
                     return LifecycleResult(
                         operation="INSTALL",
                         status="IDEMPOTENT",
@@ -219,6 +262,26 @@ class InstallationLifecycleManager:
             )
 
         if not dry_run:
+            if resolved_dd:
+                _, db_p = init_data_directory(resolved_dd)
+                init_experience_db(db_p)
+                pid = register_project(db_p, self.target_root)
+                compilation.manifest.metadata["data_dir"] = str(resolved_dd)
+                compilation.manifest.metadata["project_id"] = pid
+
+                cfg_path = self.target_root / "antios.config.json"
+                if cfg_path.is_file():
+                    try:
+                        with open(cfg_path, "r", encoding="utf-8-sig") as f:
+                            cfg_dict = json.load(f)
+                        cfg_dict["data_dir"] = str(resolved_dd)
+                        with open(cfg_path, "w", encoding="utf-8") as f:
+                            json.dump(cfg_dict, f, indent=2)
+                        if "antios.config.json" in compilation.manifest.managed_paths:
+                            compilation.manifest.managed_paths["antios.config.json"].sha256 = compute_file_sha256(cfg_path)
+                    except Exception:
+                        pass
+
             compilation.manifest.installation_state = InstallationState.INSTALLED
             compilation.manifest.adaptation_state = AdaptationState.ADAPTED
             save_manifest(compilation.manifest, self.target_root)

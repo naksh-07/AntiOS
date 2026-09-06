@@ -17,6 +17,7 @@ This document provides the formal specification for **`antios.config.json`**, th
 | `skills` | `object` | No | Skill definitions enabled for this workspace. |
 | `tool_routing` | `object` | No | Tool selection preferences, provider mappings, and MCP policies. |
 | `audit_policies` | `object` | No | Operational policy flags and threshold limits. |
+| `data_dir` | `string` | No | Path to central AntiOS Data Directory (`experience.db`). |
 
 ---
 

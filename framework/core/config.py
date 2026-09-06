@@ -53,6 +53,7 @@ class AntiOSConfig:
     components: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     capabilities: Dict[str, Any] = field(default_factory=dict)
     agent_topology: Dict[str, Any] = field(default_factory=dict)
+    data_dir: Optional[str] = None
 
     def __post_init__(self):
         if isinstance(self.policies, dict):
@@ -124,6 +125,7 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             components=data.get("components", {}),
             capabilities=data.get("capabilities", {}),
             agent_topology=data.get("agent_topology", {}),
+            data_dir=data.get("data_dir"),
         )
     except Exception:
         return AntiOSConfig()

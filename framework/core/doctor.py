@@ -33,6 +33,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from framework.core.discovery import is_tool_in_path
 from framework.core.drift_health import IntelligenceHealthEngine, ProjectDriftEngine
+from framework.core.experience import get_storage_status
 from framework.core.git_capability import GitCapabilityEngine
 from framework.core.manifest import InstallationState, load_manifest
 from framework.core.provenance import ProvenanceTracker
@@ -139,7 +140,14 @@ class DoctorReport:
             "",
         ]
         for c in self.checks:
-            icon = "[OK]" if c.severity == DiagnosticSeverity.OK else ("[WARN]" if c.severity == DiagnosticSeverity.WARNING else "[FAIL]")
+            if c.severity == DiagnosticSeverity.OK:
+                icon = "[OK]"
+            elif c.severity == DiagnosticSeverity.INFO:
+                icon = "[INFO]"
+            elif c.severity == DiagnosticSeverity.WARNING:
+                icon = "[WARN]"
+            else:
+                icon = "[FAIL]"
             lines.append(f"{icon:<6} {c.category} - {c.name}: {c.message}")
             if c.remediation and c.severity in (DiagnosticSeverity.WARNING, DiagnosticSeverity.ERROR):
                 lines.append(f"       Remediation: {c.remediation}")
@@ -380,6 +388,47 @@ class DoctorEngine:
                     remediation="Run context distillation to compress active context.",
                 ))
 
+        # 8. Experience Storage Foundation Check
+        storage_status = get_storage_status(project_root=self.repo_root)
+        if not storage_status.is_configured:
+            checks.append(DiagnosticCheck(
+                name="Experience Storage",
+                category="Storage",
+                severity=DiagnosticSeverity.INFO,
+                message="AntiOS Data Directory is not configured for this project.",
+                remediation="Run 'antios install --data-dir <dir>' or 'antios data set-dir <dir>' to configure persistent experience storage.",
+            ))
+        elif not storage_status.db_exists:
+            checks.append(DiagnosticCheck(
+                name="Experience Storage",
+                category="Storage",
+                severity=DiagnosticSeverity.ERROR,
+                message=f"Configured data directory or experience.db is missing: {storage_status.db_path}",
+                details={"issues": storage_status.issues, "data_dir": storage_status.data_dir},
+                remediation="Run 'antios data set-dir <dir>' or re-initialize data directory.",
+            ))
+        elif not storage_status.is_healthy:
+            checks.append(DiagnosticCheck(
+                name="Experience Storage",
+                category="Storage",
+                severity=DiagnosticSeverity.WARNING,
+                message=f"Experience storage health issues: {', '.join(storage_status.issues)}",
+                details={"issues": storage_status.issues, "data_dir": storage_status.data_dir},
+                remediation="Inspect database integrity or re-run initialization.",
+            ))
+        else:
+            checks.append(DiagnosticCheck(
+                name="Experience Storage",
+                category="Storage",
+                severity=DiagnosticSeverity.OK,
+                message=f"Experience storage is healthy (WAL mode, schema v{storage_status.schema_version}, {storage_status.db_size_bytes} bytes).",
+                details={
+                    "data_dir": storage_status.data_dir,
+                    "project_id": storage_status.project_id,
+                    "schema_version": storage_status.schema_version,
+                },
+            ))
+
         # Aggregate metrics
         passed = sum(1 for c in checks if c.severity in (DiagnosticSeverity.OK, DiagnosticSeverity.INFO))
         warnings = sum(1 for c in checks if c.severity == DiagnosticSeverity.WARNING)
@@ -426,12 +475,18 @@ class DoctorEngine:
         if manifest and manifest.antios_version != ver_info.version:
             updates_avail = True
 
-        intervention_required = (not runtime_healthy) or (health.status.value in ("UNTRUSTED", "STALE"))
+        storage_status = get_storage_status(project_root=self.repo_root)
+        storage_issue = storage_status.is_configured and not storage_status.is_healthy
+
+        intervention_required = (not runtime_healthy) or (health.status.value in ("UNTRUSTED", "STALE")) or storage_issue
 
         if not is_installed:
             summary = "AntiOS is not installed in this project. Run 'antios install'."
         elif intervention_required:
-            summary = "Attention required: drift or runtime integrity issues detected. Run 'antios doctor'."
+            if storage_issue:
+                summary = f"Attention required: experience storage issue ({', '.join(storage_status.issues)}). Run 'antios doctor'."
+            else:
+                summary = "Attention required: drift or runtime integrity issues detected. Run 'antios doctor'."
         elif updates_avail:
             summary = f"Update available: instance is on {manifest.antios_version}, framework is {ver_info.version}."
         else:

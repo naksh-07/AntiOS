@@ -27,9 +27,17 @@ from typing import Any, Dict, List, Optional
 from framework.core.adapter import analyze_adaptation, apply_project_adaptation, verify_adapter
 from framework.core.discovery import discover_project
 from framework.core.doctor import DoctorEngine
+from framework.core.experience import (
+    AntiOSDataResolver,
+    get_storage_status,
+    init_data_directory,
+    init_experience_db,
+    register_project,
+)
 from framework.core.git_capability import GitCapabilityEngine
 from framework.core.github_capability import GitHubCapabilityEngine, IssueClass, IssueEvidence
 from framework.core.installation import InstallationLifecycleManager
+from framework.core.manifest import load_manifest, save_manifest
 from framework.core.release_engine import ReleaseEngine
 from framework.core.version import (
     ANTIOS_VERSION,
@@ -98,6 +106,7 @@ def cmd_install(args: argparse.Namespace) -> int:
         force=getattr(args, "force", False),
         target_version=getattr(args, "version", None),
         force_downgrade=getattr(args, "force_downgrade", False),
+        data_dir=getattr(args, "data_dir", None),
     )
 
     if getattr(args, "json", False):
@@ -315,6 +324,113 @@ def cmd_release(args: argparse.Namespace) -> int:
     return 1
 
 
+def cmd_data(args: argparse.Namespace) -> int:
+    target = _resolve_target(args)
+    action = getattr(args, "data_action", None) or "status"
+
+    if action == "status":
+        explicit_dd = getattr(args, "data_dir", None)
+        stat = get_storage_status(data_dir=explicit_dd, project_root=target)
+        if getattr(args, "json", False):
+            print(json.dumps(stat.to_dict(), indent=2))
+        else:
+            print("=" * 60)
+            print("AntiOS Local Engineering Intelligence: Storage Status")
+            print("=" * 60)
+            print(f"Configured:             {'Yes' if stat.is_configured else 'No'}")
+            if stat.data_dir:
+                print(f"Data Directory:         {stat.data_dir}")
+            if stat.db_path:
+                print(f"Experience Database:    {stat.db_path}")
+            print(f"Database Exists:        {'Yes' if stat.db_exists else 'No'}")
+            if stat.db_exists:
+                print(f"Database Size:          {stat.db_size_bytes} bytes")
+                print(f"Schema Version:         {stat.schema_version or 'unknown'}")
+                print(f"Journal Mode:           {stat.journal_mode}")
+                print(f"Synchronous:            {stat.synchronous}")
+                print(f"Busy Timeout:           {stat.busy_timeout} ms")
+                print(f"Foreign Keys:           {'ON' if stat.foreign_keys else 'OFF'}")
+            if stat.project_id:
+                print(f"Project Identity:       {stat.project_id} ({stat.project_name})")
+                print(f"Project Registered:     {'Yes' if stat.project_registered else 'No'}")
+            print(f"Backups Directory:      {'Present' if stat.backups_dir_exists else 'Missing'}")
+            print(f"Exports Directory:      {'Present' if stat.exports_dir_exists else 'Missing'}")
+            print(f"Config File:            {'Present' if stat.config_toml_exists else 'Missing'}")
+            print(f"Storage Health:         {'HEALTHY' if stat.is_healthy else 'ATTENTION REQUIRED'}")
+            if stat.table_counts:
+                print("\nTable Statistics:")
+                for tbl, cnt in stat.table_counts.items():
+                    print(f"  - {tbl:<22}: {cnt} records")
+            if stat.issues:
+                print("\nIssues:")
+                for issue in stat.issues:
+                    print(f"  - {issue}")
+            print("=" * 60)
+        return 0 if stat.is_healthy else 1
+
+    if action == "set-dir":
+        new_dir = getattr(args, "directory", None)
+        if not new_dir:
+            print("Error: must specify directory path.")
+            return 1
+        new_path = Path(new_dir).resolve()
+        if new_path == target or target in new_path.parents:
+            print("Error: AntiOS Data Directory cannot be located inside the target project repository.")
+            return 1
+
+        # Establish directory & database
+        target_dd, db_path = init_data_directory(new_path)
+        init_experience_db(db_path)
+        pid = register_project(db_path, target)
+
+        # Update antios.config.json
+        cfg_path = target / "antios.config.json"
+        cfg_dict = {}
+        if cfg_path.is_file():
+            try:
+                with open(cfg_path, "r", encoding="utf-8-sig") as f:
+                    cfg_dict = json.load(f)
+            except Exception:
+                cfg_dict = {}
+        cfg_dict["data_dir"] = str(target_dd)
+        try:
+            with open(cfg_path, "w", encoding="utf-8") as f:
+                json.dump(cfg_dict, f, indent=2)
+        except Exception:
+            pass
+
+        # Update .antios/manifest.json if present
+        manifest_file = target / ".antios" / "manifest.json"
+        if manifest_file.is_file():
+            try:
+                manifest = load_manifest(target)
+                if manifest:
+                    manifest.metadata["data_dir"] = str(target_dd)
+                    manifest.metadata["project_id"] = pid
+                    if "antios.config.json" in manifest.managed_paths:
+                        from framework.core.provenance import compute_file_sha256
+                        manifest.managed_paths["antios.config.json"].sha256 = compute_file_sha256(cfg_path)
+                    save_manifest(manifest, target)
+            except Exception:
+                pass
+
+        if getattr(args, "json", False):
+            print(json.dumps({
+                "status": "SUCCESS",
+                "data_dir": str(target_dd),
+                "db_path": str(db_path),
+                "project_id": pid,
+            }, indent=2))
+        else:
+            print(f"[SUCCESS] Configured AntiOS Data Directory to: {target_dd}")
+            print(f"Authoritative database: {db_path}")
+            print(f"Project identity:       {pid}")
+        return 0
+
+    print("Usage: antios data {status,set-dir} ...")
+    return 1
+
+
 # ==========================================
 # CLI Parser Setup
 # ==========================================
@@ -352,6 +468,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_inst.add_argument("--dry-run", action="store_true", help="Preview installation without writing files")
     p_inst.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_inst.add_argument("--path", help="Target project root directory")
+    p_inst.add_argument("--data-dir", help="Central AntiOS Data Directory path")
     p_inst.set_defaults(func=cmd_install)
 
     # update
@@ -443,6 +560,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_rel_not.add_argument("--version", help="Version override")
 
     p_rel.set_defaults(func=cmd_release)
+
+    # data
+    p_data = subparsers.add_parser("data", help="AntiOS Data Directory and experience storage inspection")
+    p_data_sub = p_data.add_subparsers(dest="data_action", help="Data actions")
+
+    p_data_stat = p_data_sub.add_parser("status", help="Inspect storage status and health")
+    p_data_stat.add_argument("--data-dir", help="Explicit data directory override")
+    p_data_stat.add_argument("--path", help="Target project root directory")
+    p_data_stat.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_data_set = p_data_sub.add_parser("set-dir", help="Set or re-point project data directory")
+    p_data_set.add_argument("directory", help="Target data directory path")
+    p_data_set.add_argument("--path", help="Target project root directory")
+    p_data_set.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    p_data.set_defaults(func=cmd_data)
 
     return parser
 

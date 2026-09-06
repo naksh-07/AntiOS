@@ -192,6 +192,9 @@ import tests.test_lifecycle_productization as test_lifecycle_productization
 import tests.test_git_github_release_capabilities as test_git_github_release_capabilities
 import tests.test_beta_productization_e2e as test_beta_productization_e2e
 
+# Phase 103 Local Engineering Intelligence: Storage & Data Directory Foundation
+import tests.test_experience_foundation as test_experience_foundation
+
 
 
 
@@ -357,6 +360,8 @@ def build_suite() -> unittest.TestSuite:
         test_lifecycle_productization,
         test_git_github_release_capabilities,
         test_beta_productization_e2e,
+        # Phase 103 Local Engineering Intelligence: Storage & Data Directory Foundation
+        test_experience_foundation,
     ]
 
 
