@@ -1,39 +1,42 @@
 # Active Context (`docs/ACTIVE_CONTEXT.md`)
 
-**Mission**: AntiOS 2.0 — Phases 99–101 Final Certification, Universal Adoption & Architecture Freeze
-**Class**: SYSTEM_CERTIFICATION_AND_FREEZE | **Risk**: HIGH
-**Stage**: COMPLETE | **Status**: CERTIFIED_AND_FROZEN
-**Version**: 2.0.0-RELEASE-CANDIDATE | **Mode**: OPERATIONAL
-**Active Subsystem**: System Certification, Universal Adoption & Architecture Freeze
+**Mission**: AntiOS 2.0 — Productization, Release Engineering & Beta Readiness
+**Class**: PRODUCTIZATION_AND_RELEASE_ENGINEERING | **Risk**: HIGH
+**Stage**: COMPLETE | **Status**: CERTIFIED_BETA_READY
+**Version**: 2.0.0-beta.1 | **Mode**: OPERATIONAL
+**Active Subsystem**: Unified CLI, Release Engine & Beta Lifecycle
 
 ## 1. Active Checklist
-- [x] Phase 99: Final System Certification Audit (`certification_audit.py`, 12 areas, cards $\le 25$ lines)
-- [x] Phase 100: Fresh Project Universal Adoption (`universal_adoption.py`, 19 steps, 0 Core mutations)
-- [x] Phase 101: Production Readiness & Architecture Freeze (`architecture_freeze.py`, INV-01..20, 15 dimensions)
-- [x] Integration: `framework/core/__init__.py`, `pyproject.toml` (2.0.0), `tests/run_all.py` (900/900 tests)
-- [x] ADRs 83–85 & Master Docs: `DECISION_REGISTER.md`, `ANTIOS_SOURCE_OF_TRUTH.md` synchronized
-- [x] Final Release Docs: `FINAL_CERTIFICATION.md`, `UNIVERSAL_ADOPTION.md`, `PRODUCTION_READINESS.md`, `KNOWN_LIMITATIONS.md`, `ARCHITECTURE_FREEZE.md`, `INVARIANT_REGISTRY.md`
-- [x] Maker-Checker Audit: Independent verification via `antios-verifier` (Status: PASS / CERTIFIED)
+- [x] Packaging: `pyproject.toml` setuptools package discovery, console script `antios`
+- [x] Version Authority: `version.py` authoritative SemVer (`2.0.0-beta.1`, beta channel)
+- [x] Product Surface: Unified `antios` CLI (`version`, `status`, `doctor`, `install`, `update`, `rollback`, `repair`, `remove`, `adapt`, `verify`, `issue`, `release`)
+- [x] Lifecycle Hardening: Pre-update snapshotting, rollback, downgrade protection
+- [x] Diagnostics: `DoctorEngine` (10 drift domains, runtime closure, secret redaction)
+- [x] Git & GitHub: Local Git CLI abstraction, GitHub capability, freeze triage
+- [x] Release Engineering: `ReleaseEngine` pre-flight gate, matrix CI, `scripts/`
+- [x] Test Suite: 920/920 tests passing (100% pass rate, 0 failures, 0 skips)
+- [x] Proving Ground: 14-step Beta Readiness Proving Ground verified in sandbox
+- [x] Documentation & ADRs: `CHANGELOG.md`, `BETA_READINESS.md`, ADR 86 ratified
 
 ## 2. Blockers & Invariants
 - Invariant: Zero background daemons, zero custom schedulers/swarms, zero vector DBs.
-- Invariant: Anti-StudyLab boundary strictly enforced (0 leaks, 0 modifications).
+- Invariant: Architecture frozen under Phase 101 / ADR 85 governance.
+- Invariant: AntiOS rollback strictly scoped; never reverts user application code.
 - Invariant: Module size ceiling $\le 2000$ lines; Active Context $\le 60$ lines; cards $\le 25$ lines.
-- Invariant: Bidirectional adaptation contract verified (0 core mutations on fresh project adoption).
 - Invariant: INV-01 to INV-20 canonical invariants ratified and permanently locked.
 
 ## 3. Changed Files & Verification State
-- Core: `certification_audit.py`, `universal_adoption.py`, `architecture_freeze.py`, `__init__.py`
-- Tests: `test_system_certification.py`, `test_universal_adoption.py`, `test_production_readiness.py`, `run_all.py`
-- Docs: `FINAL_CERTIFICATION.md`, `UNIVERSAL_ADOPTION.md`, `PRODUCTION_READINESS.md`, `KNOWN_LIMITATIONS.md`, `ARCHITECTURE_FREEZE.md`, `INVARIANT_REGISTRY.md`, `DECISION_REGISTER.md`, `ANTIOS_SOURCE_OF_TRUTH.md`, `pyproject.toml`
-- Verdict: CERTIFIED (All 900 tests pass cleanly with 0 failures, 0 errors, 0 skips)
+- Core: `version.py`, `git_capability.py`, `github_capability.py`, `doctor.py`, `release_engine.py`, `installation.py`, `manifest.py`, `drift_health.py`, `__init__.py`, `cli.py`
+- Automation & CI: `.github/workflows/ci.yml`, `scripts/*`
+- Tests: `test_versioning.py`, `test_lifecycle_productization.py`, `test_git_github_release_capabilities.py`, `test_beta_productization_e2e.py`, `run_all.py`
+- Docs: `CHANGELOG.md`, `README.md`, `BETA_READINESS.md`, `RELEASE.md`, `RELEASE_ENGINEERING.md`, `VERSIONING.md`, `INSTALLATION.md`, `UPGRADING.md`, `ROLLBACK.md`, `TROUBLESHOOTING.md`, `MAINTENANCE.md`, `MCP_CAPABILITIES.md`, `DECISION_REGISTER.md` (ADR 86)
+- Verdict: PASS (920/920 tests pass cleanly, 0 failures, 0 errors, 0 skips)
 
 ## 4. Dead-End Memory & Validated Lessons
-- `verify_adapter` accepts `repo_root` as string or Path.
-- `ProjectAnatomy` fields are `source_roots`, `test_roots`, `major_subsystems`.
-- `CapabilityRegistry` needs `build_default_registry()` for standard 31 capabilities.
-- `InstallationLifecycleManager.update()` requires explicit `new_revision` parameter.
+- Setuptools flat-layout requires explicit `include = ["framework*"]` package filter.
+- Windows terminals raise `UnicodeEncodeError` on `\u2713`; use ASCII-safe indicators.
+- External projects configure runners via `antios.config.json:test_runners`; check before flagging missing `tests/run_all.py`.
+- Automated secret redaction must scrub both `gho_*` tokens and key/value credential pairs.
 
 ## 5. Next Immediate Action
-AntiOS 2.0.0 ratified, certified, and frozen. Ready for user presentation and operational deployment.
-
+AntiOS 2.0.0-beta.1 certified and ready for beta release distribution.

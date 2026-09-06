@@ -1,8 +1,9 @@
 # AntiOS Master Source of Truth (`ANTIOS_SOURCE_OF_TRUTH.md`)
 
 **Date**: 2026-09-06  
-**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1–101 Consolidated & Architecture Freeze)  
+**Status**: Canonical Master Source of Truth & Precedence Hierarchy (Phases 1–102 Consolidated, Architecture Freeze & Beta Productization)  
 **Objective**: Establish the single authoritative source of truth for every architectural, operational, and governance dimension of AntiOS, eliminating dual-truth risks, documentation drift, and authority fragmentation.
+
 
 ---
 
@@ -31,7 +32,9 @@
 | **Adaptive Mission Orchestration** | AntiOS Adaptive Orchestration Model | `docs/architecture/ORCHESTRATION_MODEL.md` | **PRIMARY SPEC** | Adaptive workforce sizing (SOLO to MAX), wave lifecycle, dual dispatch gates, resource ledger. |
 | **Primary Skill Control Plane** | AntiOS Primary Skill Architecture | `docs/architecture/ANTIOS_SKILL_MODEL.md` | **PRIMARY SPEC** | Authoritative control plane specification for `/antios` skill and progressive disclosure. |
 | **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
-| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–85) recording why decisions were made. |
+| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–86) recording why decisions were made. |
+| **Product CLI & Version Authority** | Authoritative Versioning & Unified CLI | `framework/core/version.py` / `framework/cli.py` | **PRODUCT SPEC** | SemVer authority, release channels, diagnostic doctor, and product lifecycle CLI. |
+
 | **Evidence Architecture** | AntiOS Evidence Architecture Specification | `docs/architecture/EVIDENCE_ARCHITECTURE.md` | **PRIMARY SPEC** | Authoritative epistemic separation, 6 evidence states, and bounded packaging. |
 | **Mission Evaluation Engine** | AntiOS Mission Evaluation Specification | `docs/architecture/MISSION_EVALUATION.md` | **PRIMARY SPEC** | 11-dimension deterministic evaluation, 4 statuses, and Maker-Checker enforcement. |
 | **Agent-Native Mission Benchmark** | AntiOS Mission Benchmark Specification | `docs/architecture/MISSION_BENCHMARK.md` | **PRIMARY SPEC** | Workflow quality benchmark, Baseline vs AntiOS comparison, and proving grounds A–J. |

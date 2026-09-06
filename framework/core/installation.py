@@ -49,6 +49,8 @@ from framework.core.provenance import (
     ProvenanceTracker,
     compute_file_sha256,
 )
+from framework.core.version import ANTIOS_VERSION, compare_versions
+
 
 
 @dataclass
@@ -94,18 +96,24 @@ class InstallationLifecycleManager:
         self,
         source_root: Union[str, Path],
         target_root: Union[str, Path],
-        source_revision: str = "v2.0.0",
+        source_revision: Optional[str] = None,
     ):
         self.source_root = Path(source_root).resolve()
         self.target_root = Path(target_root).resolve()
-        self.source_revision = source_revision
+        self.source_revision = source_revision or f"v{ANTIOS_VERSION}"
         self.compiler = ProjectBoundaryCompiler(
             source_root=self.source_root,
             target_root=self.target_root,
             source_revision=self.source_revision,
         )
 
-    def install(self, dry_run: bool = False, force: bool = False) -> LifecycleResult:
+    def install(
+        self,
+        dry_run: bool = False,
+        force: bool = False,
+        target_version: Optional[str] = None,
+        force_downgrade: bool = False,
+    ) -> LifecycleResult:
         """Installs AntiOS into target project. Idempotent if already installed."""
         # 1. Check if manifest already exists
         manifest_path = self.target_root / ".antios/manifest.json"
@@ -125,12 +133,33 @@ class InstallationLifecycleManager:
                     summary="Installation blocked by corrupted manifest.",
                 )
 
-        # 2. If valid manifest already exists and not forced, check idempotency
+        # 2. Prevent silent downgrade
+        if existing_manifest and not force:
+            effective_target = target_version or ANTIOS_VERSION
+            try:
+                cmp = compare_versions(existing_manifest.antios_version, effective_target)
+                if cmp["is_downgrade"] and not force_downgrade:
+                    return LifecycleResult(
+                        operation="INSTALL",
+                        status="BLOCKED",
+                        installation_state=existing_manifest.installation_state,
+                        adaptation_state=existing_manifest.adaptation_state,
+                        manifest=existing_manifest,
+                        issues=[
+                            f"Downgrade rejected: Installed version ({existing_manifest.antios_version}) is newer than requested ({effective_target}). Pass force_downgrade=True to override."
+                        ],
+                        summary="Installation blocked to prevent silent downgrade.",
+                    )
+            except Exception:
+                pass
+
+        # 3. If valid manifest already exists and not forced, check idempotency
         if existing_manifest and not force:
             # Check manifest fingerprint against current disk manifests
             current_profile = discover_project(str(self.target_root))
             current_fp = _resolve_project_fingerprint(current_profile, self.target_root)
             if existing_manifest.project_fingerprint == current_fp:
+
                 # Perfectly matching fingerprint: verify files on disk
                 verification = self.verify()
                 if verification.status == "SUCCESS":
@@ -251,15 +280,50 @@ class InstallationLifecycleManager:
             summary=f"Adapted AntiOS 2.0 instance ({len(written)} files updated).",
         )
 
-    def update(self, new_revision: str, dry_run: bool = False) -> LifecycleResult:
-        """Updates AntiOS instance to a newer source revision."""
+    def _create_snapshot(self, manifest: ProjectManifest, label: str = "snapshot") -> Optional[Path]:
+        """Creates a restorable snapshot of AntiOS instance files before update or repair."""
+        try:
+            backup_dir = self.target_root / ".antios/backups"
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            snap_file = backup_dir / f"snapshot_{ts}_{manifest.antios_version}_{label}.json"
+
+            files_map: Dict[str, str] = {}
+            for p in list(manifest.generated_paths.keys()) + list(manifest.managed_paths.keys()):
+                abs_p = self.target_root / p
+                if abs_p.is_file() and not manifest.is_artifact_user_owned(p):
+                    try:
+                        files_map[p] = abs_p.read_text(encoding="utf-8")
+                    except Exception:
+                        pass
+
+            payload = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "antios_version": manifest.antios_version,
+                "label": label,
+                "manifest": manifest.to_dict(),
+                "files": files_map,
+            }
+            snap_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            return snap_file
+        except Exception:
+            return None
+
+    def update(self, new_revision: Optional[str] = None, dry_run: bool = False) -> LifecycleResult:
+        """Updates AntiOS instance to a newer source revision with pre-update snapshotting."""
         manifest = load_manifest(self.target_root)
         if not manifest:
             return self.install(dry_run=dry_run)
 
-        # Update source revision
-        self.source_revision = new_revision
-        self.compiler.source_revision = new_revision
+        revision = new_revision or f"v{ANTIOS_VERSION}"
+
+        # 1. Snapshot state before mutating
+        if not dry_run:
+            self._create_snapshot(manifest, "pre-update")
+
+        # 2. Update source revision and recompile
+        self.source_revision = revision
+        self.compiler.source_revision = revision
 
         compilation = self.compiler.compile(existing_manifest=manifest)
         emit_ok, written, conflicts = self.compiler.emit(
@@ -269,7 +333,8 @@ class InstallationLifecycleManager:
         )
 
         if not dry_run:
-            compilation.manifest.source_revision = new_revision
+            compilation.manifest.source_revision = revision
+            compilation.manifest.antios_version = ANTIOS_VERSION
             save_manifest(compilation.manifest, self.target_root)
 
         return LifecycleResult(
@@ -280,10 +345,87 @@ class InstallationLifecycleManager:
             manifest=compilation.manifest,
             written_files=written,
             conflicts=conflicts,
-            summary=f"Updated AntiOS to revision '{new_revision}'.",
+            summary=f"Updated AntiOS to revision '{revision}'. Pre-update snapshot preserved in .antios/backups/.",
         )
 
-    def repair(self, dry_run: bool = False) -> LifecycleResult:
+    def rollback(self, target_version: Optional[str] = None, dry_run: bool = False) -> LifecycleResult:
+        """Rolls back AntiOS instance to a prior snapshot. Strictly preserves user code."""
+        backup_dir = self.target_root / ".antios/backups"
+        if not backup_dir.is_dir():
+            return LifecycleResult(
+                operation="ROLLBACK",
+                status="BLOCKED",
+                installation_state=InstallationState.INSTALLED,
+                adaptation_state=AdaptationState.ADAPTED,
+                issues=["No rollback points available: .antios/backups directory does not exist."],
+                summary="Rollback unavailable: No prior snapshot recorded.",
+            )
+
+        snaps = sorted(list(backup_dir.glob("snapshot_*.json")), reverse=True)
+        if not snaps:
+            return LifecycleResult(
+                operation="ROLLBACK",
+                status="BLOCKED",
+                installation_state=InstallationState.INSTALLED,
+                adaptation_state=AdaptationState.ADAPTED,
+                issues=["No snapshot files found in .antios/backups."],
+                summary="Rollback unavailable: No prior snapshot recorded.",
+            )
+
+        selected_snap: Optional[Path] = None
+        selected_data: Optional[Dict[str, Any]] = None
+
+        for s in snaps:
+            try:
+                data = json.loads(s.read_text(encoding="utf-8"))
+                if target_version:
+                    if data.get("antios_version") == target_version or target_version in s.name:
+                        selected_snap = s
+                        selected_data = data
+                        break
+                else:
+                    selected_snap = s
+                    selected_data = data
+                    break
+            except Exception:
+                continue
+
+        if not selected_snap or not selected_data:
+            return LifecycleResult(
+                operation="ROLLBACK",
+                status="BLOCKED",
+                installation_state=InstallationState.INSTALLED,
+                adaptation_state=AdaptationState.ADAPTED,
+                issues=[f"No matching snapshot found for version '{target_version}'." if target_version else "Failed to parse snapshots."],
+                summary=f"Rollback failed: No compatible snapshot for '{target_version}'.",
+            )
+
+        restored_files: List[str] = []
+        files_map = selected_data.get("files", {})
+        for rel_path, content in files_map.items():
+            abs_p = self.target_root / rel_path
+            if not dry_run:
+                abs_p.parent.mkdir(parents=True, exist_ok=True)
+                abs_p.write_text(content, encoding="utf-8")
+            restored_files.append(rel_path)
+
+        restored_manifest_dict = selected_data.get("manifest")
+        restored_manifest = None
+        if restored_manifest_dict and not dry_run:
+            restored_manifest = ProjectManifest.from_dict(restored_manifest_dict)
+            save_manifest(restored_manifest, self.target_root)
+
+        return LifecycleResult(
+            operation="ROLLBACK",
+            status="SUCCESS",
+            installation_state=InstallationState.INSTALLED,
+            adaptation_state=AdaptationState.ADAPTED,
+            manifest=restored_manifest,
+            written_files=restored_files,
+            summary=f"Rolled back AntiOS to version {selected_data.get('antios_version')} ({len(restored_files)} files restored). User application code was preserved.",
+        )
+
+    def repair(self, dry_run: bool = False, plan_only: bool = False) -> LifecycleResult:
         """Repairs damaged or missing AntiOS instance artifacts."""
         manifest = load_manifest(self.target_root)
         if not manifest:
@@ -297,16 +439,27 @@ class InstallationLifecycleManager:
 
         compilation = self.compiler.compile(existing_manifest=manifest)
 
-        # Repair missing files
+        # Identify repairable missing files
         for conf in conflicts:
             if conf.conflict_type in ("MISSING_MANAGED", "MISSING_GENERATED"):
                 rel_path = conf.path
                 if rel_path in compilation.compiled_files:
-                    if not dry_run:
+                    if not dry_run and not plan_only:
                         target_file = self.target_root / rel_path
                         target_file.parent.mkdir(parents=True, exist_ok=True)
                         target_file.write_text(compilation.compiled_files[rel_path], encoding="utf-8")
                     written.append(rel_path)
+
+        if plan_only:
+            return LifecycleResult(
+                operation="REPAIR",
+                status="SUCCESS",
+                installation_state=manifest.installation_state,
+                adaptation_state=manifest.adaptation_state,
+                manifest=manifest,
+                written_files=written,
+                summary=f"Repair plan: {len(written)} missing artifacts scheduled for restoration.",
+            )
 
         if not dry_run:
             manifest.installation_state = InstallationState.INSTALLED
@@ -334,7 +487,6 @@ class InstallationLifecycleManager:
             paths_to_remove.extend(list(manifest.generated_paths.keys()))
             paths_to_remove.extend(list(manifest.managed_paths.keys()))
         else:
-            # Fallback default instance paths
             paths_to_remove = [
                 ".antios/manifest.json",
                 ".antios/project_profile.json",
@@ -351,7 +503,6 @@ class InstallationLifecycleManager:
             ]
 
         for rel_path in paths_to_remove:
-            # Do NOT remove user owned paths
             if manifest and manifest.is_artifact_user_owned(rel_path):
                 continue
             abs_path = self.target_root / rel_path
@@ -380,14 +531,25 @@ class InstallationLifecycleManager:
                     pass
             removed.append(".agents/skills/antios/")
 
+        # Verify removal
+        residuals: List[str] = []
+        if not dry_run:
+            if (self.target_root / ".antios").exists():
+                residuals.append(".antios")
+            if (self.target_root / "antios.config.json").exists():
+                residuals.append("antios.config.json")
+
+        status = "SUCCESS" if len(residuals) == 0 else "PARTIAL"
         return LifecycleResult(
             operation="REMOVE",
-            status="SUCCESS",
+            status=status,
             installation_state=InstallationState.REMOVED,
             adaptation_state=AdaptationState.UNADAPTED,
             removed_files=removed,
-            summary=f"Removed AntiOS instance ({len(removed)} artifacts removed).",
+            issues=[f"Residual artifacts detected: {', '.join(residuals)}"] if residuals else [],
+            summary=f"Removed AntiOS instance ({len(removed)} artifacts removed)." if not residuals else "Removed AntiOS with residuals.",
         )
+
 
     def verify(self) -> LifecycleResult:
         """Verifies installation health, manifest validity, and checksums."""

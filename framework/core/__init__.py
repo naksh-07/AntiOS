@@ -1,4 +1,4 @@
-"""AntiOS v1 Core Framework Package.
+"""AntiOS 2.0 Core Framework Package.
 
 This package provides the governance and capability primitives for AntiOS:
 - config: Declarative adapter configuration and defaults
@@ -9,7 +9,22 @@ This package provides the governance and capability primitives for AntiOS:
 - tool: Minimal tool abstraction with selection policy and failure taxonomy
 - changeset: Same Change Set integrity evaluation engine
 - worktree: Git working tree state inspection and conflict detection
+- version: Authoritative SemVer versioning and release channel management
 """
+
+from framework.core.version import (
+    ANTIOS_VERSION,
+    CURRENT_SCHEMA_VERSION,
+    ADAPTER_SCHEMA_VERSION,
+    ReleaseChannel,
+    SemVer,
+    VersionInfo,
+    get_version_info,
+    compare_versions,
+)
+
+__version__ = ANTIOS_VERSION
+
 
 from framework.core.config import AntiOSConfig, load_config
 from framework.core.guard import evaluate_tool_call

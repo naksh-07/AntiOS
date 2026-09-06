@@ -186,6 +186,13 @@ import tests.test_system_certification as test_system_certification
 import tests.test_universal_adoption as test_universal_adoption
 import tests.test_production_readiness as test_production_readiness
 
+# Phase 102 Productization, Release Engineering & Beta Readiness
+import tests.test_versioning as test_versioning
+import tests.test_lifecycle_productization as test_lifecycle_productization
+import tests.test_git_github_release_capabilities as test_git_github_release_capabilities
+import tests.test_beta_productization_e2e as test_beta_productization_e2e
+
+
 
 
 def build_suite() -> unittest.TestSuite:
@@ -345,7 +352,13 @@ def build_suite() -> unittest.TestSuite:
         test_system_certification,
         test_universal_adoption,
         test_production_readiness,
+        # Phase 102 Productization, Release Engineering & Beta Readiness
+        test_versioning,
+        test_lifecycle_productization,
+        test_git_github_release_capabilities,
+        test_beta_productization_e2e,
     ]
+
 
     loader = unittest.defaultTestLoader
     for mod in modules:

@@ -20,10 +20,11 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-# Manifest Schema Constants
-CURRENT_ANTIOS_VERSION = "2.0.0"
-CURRENT_SCHEMA_VERSION = "2.0.0"
+from framework.core.version import ANTIOS_VERSION as CURRENT_ANTIOS_VERSION
+from framework.core.version import CURRENT_SCHEMA_VERSION
+
 DEFAULT_MANIFEST_REL_PATH = ".antios/manifest.json"
+
 
 
 class InstallationState(str, Enum):

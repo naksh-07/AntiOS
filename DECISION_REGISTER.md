@@ -853,3 +853,14 @@
 - **WHY SELECTED**: Establishes a hardened, production-ready, bounded standard with immutable constitutional invariants and clear operational contracts.
 - **CONSEQUENCES**: Architecture is formally frozen at Version 2.0.0-GA; unapproved subsystem additions fail closed at the Stop Gate.
 - **REVERSIBILITY**: Low by design; changes require explicit ADR approval and rigorous evidence backing.
+
+---
+
+## DECISION 86: AntiOS 2.0 Beta Productization, Release Engineering & Unified CLI Surface (Phase 102)
+- **DECISION**: Turn certified AntiOS 2.0 into an installable, updatable, reversible, diagnosable, maintainable beta product (`v2.0.0-beta.1`). Implement a unified `antios` CLI console binary (`framework/cli.py`) exposing the complete product lifecycle (`version`, `status`, `doctor`, `install`, `update`, `rollback`, `repair`, `remove`, `adapt`, `verify`, `issue`, `release`). Establish single authoritative SemVer source in `framework/core/version.py`. Harden `InstallationLifecycleManager` with pre-update snapshotting in `.antios/backups/`, atomic rollback, and strict user application code preservation. Implement diagnostic `DoctorEngine` across 10 drift domains with automated secret redaction. Codify native Git and external GitHub capabilities with issue deduplication and Architecture Freeze feature gating. Establish automated release pre-flight validator (`ReleaseEngine`) and GitHub Actions CI matrix (`.github/workflows/ci.yml`).
+- **EVIDENCE**: Architectural certification without productization leaves developers and coding agents reliant on disjoint internal scripts. Delivering a clean, installable CLI with snapshot-backed rollback, automated diagnostics, and release validation ensures safe adoption and maintenance without violating the Architecture Freeze.
+- **ALTERNATIVES**: Relying on internal scripts in `framework/scripts/tools/`; creating external daemon pollers; allowing silent overwrites during update without snapshot backups.
+- **WHY SELECTED**: Pure standard-library implementation, zero external dependencies, 100% test-backed (920/920 tests passing), respects the 20 canonical invariants, and preserves user application code unconditionally.
+- **CONSEQUENCES**: AntiOS is installable as a standard package; users and agents interact through a clean CLI; releases are validated by automated pre-flight gates.
+- **REVERSIBILITY**: High; cleanly modularized in `framework/cli.py`, `framework/core/version.py`, `doctor.py`, `release_engine.py`.
+

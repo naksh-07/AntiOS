@@ -1,17 +1,18 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "antios"
-version = "2.0.0"
-description = "Universal autonomous engineering governance and verification framework for AI coding agents"
+version = "2.0.0-beta.1"
+description = "Project Agent OS for Universal Engineering Governance & Autonomous Development"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
-    {name = "AntiOS Contributors"}
+    {name = "AntiOS Core Team"}
 ]
+dependencies = []
 keywords = ["antigravity", "ai-agents", "governance", "verification", "maker-checker", "testing"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -22,10 +23,17 @@ classifiers = [
     "Topic :: Software Development :: Testing",
 ]
 
+[project.scripts]
+antios = "framework.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["framework*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

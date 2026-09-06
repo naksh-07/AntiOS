@@ -324,19 +324,32 @@ class ProjectDriftEngine:
                 pass
 
         # 6. Test ownership drift check
+        config_path = os.path.join(workspace_root, "antios.config.json")
+        has_configured_runner = False
+        if os.path.isfile(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    trs = cfg.get("test_runners", [])
+                    has_configured_runner = any(tr.get("default_command") for tr in trs)
+            except Exception:
+                pass
+
         runner_path = os.path.join(workspace_root, "tests", "run_all.py")
-        if not os.path.isfile(runner_path):
+
+        if not os.path.isfile(runner_path) and not has_configured_runner:
             findings.append(
                 DriftFinding(
                     domain=DriftDomain.TEST_OWNERSHIP,
                     severity=DriftSeverity.CRITICAL_DRIFT,
                     recommended_action=DriftAction.BLOCK,
-                    description="Authoritative master test runner missing: tests/run_all.py",
+                    description="Authoritative master test runner missing: tests/run_all.py or configured runner in antios.config.json",
                     previous_fingerprint="PRESENT",
                     current_fingerprint="MISSING",
                     affected_paths=["tests/run_all.py"],
                 )
             )
+
 
         return findings[:MAX_DRIFT_FINDINGS]
 
