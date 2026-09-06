@@ -22,7 +22,9 @@
 | :--- | :--- | :--- | :---: | :--- |
 | **Engineering Invariants & Constitution** | AntiOS Master Constitution | `ANTIOS_CONSTITUTION.md` | **CONSTITUTION** | Highest architectural policy; defines invariants, boundaries, and immutable rules. |
 | **System Invariant Registry** | AntiOS Canonical Invariant Registry | `INVARIANT_REGISTRY.md` | **INVARIANT REGISTRY** | 20 canonical invariants (INV-01 to INV-20), verification mechanisms, and enforcement rules. |
-| **System Architecture** | AntiOS Master Architecture Specification | `ANTIOS_V1.md` | **PRIMARY SPEC** | Comprehensive system specification: 4-tier model, 7 subsystems, 63 core modules. |
+| **System Architecture** | AntiOS Master Architecture Contract | `ANTIOS_ARCHITECTURE.md` | **PRIMARY SPEC** | Authoritative system blueprint: 14-dimension Ambient Project OS, conceptual lock, boundaries. |
+| **System Operating Model** | AntiOS Master Operating Model | `ANTIOS_OPERATING_MODEL.md` | **PRIMARY SPEC** | Dual-mode engineering lifecycle (Ambient vs Explicit /antios), adaptive workforce, Stop Gate ratchet. |
+| **Baseline Architecture Specification** | AntiOS V1 Architecture Specification | `ANTIOS_V1.md` | **HISTORICAL SPEC** | Foundational architecture: 4-tier model, 7 subsystems, 63 core modules. |
 | **Architecture Freeze Ratification** | AntiOS Architecture Freeze Ratification | `ARCHITECTURE_FREEZE.md` | **FREEZE RATIFICATION** | Core freeze ratification, banned architectures, permitted maintenance classes, and 3.0 triggers. |
 | **Production Readiness Evaluation** | AntiOS Production Readiness Audit | `PRODUCTION_READINESS.md` | **READINESS AUDIT** | 15 dimensions evaluated, zero-infrastructure profile, operational and deployment checklist. |
 | **Universal Project Adoption** | AntiOS Universal Adoption Specification | `UNIVERSAL_ADOPTION.md` | **ADOPTION SPEC** | 19-step adoption audit, two-way contract, categorization, and execution mode labels. |
@@ -32,7 +34,7 @@
 | **Adaptive Mission Orchestration** | AntiOS Adaptive Orchestration Model | `docs/architecture/ORCHESTRATION_MODEL.md` | **PRIMARY SPEC** | Adaptive workforce sizing (SOLO to MAX), wave lifecycle, dual dispatch gates, resource ledger. |
 | **Primary Skill Control Plane** | AntiOS Primary Skill Architecture | `docs/architecture/ANTIOS_SKILL_MODEL.md` | **PRIMARY SPEC** | Authoritative control plane specification for `/antios` skill and progressive disclosure. |
 | **Project Agent OS Manifest** | Project Agent OS Manifest | `.antios/manifest.json` | **INSTANCE METADATA** | Cryptographic provenance, artifact ownership records, and lifecycle state. |
-| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–86) recording why decisions were made. |
+| **Architectural Consensus & Decisions** | AntiOS Master Decision Register | `DECISION_REGISTER.md` | **DECISION RECORD** | Authoritative consensus log (Decisions 01–92) recording why decisions were made. |
 | **Product CLI & Version Authority** | Authoritative Versioning & Unified CLI | `framework/core/version.py` / `framework/cli.py` | **PRODUCT SPEC** | SemVer authority, release channels, diagnostic doctor, and product lifecycle CLI. |
 
 | **Evidence Architecture** | AntiOS Evidence Architecture Specification | `docs/architecture/EVIDENCE_ARCHITECTURE.md` | **PRIMARY SPEC** | Authoritative epistemic separation, 6 evidence states, and bounded packaging. |
@@ -75,11 +77,11 @@ Rank 3: Git Commit Log & Working Tree Status (git status, git diff)
 Rank 4: Master Engineering Constitution (ANTIOS_CONSTITUTION.md) & Invariant Registry (INVARIANT_REGISTRY.md)
         +-- Foundational project invariants, protected zones, and boundary rules (INV-01 to INV-20).
 
-Rank 5: Master Architecture Specification (ANTIOS_V1.md) & Architecture Freeze (ARCHITECTURE_FREEZE.md)
-        +-- Canonical system blueprint and freeze ratification. Overrides informal proposals.
+Rank 5: Master Architecture Contract (ANTIOS_ARCHITECTURE.md, ANTIOS_OPERATING_MODEL.md, ANTIOS_V1.md) & Architecture Freeze (ARCHITECTURE_FREEZE.md)
+        +-- Canonical system blueprint, operating model, and freeze ratification. Overrides informal proposals.
 
 Rank 6: Master Decision Register (DECISION_REGISTER.md)
-        +-- Recorded consensus (Decisions 01–85). Overrides informal proposals.
+        +-- Recorded consensus (Decisions 01–92). Overrides informal proposals.
 
 Rank 7: Active Engineering Skills (.agents/skills/*)
         +-- Progressive procedural workflows. Overrides generic prompting.

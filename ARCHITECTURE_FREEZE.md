@@ -97,3 +97,15 @@ AntiOS 2.0 is complete and stable. A future AntiOS 3.0 would ONLY be justified b
    Integration of mathematical theorem provers (e.g. Lean, Coq, TLA+) directly into the Stop Gate ratchet for mission-critical aerospace or medical software.
 
 Until such conditions occur, AntiOS 2.0 remains the canonical, frozen, production-ready standard.
+
+---
+
+## 6. Phase 108 Ratification: Ambient Project OS Alignment (ADR 89)
+
+In Phase 108, AntiOS ratified the **Ambient Project OS Architecture Contract** (`ANTIOS_ARCHITECTURE.md`, `ANTIOS_OPERATING_MODEL.md`, ADRs 87–92).
+
+This architectural evolution is formally certified as fully compliant with the Architecture Freeze Charter:
+1. **Zero Banned Architectures**: Phase 108 introduces no daemons, no custom agent runtimes, no vector databases, no swarms, and no giant context injections.
+2. **Permitted Maintenance Classes**: Phase 108 is classified as a combined `CORRECTNESS_IMPROVEMENT` (aligning task lifecycle with actual developer workflows), `PERFORMANCE_IMPROVEMENT` (eliminating multi-stage planning token overhead on routine tasks), and `COMPATIBILITY_IMPROVEMENT` (frictionless native Antigravity lifecycle integration).
+3. **Core Preservation**: AntiOS Core remains 100% standard-library Python, zero-dependency, and strictly headless.
+

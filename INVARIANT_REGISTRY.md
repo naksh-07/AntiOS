@@ -28,3 +28,19 @@
 
 ---
 *All 20 invariants are verified by automated test suites and physically enforced.*
+
+---
+
+## Ambient Project OS Alignment (Phase 108 Ratification)
+
+The Phase 108 Ambient Project OS Architecture Contract (`ANTIOS_ARCHITECTURE.md`, `ANTIOS_OPERATING_MODEL.md`, ADRs 87–92) directly aligns with and reinforces the 20 Canonical Invariants:
+
+1. **`INV-01` (Platform Sovereignty) & `INV-16` (Zero Custom Runtime)**: Fully reaffirmed. AntiOS strictly defers all agent loops, inference, subagent threading, and tool transport to Google Antigravity. AntiOS acts ambiently as an out-of-band repository operating layer without custom runtimes.
+2. **`INV-02` (Protected Zones Immutability)**: Reaffirmed. `pre_tool_guard.py` intercepts file modification tools in $< 10$ms, ensuring `.agents/`, `.antios/`, `framework/`, and `antios.config.json` remain fail-closed immutable.
+3. **`INV-04` (Physical Stop Gate Ratchet)**: Reaffirmed. The Stop Gate enforces physical exit code 0 on all repository modifications regardless of whether tasks execute in ambient `SOLO` mode or explicit `/antios` control mode (ADR 92).
+4. **`INV-06`, `INV-07`, `INV-08` (Workforce & Wave Ceilings)**: Reaffirmed. Shallow depth ($\le 2$), concurrency ($\le 4$ active globally), lifetime launches ($\le 10$ total), and mandatory wave collapse to 0 active subagents are strictly maintained during multi-agent orchestration.
+5. **`INV-09` (Bounded Working Context)**: Reaffirmed. Operational state in `docs/ACTIVE_CONTEXT.md` is strictly capped at $\le 60$ lines; global directives in `docs/AGENTS.md` are capped at $\le 40$ lines.
+6. **`INV-10` (4-Boundary Demarcation)**: Reaffirmed. `SOURCE ≠ INSTANCE ≠ PROJECT ≠ ANTIGRAVITY`. Target project code remains sovereign. Zero `.db` or telemetry files are permitted in project trees.
+7. **`INV-11` (Epistemic Separation)**: Reaffirmed. System A (Project Learning) and System B (Experience Intelligence) remain separated by an absolute code-import and storage firewall (ADR 91).
+8. **`INV-15` (Zero Background Daemons)**: Reaffirmed. Continuous telemetry ingestion is purely hook-embedded during natural platform events (ADR 90). No background watchers or polling daemons are created.
+9. **`INV-18` (Non-Invasive Adapter Isolation)**: Reaffirmed. Project adaptations reside strictly in `antios.config.json`; AntiOS Core logic is 100% untouched.

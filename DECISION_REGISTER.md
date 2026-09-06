@@ -864,3 +864,82 @@
 - **CONSEQUENCES**: AntiOS is installable as a standard package; users and agents interact through a clean CLI; releases are validated by automated pre-flight gates.
 - **REVERSIBILITY**: High; cleanly modularized in `framework/cli.py`, `framework/core/version.py`, `doctor.py`, `release_engine.py`.
 
+---
+
+## DECISION 87: Dual-Mode Engineering Lifecycle (Phase 108 — ADR 87)
+- **DECISION**: Decouple the AntiOS engineering task lifecycle into two formal operating modes:
+  1. **Ambient Mode (Default / Normal Engineering)**: Triggered naturally by standard developer prompts without `/antios`. For `SOLO` and focused tasks, AntiOS operates ambiently. The agent plans directly, edits code, runs native tests, and completes. AntiOS governance applies passively via `pre_tool_guard.py` (path protection) and `stop_gate.py` (test exit code 0 ratchet). Zero procedural ceremony.
+  2. **Explicit Control Mode (`/antios`)**: Triggered when the user explicitly prefixes `/antios` or when a task is classified as `STAGED`, `HIERARCHICAL`, or `HIGH_RISK`. The full structured pipeline (Intent $\to$ State $\to$ Wayfinding $\to$ Workforce Planning $\to$ Wave Orchestration $\to$ Independent Verification $\to$ Distillation) is actively executed.
+- **EVIDENCE**: Phase 108 Constitutional Audit proved that prescribing a mandatory 10-stage ceremony and mandatory `/antios` prefix for all routine tasks (typo fixes, formatting, single-file edits) causes severe cognitive friction, planning token depletion, and state thrashing.
+- **ALTERNATIVES**: Enforcing mandatory 10-stage lifecycle on all tasks; or completely eliminating structured orchestration for complex tasks.
+- **WHY SELECTED**: Delivers maximum velocity on day-to-day engineering while reserving rigorous, multi-agent wave orchestration for high-stakes initiatives.
+- **CONSEQUENCES**: Normal tasks execute with native agility; complex initiatives retain complete constitutional rigor.
+- **REVERSIBILITY**: High; isolated in operating model and skill entrypoints.
+
+---
+
+## DECISION 88: Ambient Native Governance with Optional Explicit Control Plane (Phase 108 — ADR 88)
+- **DECISION**: AntiOS governance is ambiently active by default in every adapted workspace through:
+  1. Global orientation rules in `docs/AGENTS.md` (bounded to $\le 40$ lines).
+  2. Deterministic platform hooks in `.agents/hooks.json` (`pre_tool_guard.py`, `stop_gate.py`).
+  3. Project configuration in `antios.config.json`.
+  Normal developer prompts execute with native Antigravity fluidity. The `/antios` skill remains the specialized entry point for deep operations (orchestrated multi-subagent missions, architecture audits, project re-adaptation, and release certification), but is **never mandatory for standard development work**.
+- **EVIDENCE**: Forcing developers to invoke `/antios` to benefit from safety boundaries breaches `INV-01` (Platform Sovereignty) by treating AntiOS as a competing UI shell rather than an ambient repository operating layer.
+- **ALTERNATIVES**: Requiring `/antios` on every prompt; or stripping all governance when `/antios` is omitted.
+- **WHY SELECTED**: Seamlessly embeds safety and verification into native Antigravity workflows without artificial developer friction.
+- **CONSEQUENCES**: Developers interact with Antigravity natively while AntiOS continuously guarantees repository integrity in the background.
+- **REVERSIBILITY**: High.
+
+---
+
+## DECISION 89: Architecture Freeze Ratification & Alignment for AntiOS 2.1 Ambient OS Contract (Phase 108 — ADR 89)
+- **DECISION**: Classify Phase 108 as a combined `CORRECTNESS_IMPROVEMENT`, `PERFORMANCE_IMPROVEMENT`, and `COMPATIBILITY_IMPROVEMENT` within AntiOS 2.1, fully compliant with the Architecture Freeze Charter:
+  1. Phase 108 introduces **zero prohibited subsystems** (no daemons, no custom runtimes, no vector DBs, no swarms).
+  2. Phase 108 removes artificial procedural friction, directly fulfilling `INV-01` (Platform Sovereignty) and `INV-16` (Zero Custom Runtime).
+  3. The Architecture Freeze Charter is reaffirmed and updated to ratify the Ambient OS Operating Model as canonical for all 2.x releases.
+- **EVIDENCE**: Phase 108 Audit confirmed that moving to an ambient model eliminates unnecessary custom procedural scaffolding rather than adding new unneeded subsystems.
+- **ALTERNATIVES**: Prematurely triggering AntiOS 3.0; or violating the freeze charter without justification.
+- **WHY SELECTED**: Strictly honors the Architecture Freeze while eliminating developer friction and latency.
+- **CONSEQUENCES**: Architecture remains formally bounded, stable, and protected against feature bloat.
+- **REVERSIBILITY**: Irreversible commitment to stability.
+
+---
+
+## DECISION 90: Hook-Embedded Lifecycle Telemetry Ingestion with Ephemeral Checkpointing (Phase 108 — ADR 90)
+- **DECISION**: Implement continuous telemetry ingestion purely through **in-process, event-driven platform hooks**, avoiding background daemons:
+  1. **Hook Ingestion Integration**: The Stop Gate hook (`stop_gate.py`) and PreToolUse guard (`pre_tool_guard.py`) mount an ephemeral call to `TelemetryBridge.ingest_incremental_transcript()` during natural platform tool events.
+  2. **Byte-Offset Checkpointing**: Ingestion processes only unread bytes from `transcript.jsonl` using existing `IngestionCheckpoint` state in `experience.db` (executing in $< 10$ms).
+  3. **Fail-Safe Execution**: Telemetry capture is wrapped in a strict fail-safe handler. If `experience.db` is locked, missing, or throws an error, the exception is silenced and normal engineering proceeds without disruption.
+  4. **Zero Manual Ingestion**: Normal use requires zero `antios data` CLI commands to capture experience. `INV-15` (Zero Background Daemons) is strictly preserved.
+- **EVIDENCE**: Requiring manual CLI commands (`antios data ingest`) resulted in 0% real-time telemetry capture during routine engineering, while running a persistent daemon violates `INV-15`. Hook-embedded ephemeral execution provides continuous capture with zero daemon overhead.
+- **ALTERNATIVES**: Running a background watcher daemon (violates `INV-15`); or keeping telemetry collection manual and offline.
+- **WHY SELECTED**: Captures 100% of real-time developer activity without daemons, background polling, or disruption.
+- **CONSEQUENCES**: Experience data accumulates continuously and passively in `experience.db`.
+- **REVERSIBILITY**: High; isolated within hook scripts and telemetry bridge.
+
+---
+
+## DECISION 91: Epistemic & Operational Firewall Between System A and System B (Phase 108 — ADR 91)
+- **DECISION**: Reaffirm the irreversible firewall between project learning and framework analytics:
+  1. **Storage Isolation**: System A assets remain exclusively within the target project root (`.antios/`, `docs/ACTIVE_CONTEXT.md`, `docs/LESSONS.md`). System B assets reside strictly in the external, non-repository data directory (`AntiOSDataResolver`).
+  2. **Code Import Firewall**: Modules in `framework/core/learning.py`, `memory.py`, `project_proof.py`, and runtime scripts are strictly forbidden from importing `experience.py`, `experience_analytics.py`, or referencing `experience.db`.
+  3. **No Automatic Feedback Loop**: Telemetry from System B can never automatically promote candidate lessons into System A or mutate project configurations. System B is purely an offline, read-only analytics ledger for human engineers.
+- **EVIDENCE**: Automated verification in `tests/test_experience_learning_separation.py` mathematically proves 0 cross-plane imports and 0 workspace file mutations. Formalizing this as an immutable ADR guarantees that future agents cannot cross this boundary.
+- **ALTERNATIVES**: Unified database storing both project lessons and global telemetry.
+- **WHY SELECTED**: Protects project code from telemetry leakage, ensures GDPR/privacy compliance, and guarantees reproducibility.
+- **CONSEQUENCES**: System A and System B remain completely decoupled in storage, code, and semantics.
+- **REVERSIBILITY**: Irreversible foundational boundary.
+
+---
+
+## DECISION 92: Risk-Tiered Verification Ratchet (Phase 108 — ADR 92)
+- **DECISION**: Clarify and enforce the distinction between physical process verification and multi-agent verification:
+  1. **Universal Process Ratchet (Mandatory for ALL mutations)**: Every task that modifies repository files MUST pass configured native test runners with exit code 0 via `stop_gate.py`. This is non-bypassable even in `SOLO` mode.
+  2. **Maker-Checker Subagent Verification (Risk-Proportional)**: Fresh-context subagent audit (`antios-verifier`) is mandatory ONLY for `HIGH_RISK` tasks (modifying security hooks, core state machines, database schemas, or architecture specifications). For `LOW_RISK` and `MEDIUM_RISK` tasks, parent-level verification and test runner execution are sufficient.
+- **EVIDENCE**: Requiring an independent subagent verifier on 1-line typo fixes or comment updates wastes 30–60 seconds of latency and substantial token budget, while skipping test execution on small edits introduces regressions. Universal process verification coupled with risk-proportional subagent audits provides optimal safety and velocity.
+- **ALTERNATIVES**: Mandatory Maker-Checker subagent on 100% of tasks; or completely eliminating independent subagent verification.
+- **WHY SELECTED**: Guarantees zero unverified code lands on main while eliminating latency waste on simple tasks.
+- **CONSEQUENCES**: Stop Gate enforces physical tests on all changes; independent subagents are reserved for high-risk changes.
+- **REVERSIBILITY**: High; configured via verification policies.
+
+

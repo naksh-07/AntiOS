@@ -56,4 +56,4 @@ Every agent operating in an AntiOS repository is bound by ten immutable invarian
 - **Content**: Directs the agent to:
   - The 4 Architectural Axioms (Platform vs Core vs Adapter vs Target).
   - The 10 Constitutional Invariants (Protected zones, test exit 0, Same Change Set, bounded context, orchestration bounds).
-  - Pointers to canonical architecture (`ANTIOS_V1.md`, `docs/architecture/PROJECT_AGENT_OS.md`) and operational state (`docs/ACTIVE_CONTEXT.md`).
+  - Pointers to canonical architecture (`ANTIOS_ARCHITECTURE.md`, `ANTIOS_OPERATING_MODEL.md`, `ANTIOS_V1.md`) and operational state (`docs/ACTIVE_CONTEXT.md`).
