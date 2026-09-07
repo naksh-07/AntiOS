@@ -1,157 +1,303 @@
-# Google Antigravity Context Flow & Memory Architecture
-**Status**: ARCHITECTURAL RESEARCH DOSSIER  
-**Classification**: Grounded Technical Analysis  
-**Primary Sources**: Builtin Customization Guides (`agy-customizations`), Context Pipeline Specifications, and Empirical Token Diagnostics.  
-**Author**: AntiOS Architecture Research Taskforce  
+# Antigravity Native Context Construction Pipeline
+**Document**: `ANTIGRAVITY_CONTEXT_MODEL.md`  
+**Status**: Foundational Research Dossier (Research 1)  
+**Classification**: Rigorous Evidence-Backed Specification  
+**Authority**: Empirical & Official Architectural Reference  
 
 ---
 
-## 1. The Four Tiers of Context Delivery
+## 1. Executive Summary
 
-Context in Google Antigravity does not arrive as a single undifferentiated prompt. It is constructed through a 4-tier pipeline managed by the Language Server on every invocation turn:
+This document establishes the precise operational mechanics of how a Google Antigravity agent acquires, constructs, prioritizes, and utilizes context when interacting with a software engineering repository. 
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ TIER 1: AUTOMATICALLY AVAILABLE (Static System Context)    │
-│ System Identity + <user_information> + Tool Declarations    │
-│ + <skills> Catalog (Metadata) + AGENTS.md (Root/CWD Rules)  │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────┐
-│ TIER 2: PROGRESSIVE DISCLOSURE (Loaded On Demand)           │
-│ SKILL.md (via view_file) + Lazy MCP Schemas + Model Rules   │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────┐
-│ TIER 3: EPHEMERAL INJECTION (Synchronous Hook Payloads)     │
-│ PreInvocation injectSteps + Stop hook rejection reasons     │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────┐
-│ TIER 4: TRANSIENT TRAJECTORY (Conversation Memory)          │
-│ User Prompts + Model Thoughts + Tool Arguments + Outputs    │
-└─────────────────────────────────────────────────────────────┘
-```
+Treating previous architectural assumptions as unverified hypotheses, this research combines:
+1. `[OFFICIAL]` Upstream specifications from built-in customization guides (`agy-customizations`), Antigravity guides (`antigravity_guide`), and the `google-antigravity` SDK.
+2. `[OBSERVED]` Empirical data from controlled disposable sandbox experiments, transcript audits, and language server runtime traces.
+3. `[INFERRED]` Conclusions logically derived from verified behavioral constraints.
+
+The central discovery of this investigation is that **Antigravity operates a heterogeneous, multi-tiered context assembly pipeline with strict boundaries between cognitive guidance and deterministic enforcement**. The agent does not experience an ambient memory space; rather, every turn reconstructs an ephemeral prompt payload combining static system constraints, dynamically discovered directory rules, lazy-loaded skill runbooks, and tool execution outputs.
 
 ---
 
-### Tier 1: Automatically Available (Static System Context)
-- **Platform System Prompt**: `[FACT]` Invariant system instructions establishing identity ("Antigravity, a powerful agentic AI coding assistant designed by Google DeepMind"), tool usage guidelines, communication style, and planning mode directives.
-- **`<user_information>`**: `[OBSERVED]` Environment metadata:
-  - Host OS (`windows`).
-  - Active workspace URIs and CorpusNames (`[URI] -> [CorpusName]`).
-  - App Data Directory (`C:\Users\Suraj\.gemini\antigravity`).
-  - Current `Conversation ID`.
-- **Tool Schema Injections**: `[FACT]` Full parameter schemas for native tools (`run_command`, `view_file`, `replace_file_content`, `write_to_file`, `list_dir`, `grep_search`, `invoke_subagent`, `manage_subagents`, etc.).
-- **Eager MCP Tools**: `[FACT]` Full schemas for pre-registered tools (e.g. `mcp_gemini-api-docs_*`).
-- **Lazy MCP Catalog**: `[FACT]` Simple list of server names and tool identifiers without parameters (e.g. `# chrome-devtools-mcp`, `# github-mcp-server`).
-- **`<skills>` Catalog**: `[FACT]` XML manifest containing skill `name`, physical `path`, and `description`. Crucially, **the body of the skill is NOT present**.
-- **Root & CWD Rules (`AGENTS.md` / `GEMINI.md`)**: `[FACT]` The runtime walks up from CWD to repository root and mounts discovered markdown rules into the system prompt.
+## 2. The Native Context Execution Loop
 
----
+The lifecycle of an Antigravity turn proceeds through distinct, observable phases:
 
-### Tier 2: Progressive Disclosure (Loaded On Demand)
-To prevent context exhaustion in token-dense workflows, Antigravity avoids frontloading heavy documentation:
-- **Skill Activation**: `[FACT]` When the agent or user invokes a skill, the agent calls `view_file` on `SKILL.md`. Only then are procedural runbooks, step lists, and script paths read into active context. Reference manuals under `references/` are read on an even deeper tier on demand.
-- **Lazy MCP Tool Schemas**: `[FACT]` If the model decides to invoke a lazy MCP tool, it calls `view_file` on `~/.gemini/antigravity/mcp/<server>/<tool>.json` to read the arguments, then executes via `call_mcp_tool`.
-- **Model-Decision Rules**: `[FACT]` Rules configured with `trigger: model_decision` remain unloaded until the semantic matcher detects relevance to the prompt.
-
----
-
-### Tier 3: Ephemeral Injection (Lifecycle Hooks)
-- **`PreInvocation` Hooks**: `[FACT]` Hook scripts can return `injectSteps: [{"ephemeralMessage": "..."}]`. This injects a transient system alert into the current turn without polluting permanent conversation history.
-- **`Stop` Hook Rejections**: `[FACT]` When the Stop Gate rejects task conclusion, it returns `decision: "continue"` with `reason: "..."`. This reason is injected as an authoritative corrective directive forcing the model back into the execution loop.
-
----
-
-### Tier 4: Transient Trajectory (Conversation Memory)
-- **Turn History**: `[FACT]` The sequence of user messages, assistant thinking tokens, tool invocations, and tool execution outputs.
-- **Compaction & Truncation**: `[OBSERVED]` When tool outputs exceed 46,080 bytes, they are truncated and written to `.system_generated/steps/<stepIdx>/output.txt`. When total conversation tokens approach model limits, older turns are compacted, losing granular tool outputs.
-
----
-
-## 2. Subagent Context Isolation
-
-When an agent calls `invoke_subagent`:
-- **Context Inheritance**: `[FACT]` **ZERO.** Subagents do NOT inherit the parent conversation history, tool results, or prior thoughts.
-- **Injected Context**: `[FACT]` The subagent receives:
-  1. Standard system instructions and environment `<user_information>`.
-  2. Active workspace rules (`AGENTS.md`).
-  3. Available skill catalog.
-  4. The explicit `Prompt` passed by the parent in `invoke_subagent`.
-- **Parent Visibility**: `[FACT]` The parent cannot read the subagent's internal reasoning or tool calls directly; it receives only structured handoff messages via `send_message` or completion notifications.
-
----
-
-## 3. Session Persistence & Cross-Session Amnesia
-
-| Entity | Turn Boundary | Session Boundary (Same Chat) | Session Boundary (New Chat) | Machine Restart |
-| :--- | :---: | :---: | :---: | :---: |
-| **Active LLM Context Window** | Preserved | Preserved | **LOST (Zeroed)** | **LOST (Zeroed)** |
-| **Conversation SQLite DB** | Appended | Persisted | Stored as separate file | Persisted |
-| **Transcript (`transcript.jsonl`)** | Appended | Appended | New transcript file | Persisted |
-| **Artifacts (`brain/<id>/`)** | Preserved | Persisted | Isolated to old ID | Persisted |
-| **Workspace Files / Git** | Persisted | Persisted | **PERSISTED (Ground Truth)** | **PERSISTED** |
-| **Central Experience DB** | Stagnant | Stagnant | Persisted | Persisted |
-
-**The Amnesia Law**: In native Antigravity, a fresh session starts with **100% amnesia**. It retains zero memory of past decisions, tested hypotheses, or architectural discoveries unless those discoveries were written directly to **Workspace Files** or loaded via declarative adapters.
-
----
-
-## 4. The Critical Problem: Why Does an Agent Rediscover a Project Instead of Navigating Directly to the Subsystem?
-
-When a user gives a command in a large repository (e.g. "Fix the button bug in the frontend"), why does a standard Antigravity agent spend 5–10 turns searching, listing directories, and stumbling through irrelevant files instead of going straight to the exact component?
-
-The investigation reveals five foundational causes:
-
-### 1. Zero File Tree in System Prompt
-The system prompt contains only the root path string: `c:\Users\Suraj\Documents\Antigravity\AntiOs`. It does NOT contain a directory tree or file listing. The LLM has zero knowledge of whether the frontend is in `frontend/`, `src/ui/`, `packages/web/`, `client/`, or `static/`. It must guess and search.
-
-### 2. Context Window Cost Economics
-A large enterprise repository contains 20,000 to 100,000 files. Dumping a recursive file tree or symbol table into the prompt would consume 200,000+ tokens on *every turn*, costing immense latency, credit expenditure, and diluting model attention. Antigravity intentionally leaves the prompt lean.
-
-### 3. Stateless Foundation Model Design
-The Gemini model is inherently stateless. While Antigravity's local language server indexes the codebase via ripgrep and AST trackers, it does not push this knowledge into the model's context window unless queried. Information is **pull-based**, never push-based.
-
-### 4. Codebase Volatility Guarantee
-In real software development, git branches switch, dependencies update, and human developers edit files asynchronously. If an agent assumed yesterday's file map was immutable ground truth, it would make hallucinated edits against deleted or refactored files. The agent searches to ground its actions in physical disk reality.
-
-### 5. Lack of Standardized Project Wayfinding Manifests
-In most repositories, project architecture is buried in unstructured human markdown (`README.md`, developer wikis) written for humans, not agents. Without a structured, machine-readable navigation index, the agent has no choice but to execute exploratory commands (`list_dir`, `grep_search`).
-
----
-
-## 5. How AntiOS Solves the Rediscovery Penalty
-
-AntiOS eliminates project rediscovery **without dumping the repository into context and without custom agent runtimes** by introducing **Three-Tier Deterministic Wayfinding**:
-
-```
-                              User Task
-                                  │
-                       ┌──────────▼──────────┐
-                       │  AGENTS.md Directive│
-                       │ "Consult Adapter"   │
-                       └──────────┬──────────┘
-                                  │
-                       ┌──────────▼──────────┐
-                       │ antios.config.json  │
-                       │ Subsystem Manifests │
-                       └──────────┬──────────┘
-                                  │
-          ┌───────────────────────┼───────────────────────┐
-          ▼                       ▼                       ▼
-   Frontend Module          Backend Module          Database Layer
-   `packages/ui/`           `services/api/`         `migrations/`
-   Test: `npm test`         Test: `cargo test`      Test: `pytest`
+```text
+               User Prompt / Slash Command / Mentions
+                                 │
+                                 ▼
+         [ 1. Pre-Invocation Runtime Pipeline ]
+         ├── Ingest workspace paths & system identity (<identity>, <user_information>)
+         ├── Query active MCP servers (tools/list) & native tool schemas
+         ├── Scan skill customization roots (inject <skills> metadata catalog)
+         ├── Directory traversal: walk UP from CWD to repo root for AGENTS.md / GEMINI.md
+         ├── Ingest conversation trajectory from SQLite (<conversation-id>.db)
+         └── Execute PreInvocation lifecycle hooks (hooks.json -> injectSteps[])
+                                 │
+                                 ▼
+         [ 2. Prompt Payload Serialization & Assembly ]
+         ├── Combine System Prompt + Tool Declarations + Conversation History
+         └── Pre-inference token accounting & budget truncation
+                                 │
+                                 ▼
+         [ 3. Foundation Model Inference (Gemini Pro/Flash) ]
+         ├── Adaptive thinking budget execution (response.thoughts)
+         └── Emit text response OR strongly-typed ToolCall events
+                                 │
+                                 ▼
+         [ 4. Tool Execution & Boundary Interception ]
+         ├── PreToolUse Hook: stdin JSON -> inspect tool call -> allow / deny / overwrite
+         ├── Platform Tool Policy: Short-circuit whitelist/blacklist evaluation
+         └── Native Execution: run_command, view_file, replace_file_content, etc.
+                                 │
+                                 ▼
+         [ 5. Tool Result Handling & Post-Tool Lifecycle ]
+         ├── Result truncation (view_file <= 46KB / 800 lines; grep <= 50 matches)
+         ├── PostToolUse Hook: audit, lint, post-processing
+         └── Append tool result step into conversation trajectory
+                                 │
+                                 ▼
+         [ 6. Model Re-Invocation or Stop Gate ]
+         ├── Model continues multi-step plan OR attempts model_stop
+         └── Stop Hook: intercept completion -> inspect tests -> exit code 0 or continue
 ```
 
-1. **Declarative Wayfinding Adapter (`antios.config.json`)**:
-   - Pre-indexes key subsystems, root entrypoints, protected boundaries, and required test runners in a compact (<100 lines) JSON manifest at the repository root.
-   - The agent reads this single small file and instantly knows the exact filesystem coordinate and test command for every subsystem.
+---
 
-2. **Progressive Control Plane Skill (`.agents/skills/antios`)**:
-   - When active, instructs the agent to read `antios.config.json` before initiating codebase search, cutting exploration turns from 8 turns to 1 turn.
+## 3. The 12 Canonical Context Sources: 10-Dimension Evaluation
 
-3. **Physical Handoff Memory (`handoff.md`)**:
-   - When a session concludes, the agent commits a standardized 5-part transition block (Observation, Logic Chain, Caveats, Conclusion, Verification Method) directly into the repository root.
-   - When a fresh session starts tomorrow, reading `handoff.md` immediately restores the prior session's state in exactly 1 tool call.
+Every piece of information entering an agent's cognitive awareness originates from one of twelve canonical sources. Each source exhibits unique operational characteristics across ten fundamental dimensions:
+
+1. **Automatic Availability**: Is it injected without agent tool calls?
+2. **Discoverability**: Can the agent find it via tools if not pre-injected?
+3. **Deciding Authority**: Who decides whether it enters context (Runtime, User, Model)?
+4. **Loading Stage**: When does it enter the context window?
+5. **Initial Token Size**: How much token space does it occupy initially?
+6. **Agent Ignorability**: Can the model rationalize away or ignore the information?
+7. **Execution Updatability**: Can it mutate mid-session?
+8. **Session Survival**: Does it persist across new conversations?
+9. **Subagent Inheritance**: Does a freshly spawned subagent inherit it?
+10. **Surface Parity**: Does behavior differ between Desktop (2.0), IDE, CLI (`agy`), and SDK?
+
+---
+
+### Source 1: System Instructions (`<identity>`, `<user_information>`, System Contract)
+* `[OFFICIAL]` **Automatic Availability**: YES. Injected at the head of every inference prompt.
+* `[OFFICIAL]` **Discoverability**: N/A (Always present).
+* `[OFFICIAL]` **Deciding Authority**: Platform Runtime / Language Server (`cortex`).
+* `[OFFICIAL]` **Loading Stage**: Turn 0 and refreshed upon every turn.
+* `[OFFICIAL]` **Initial Token Size**: ~1,500–3,500 tokens (includes tool definitions, MCP catalog, environment metadata).
+* `[OFFICIAL]` **Agent Ignorability**: NO. Forms the system prompt foundation defining cognitive persona and tool rules.
+* `[OFFICIAL]` **Execution Updatability**: Static within a session; runtime updates dynamic metadata (e.g. current time, task status).
+* `[OFFICIAL]` **Session Survival**: Reconstructed fresh in new sessions.
+* `[OFFICIAL]` **Subagent Inheritance**: Subagents receive a specialized system contract based on role (e.g. `research` subagent receives read-only tool contracts).
+* `[OFFICIAL]` **Surface Parity**:
+  * *Desktop 2.0*: Injects auxiliary panel instructions and Electron app settings.
+  * *IDE*: Injects editor-specific modalities (code lenses, tab completion hints, active file buffer).
+  * *CLI (`agy`)*: Injects concise TUI directives.
+  * *SDK*: Caller provides custom system string via `LocalAgentConfig(system_instructions="...")`.
+
+---
+
+### Source 2: Directory & Project Rules (`AGENTS.md`, `GEMINI.md`)
+* `[OFFICIAL]` **Automatic Availability**: YES, but **only for active directory scopes**.
+* `[OFFICIAL]` **Discoverability**: Traversed automatically by Language Server directory walkers.
+* `[OFFICIAL]` **Deciding Authority**: Platform Language Server file watcher.
+* `[OFFICIAL]` **Loading Stage**: Session startup and dynamically when opening/editing files within the directory.
+* `[OFFICIAL]` **Initial Token Size**: Full file content size of discovered rules. (Official best practice: $\le 40$ to $120$ lines).
+* `[OFFICIAL]` **Agent Ignorability**: **YES (Cognitive Guidance Only)**. The agent sees instructions as prompt text, but has physical capability to call tools counter to instructions unless blocked by hooks.
+* `[OFFICIAL]` **Execution Updatability**: Dynamic. Disk updates are re-read on subsequent file operations.
+* `[OFFICIAL]` **Session Survival**: Permanent on disk.
+* `[OFFICIAL]` **Subagent Inheritance**: Subagents inherit directory rules when accessing paths within that directory scope.
+* `[CONFLICT]` **Subdirectory Misconception**: AntiOS assumed `docs/AGENTS.md` is automatically indexed. Official Antigravity behavior only indexes `AGENTS.md` / `GEMINI.md` at the **repository root** or in directory ancestor chains. Subdirectory files like `docs/AGENTS.md` are **never auto-loaded** when working at the repository root!
+
+---
+
+### Source 3: Modular Rules (`.agents/rules/*.md`)
+* `[OFFICIAL]` **Automatic Availability**: Conditional based on frontmatter trigger mode.
+* `[OFFICIAL]` **Discoverability**: Discovered within `.agents/rules/`, `.agent/rules/`, `_agents/rules/`.
+* `[OFFICIAL]` **Deciding Authority**: Runtime rule engine for `always_on` and `glob`; model judgment for `model_decision`.
+* `[OFFICIAL]` **Loading Stage**:
+  * `always_on: true`: Injected on turn 0.
+  * `glob: "<pattern>"`: Injected when a file matching the glob is viewed or edited.
+  * `trigger: model_decision`: Injected progressively when the model assesses relevance.
+* `[OFFICIAL]` **Initial Token Size**: 0 tokens for inactive rules; full body size when triggered.
+* `[OFFICIAL]` **Agent Ignorability**: Cognitive guidance.
+* `[OFFICIAL]` **Execution Updatability**: Immediate on-disk reload.
+* `[OFFICIAL]` **Session Survival**: Permanent on disk.
+* `[OFFICIAL]` **Subagent Inheritance**: Discovered if subagent touches matching file paths.
+* `[OFFICIAL]` **Surface Parity**: Supported uniformly across Desktop, IDE, CLI, and SDK. Rules are deduplicated strictly by canonical resolved file path.
+
+---
+
+### Source 4: Workspace & Global Skills (`skills/<name>/SKILL.md`)
+* `[OFFICIAL]` **Automatic Availability**: **NO**. Only progressive metadata (`name`, `description`, path) is injected into `<skills>`.
+* `[OFFICIAL]` **Discoverability**: Discovered via hierarchical traversal (`.agents/skills/`, `~/.gemini/config/skills/`, built-ins).
+* `[OFFICIAL]` **Deciding Authority**: Model (semantic selection) OR User (explicit `/` slash command or `@` mention).
+* `[OFFICIAL]` **Loading Stage**: Loaded strictly on-demand when `view_file` is called on `SKILL.md`.
+* `[OFFICIAL]` **Initial Token Size**: ~20–50 tokens per skill in prompt catalog.
+* `[OFFICIAL]` **Agent Ignorability**: **YES**. Autonomous agents frequently choose not to load a relevant skill if they assume generic reasoning suffices.
+* `[OFFICIAL]` **Execution Updatability**: Editing `SKILL.md` or scripts takes effect immediately on next tool access.
+* `[OFFICIAL]` **Session Survival**: Permanent on disk; loaded skill instructions remain in conversation trajectory until compaction.
+* `[OFFICIAL]` **Subagent Inheritance**: Subagents receive the `<skills>` catalog; can load skills independently.
+* `[OFFICIAL]` **Surface Parity**: Desktop and IDE render slash command popups; SDK requires mounting via `LocalAgentConfig(skills_paths=[...])`.
+
+---
+
+### Source 5: Workspace Configuration (`hooks.json`, `skills.json`, `plugins.json`, `antios.config.json`)
+* `[OFFICIAL]` **Automatic Availability**: Processed out-of-band by the Language Server and hook runtime.
+* `[OFFICIAL]` **Discoverability**: Located in `.agents/` or workspace root.
+* `[OFFICIAL]` **Deciding Authority**: Platform runtime.
+* `[OFFICIAL]` **Loading Stage**: Platform initialization and hook event dispatch.
+* `[OFFICIAL]` **Initial Token Size**: 0 tokens in model prompt (unless explicitly read via `view_file`).
+* `[OFFICIAL]` **Agent Ignorability**: **CANNOT BE IGNORED**. Hooks execute as native operating system processes (`sh -c` / `cmd /c`).
+* `[OFFICIAL]` **Execution Updatability**: Immediate upon file save.
+* `[OFFICIAL]` **Session Survival**: Permanent on disk.
+* `[OFFICIAL]` **Subagent Inheritance**: Workspace hooks govern all subagents executing within the repository workspace.
+* `[OFFICIAL]` **Surface Parity**: `hooks.json` operates identically across Desktop, IDE, and CLI.
+
+---
+
+### Source 6: Conversation History & Trajectory Database
+* `[OFFICIAL]` **Automatic Availability**: YES. Monotonically grows across turns.
+* `[OFFICIAL]` **Discoverability**: Maintained internally in SQLite.
+* `[OFFICIAL]` **Deciding Authority**: Runtime session coordinator.
+* `[OFFICIAL]` **Loading Stage**: Continuous across turns.
+* `[OFFICIAL]` **Initial Token Size**: Starts at 0; accumulates full dialogue, tool invocations, and tool results.
+* `[OFFICIAL]` **Agent Ignorability**: NO. Constitutes the active conversational memory.
+* `[OFFICIAL]` **Execution Updatability**: Append-only trajectory. Context compaction triggers `@hooks.on_compaction` when context ceiling is neared.
+* `[OFFICIAL]` **Session Survival**: Persists indefinitely in SQLite (`~/.gemini/antigravity/conversations/<id>.db` with WAL mode). Resumable in SDK via `conversation_id`.
+* `[OFFICIAL]` **Subagent Inheritance**: **ZERO INHERITANCE**. Subagents start with a completely pristine turn 0 containing only the prompt passed to `invoke_subagent`.
+* `[OFFICIAL]` **Surface Parity**: Trajectory database format is shared across all surfaces.
+
+---
+
+### Source 7: Artifacts (`<appDataDir>\brain\<conversation-id>\`)
+* `[OFFICIAL]` **Automatic Availability**: Path injected into `<artifacts>` prompt section.
+* `[OFFICIAL]` **Discoverability**: Agent accesses files via standard tools (`view_file`, `list_dir`).
+* `[OFFICIAL]` **Deciding Authority**: Agent / User instruction.
+* `[OFFICIAL]` **Loading Stage**: Loaded when explicitly read or written.
+* `[OFFICIAL]` **Initial Token Size**: 0 prompt tokens; metadata informs agent of storage rules.
+* `[OFFICIAL]` **Agent Ignorability**: Agent chooses whether to author artifacts, subject to `artifactReviewMode`.
+* `[OFFICIAL]` **Execution Updatability**: Fully mutable via `write_to_file` and `replace_file_content`.
+* `[OFFICIAL]` **Session Survival**: Persistent on disk outside the repository tree.
+* `[OFFICIAL]` **Subagent Inheritance**: Subagents can access parent artifacts only if absolute paths are explicitly provided in the dispatch prompt.
+* `[OFFICIAL]` **Surface Parity**: Desktop 2.0 renders artifacts in dedicated HTML Auxiliary Panes; IDE opens artifacts in editor tabs.
+
+---
+
+### Source 8: Tool Results (`run_command`, `view_file`, `grep_search`, `list_dir`)
+* `[OFFICIAL]` **Automatic Availability**: YES. Injected immediately following tool execution.
+* `[OFFICIAL]` **Discoverability**: N/A (Delivered by execution engine).
+* `[OFFICIAL]` **Deciding Authority**: Runtime tool execution harness.
+* `[OFFICIAL]` **Loading Stage**: Post-tool execution step.
+* `[OFFICIAL]` **Initial Token Size**: Bounded by hard tool truncation limits:
+  * `view_file`: Max 46,080 bytes / 800 lines.
+  * `grep_search`: Max 50 matching lines.
+  * `list_dir`: Max directory items per page.
+* `[OFFICIAL]` **Agent Ignorability**: Cognitive. Injected into prompt; model processes output in subsequent thinking step.
+* `[OFFICIAL]` **Execution Updatability**: Immutable historical step in trajectory.
+* `[OFFICIAL]` **Session Survival**: Stored in conversation SQLite database.
+* `[OFFICIAL]` **Subagent Inheritance**: Isolated strictly to the agent executing the tool call.
+* `[OFFICIAL]` **Surface Parity**: Identical across surfaces.
+
+---
+
+### Source 9: Subagent Messaging Results (`invoke_subagent`, `send_message`)
+* `[OFFICIAL]` **Automatic Availability**: Delivered automatically into caller context at turn start.
+* `[OFFICIAL]` **Discoverability**: Delivered via native messaging event loop.
+* `[OFFICIAL]` **Deciding Authority**: Runtime messaging bus.
+* `[OFFICIAL]` **Loading Stage**: Reactive wakeup upon subagent message delivery (no manual polling required).
+* `[OFFICIAL]` **Initial Token Size**: Exact byte size of the transmitted message payload.
+* `[OFFICIAL]` **Agent Ignorability**: Cognitive guidance.
+* `[OFFICIAL]` **Execution Updatability**: Append-only message log.
+* `[OFFICIAL]` **Session Survival**: Persisted in caller's SQLite trajectory.
+* `[OFFICIAL]` **Subagent Inheritance**: Strict hierarchy governed by `max_subagent_depth` (default <= 3).
+* `[OFFICIAL]` **Surface Parity**: Desktop 2.0 displays subagents in the live Auxiliary Pane; SDK exposes async event streams.
+
+---
+
+### Source 10: Model Context Protocol (MCP) Results
+* `[OFFICIAL]` **Automatic Availability**: Eager tool schemas injected in prompt; lazy tool schemas declared; tool execution returns results.
+* `[OFFICIAL]` **Discoverability**: System queries MCP servers via `tools/list` on session start.
+* `[OFFICIAL]` **Deciding Authority**: Platform MCP client / Server config (`mcp_config.json`).
+* `[OFFICIAL]` **Loading Stage**: Session initialization and tool invocation.
+* `[OFFICIAL]` **Initial Token Size**: JSON schema representation of exposed MCP tools.
+* `[OFFICIAL]` **Agent Ignorability**: Model decides when to invoke MCP tools.
+* `[OFFICIAL]` **Execution Updatability**: Dynamic server reconnect or tool-list notifications.
+* `[OFFICIAL]` **Session Survival**: Active while MCP server daemon process remains alive.
+* `[OFFICIAL]` **Subagent Inheritance**: Subagents inherit declared MCP server toolkits.
+* `[OFFICIAL]` **Surface Parity**: Desktop has GUI to manage and restart MCP connections; CLI and SDK configure via JSON.
+
+---
+
+### Source 11: Repository Files (Working Tree Code)
+* `[OBSERVED]` **Automatic Availability**: **NO**. Antigravity injects ZERO file tree or code into prompt context on turn 0.
+* `[OBSERVED]` **Discoverability**: Merely discoverable via file system tools (`list_dir`, `view_file`, `grep_search`).
+* `[OBSERVED]` **Deciding Authority**: Agent tool invocation.
+* `[OBSERVED]` **Loading Stage**: Explicit read tool execution.
+* `[OBSERVED]` **Initial Token Size**: 0 tokens.
+* `[OBSERVED]` **Agent Ignorability**: Full agent discretion over what files to inspect.
+* `[OBSERVED]` **Execution Updatability**: Mutable via edit tools (`replace_file_content`, `write_to_file`).
+* `[OFFICIAL]` **Session Survival**: Permanent on disk.
+* `[OFFICIAL]` **Subagent Inheritance**: Available to all agents within workspace boundary permissions.
+* `[OFFICIAL]` **Surface Parity**: IDE tracks active editor tabs and selections; Desktop/CLI require explicit tool calls.
+
+---
+
+### Source 12: Persistent Machine State (`brain/`, `knowledge/`, `conversations/`)
+* `[OFFICIAL]` **Automatic Availability**: Out-of-band management by Language Server daemon.
+* `[OFFICIAL]` **Discoverability**: Stored in `~/.gemini/antigravity/` and `~/.gemini/config/`.
+* `[OFFICIAL]` **Deciding Authority**: Platform core.
+* `[OFFICIAL]` **Loading Stage**: Daemon boot and workspace initialization.
+* `[OFFICIAL]` **Initial Token Size**: 0 prompt tokens directly; symbol graphs cached on disk (`agyhub_summaries_proto.pb`).
+* `[OFFICIAL]` **Agent Ignorability**: N/A (Platform internal).
+* `[OFFICIAL]` **Execution Updatability**: Updated continuously as files and turns progress.
+* `[OFFICIAL]` **Session Survival**: Fully persistent across machine reboots and application restarts.
+* `[OFFICIAL]` **Subagent Inheritance**: Shared local state.
+* `[OFFICIAL]` **Surface Parity**: Identical across surfaces.
+
+---
+
+## 4. Context Pipeline Matrix
+
+| Source # | Context Source | Automatically Available? | Merely Discoverable? | Who Decides? | Loading Stage | Initial Overhead | Can Agent Ignore? | Survives New Session? | Survives New Subagent? |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1** | System Instructions | **YES** | NO | Runtime | Turn 0 / Every Turn | 1,500–3,500 tok | NO | YES (Template) | Specialized |
+| **2** | Project Rules (`AGENTS.md`) | **YES** (In-scope) | NO | Language Server | Directory walk | Full file size | Cognitive only | YES (On disk) | Scope-dependent |
+| **3** | Modular Rules (`.agents/rules`) | Conditional | YES | Engine / Model | Trigger match | 0 to full file | Cognitive only | YES (On disk) | Scope-dependent |
+| **4** | Skills (`SKILL.md`) | Metadata only | **YES** | Model / User | On `view_file` | 20–50 tok/skill | **YES** | Trajectory only | Manifest only |
+| **5** | Workspace Config (`hooks.json`)| Out-of-band | NO | Runtime | Platform start | 0 tokens | **CANNOT IGNORE**| YES (On disk) | YES (Shared) |
+| **6** | Conversation Trajectory | **YES** | NO | Runtime | Continuous | Monotonic | NO | SQLite WAL DB | **ZERO (Isolated)**|
+| **7** | Artifacts (`brain/`) | Path only | **YES** | Agent | On tool call | Path metadata | YES | YES (On disk) | Explicit path only |
+| **8** | Tool Results | **YES** | NO | Tool Harness | Post-execution | Output (Capped) | Cognitive only | Trajectory only | Isolated to caller |
+| **9** | Subagent Results | **YES** | NO | Message Bus | Turn wakeup | Message payload | Cognitive only | Trajectory only | Isolated |
+| **10**| MCP Tool Declarations | **YES** | YES | Client / Server | Session start | Schema size | YES | Process lifetime| Inherited |
+| **11**| Repository Files | **NO** | **YES** | Agent | On tool call | 0 tokens | YES | YES (On disk) | Full access |
+| **12**| Persistent Machine State | Out-of-band | NO | Language Server | Daemon boot | 0 tokens | N/A | YES (DB / Disk) | Shared |
+
+---
+
+## 5. Cognitive Guidance vs. Deterministic Enforcement
+
+A critical finding of this research is that Antigravity maintains an uncompromising separation between **Cognitive Guidance** and **Deterministic Enforcement**:
+
+```text
+┌───────────────────────────────────────────────┬───────────────────────────────────────────────┐
+│ COGNITIVE GUIDANCE LAYER                      │ DETERMINISTIC ENFORCEMENT LAYER               │
+│ (Shapes LLM Reasoning & Token Probabilities)  │ (Physical OS Process & Tool Interception)    │
+├───────────────────────────────────────────────┼───────────────────────────────────────────────┤
+│ • System Instructions (<identity>)           │ • Lifecycle Hooks (PreToolUse, Stop in hooks) │
+│ • Project Rules (AGENTS.md, GEMINI.md)       │ • SDK Safety Policies (confirm_run_command)   │
+│ • Modular Rules (.agents/rules/*.md)          │ • Sandboxing (enableTerminalSandbox)          │
+│ • Skills Runbooks (SKILL.md)                  │ • Native Test Process Ratchet (Exit Code 0)   │
+│ • Active Task Memory (ACTIVE_CONTEXT.md)      │ • Tool Argument Mutators (overwrite in hooks) │
+├───────────────────────────────────────────────┼───────────────────────────────────────────────┤
+│ Failure Mode: LLM rationalizes away rule;     │ Failure Mode: Hook returns "deny" or non-zero │
+│ hallucinates adherence; bypasses guidelines.  │ exit code; tool execution is hard-blocked.    │
+└───────────────────────────────────────────────┴───────────────────────────────────────────────┘
+```
+
+> **The Architectural Axiom:**  
+> Rules written in Markdown are cognitive guidelines, not physical boundaries. Any invariant that must never be violated under any circumstance (such as protected zone immutability or test verification) **must be enforced by deterministic hooks, process exit codes, or tool-level policies, never by prompt instructions alone**.
