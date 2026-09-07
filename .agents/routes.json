@@ -1,0 +1,71 @@
+{
+  "$schema": "https://antios.dev/schemas/v3/routes.json",
+  "project_id": "antios",
+  "subsystems": {
+    "compiler": {
+      "capabilities": [
+        "compile",
+        "compile_project",
+        "to_dict"
+      ],
+      "dependencies": [],
+      "description": "Static project compiler, intelligence extraction, and agent environment generator.",
+      "entrypoint": "framework/compiler/compiler.py",
+      "invariants": [],
+      "root_dir": "framework/compiler",
+      "test_suite": [
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_compiler"
+      ]
+    },
+    "core": {
+      "capabilities": [
+        "compile",
+        "emit",
+        "to_dict"
+      ],
+      "dependencies": [],
+      "description": "Foundational domain primitives, configuration, and internal utilities.",
+      "entrypoint": "framework/core/compiler.py",
+      "invariants": [],
+      "root_dir": "framework/core",
+      "test_suite": [
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_compiler"
+      ]
+    },
+    "scripts": {
+      "capabilities": [
+        "run___init__"
+      ],
+      "dependencies": [],
+      "description": "Scripts subsystem implementation and domain logic.",
+      "entrypoint": "framework/scripts/__init__.py",
+      "invariants": [],
+      "root_dir": "framework/scripts",
+      "test_suite": [
+        "python",
+        "tests/run_all.py"
+      ]
+    },
+    "templates": {
+      "capabilities": [
+        "execute"
+      ],
+      "dependencies": [],
+      "description": "Templates subsystem implementation and domain logic.",
+      "entrypoint": "framework/templates",
+      "invariants": [],
+      "root_dir": "framework/templates",
+      "test_suite": [
+        "python",
+        "tests/run_all.py"
+      ]
+    }
+  },
+  "version": "3.0.0"
+}

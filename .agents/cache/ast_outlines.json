@@ -1,0 +1,134 @@
+{
+  "$schema": "https://antios.dev/schemas/v3/ast_outlines.json",
+  "files": {
+    "framework/compiler/compiler.py": {
+      "classes": [
+        {
+          "bases": [],
+          "docstring": "",
+          "end_line": 42,
+          "methods": [
+            {
+              "end_line": 42,
+              "is_async": false,
+              "name": "to_dict",
+              "qualified_name": "CompilationResult.to_dict",
+              "signature": "to_dict(self) -> Dict[str, Any]",
+              "start_line": 33
+            }
+          ],
+          "name": "CompilationResult",
+          "start_line": 23
+        },
+        {
+          "bases": [],
+          "docstring": "Static compiler that transforms an arbitrary target repository into an",
+          "end_line": 139,
+          "methods": [
+            {
+              "end_line": 52,
+              "is_async": false,
+              "name": "__init__",
+              "qualified_name": "ProjectEnvironmentCompiler.__init__",
+              "signature": "__init__(self, max_discovery_depth: int)",
+              "start_line": 51
+            },
+            {
+              "end_line": 139,
+              "is_async": false,
+              "name": "compile",
+              "qualified_name": "ProjectEnvironmentCompiler.compile",
+              "signature": "compile(self, project_root: str | Path, check: bool, force: bool) -> CompilationResult",
+              "start_line": 54
+            }
+          ],
+          "name": "ProjectEnvironmentCompiler",
+          "start_line": 45
+        }
+      ],
+      "confidence": 1.0,
+      "extractor": "python_ast",
+      "functions": [
+        {
+          "docstring": "Convenience function to compile a project environment.",
+          "end_line": 149,
+          "is_async": false,
+          "name": "compile_project",
+          "qualified_name": "compile_project",
+          "signature": "compile_project(project_root: str | Path, check: bool, force: bool) -> CompilationResult",
+          "start_line": 142
+        }
+      ],
+      "language": "python",
+      "path": "framework/compiler/compiler.py"
+    },
+    "framework/core/compiler.py": {
+      "classes": [
+        {
+          "bases": [],
+          "docstring": "Outcome of the Project Boundary Compilation.",
+          "end_line": 63,
+          "methods": [
+            {
+              "end_line": 63,
+              "is_async": false,
+              "name": "to_dict",
+              "qualified_name": "CompilationResult.to_dict",
+              "signature": "to_dict(self) -> Dict[str, Any]",
+              "start_line": 55
+            }
+          ],
+          "name": "CompilationResult",
+          "start_line": 46
+        },
+        {
+          "bases": [],
+          "docstring": "Compiles AntiOS Source intelligence into a target Project Agent OS Instance.",
+          "end_line": 368,
+          "methods": [
+            {
+              "end_line": 77,
+              "is_async": false,
+              "name": "__init__",
+              "qualified_name": "ProjectBoundaryCompiler.__init__",
+              "signature": "__init__(self, source_root: Union[str, Path], target_root: Union[str, Path], source_revision: str)",
+              "start_line": 69
+            },
+            {
+              "end_line": 332,
+              "is_async": false,
+              "name": "compile",
+              "qualified_name": "ProjectBoundaryCompiler.compile",
+              "signature": "compile(self, existing_manifest: Optional[ProjectManifest], profile_override: Optional[ProjectProfile], config_override: Optional[AntiOSConfig]) -> CompilationResult",
+              "start_line": 79
+            },
+            {
+              "end_line": 368,
+              "is_async": false,
+              "name": "emit",
+              "qualified_name": "ProjectBoundaryCompiler.emit",
+              "signature": "emit(self, result: CompilationResult, existing_manifest: Optional[ProjectManifest], dry_run: bool) -> Tuple[bool, List[str], List[str]]",
+              "start_line": 334
+            }
+          ],
+          "name": "ProjectBoundaryCompiler",
+          "start_line": 66
+        }
+      ],
+      "confidence": 1.0,
+      "extractor": "python_ast",
+      "functions": [],
+      "language": "python",
+      "path": "framework/core/compiler.py"
+    },
+    "framework/scripts/__init__.py": {
+      "classes": [],
+      "confidence": 1.0,
+      "extractor": "python_ast",
+      "functions": [],
+      "language": "python",
+      "path": "framework/scripts/__init__.py"
+    }
+  },
+  "version": "3.0.0"
+}

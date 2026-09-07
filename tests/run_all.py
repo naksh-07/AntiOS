@@ -208,6 +208,9 @@ import tests.test_experience_learning_separation as test_experience_learning_sep
 # Phase 107 Experience Operations, Hardening & Certification
 import tests.test_experience_operations as test_experience_operations
 
+# AntiOS 3.0 Stage 1: Project Environment Compiler & Intelligence
+import tests.test_compiler as test_compiler
+
 
 
 
@@ -384,6 +387,8 @@ def build_suite() -> unittest.TestSuite:
         test_experience_learning_separation,
         # Phase 107 Experience Operations, Hardening & Certification
         test_experience_operations,
+        # AntiOS 3.0 Stage 1: Project Environment Compiler & Intelligence
+        test_compiler,
     ]
 
 

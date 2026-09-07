@@ -12,6 +12,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-82).
 - [AntiOS 3.0 Architecture Specification](architecture/ANTIOS_3_ARCHITECTURE.md) — The canonical Agent-Native Project Environment Compiler & Governance Plane for Google Antigravity (9 Subsystems, Dual-Plane, 4-Zone Boundaries).
 - [AntiOS 3.0 Migration Plan](architecture/MIGRATION_PLAN.md) — The authoritative 5-stage engineering migration sequence from AntiOS 2.x to AntiOS 3.0.
+- [AntiOS 3.0 Dead Code Registry](architecture/DEAD_CODE_REGISTRY.md) — Exhaustive forensic reachability inventory and frozen legacy module catalog.
 - [Project Agent OS Specification (AntiOS 2.0)](architecture/PROJECT_AGENT_OS.md) - Universal boundary compiler, 5-tier artifact model, lifecycle engine, and orchestration limits.
 - [Contributing Guide](../CONTRIBUTING.md) — Engineering standards, Same Change Set policy, and test validation.
 
@@ -71,6 +72,7 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Orchestration Policy & Invariants](reference/ORCHESTRATION_POLICY.md) — Constitutional workforce limits, wave collapse rules, and write safety policies.
 - [Agent Dispatch Reference](reference/AGENT_DISPATCH.md) — Canonical 10-stage task dispatch pipeline and CLI reference.
 - [Command Line Interface Reference](reference/CLI.md) — Reference for deterministic CLI tools in `framework/scripts/tools/` (including `dispatch_task.py` and `verify_intelligence.py`).
+- [Project Environment Compiler Reference](reference/COMPILER.md) — Static compiler architecture, CLI usage, AST extraction, and output contracts.
 - [Configuration Reference](reference/CONFIGURATION.md) — Complete specification of `antios.config.json` options.
 - [Tool, Provider & MCP Policy](reference/MCP_POLICY.md) — 8-tier hybrid capability matrix and canonical MCP escalation rules.
 - [AntiOS Failure Taxonomy](reference/FAILURE_TAXONOMY.md) — Deterministic vs. agent failure classification and mitigations.

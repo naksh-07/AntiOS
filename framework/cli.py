@@ -271,6 +271,34 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 0 if res.status == "SUCCESS" else 1
 
 
+def cmd_compile(args: argparse.Namespace) -> int:
+    target = _resolve_target(args)
+    check_mode = getattr(args, "check", False) or getattr(args, "dry_run", False)
+    force = getattr(args, "force", False)
+    as_json = getattr(args, "json", False)
+
+    from framework.compiler.compiler import ProjectEnvironmentCompiler
+    compiler = ProjectEnvironmentCompiler()
+    result = compiler.compile(project_root=target, check=check_mode, force=force)
+
+    if as_json:
+        print(json.dumps(result.to_dict(), indent=2))
+    else:
+        status_label = "CHECK" if check_mode else ("SUCCESS" if result.success else "FAILED")
+        print(f"[{status_label}] Project compiled: {result.project_id}")
+        print(f"  Subsystems: {result.subsystems_count}")
+        print(f"  Emitted artifacts: {len(result.emitted_files)}")
+        for ef in result.emitted_files:
+            print(f"    - {ef}")
+        if result.warnings:
+            print("  Warnings:")
+            for w in result.warnings:
+                print(f"    ! {w}")
+        print(f"  Time: {result.elapsed_ms:.1f}ms")
+
+    return 0 if result.success else 1
+
+
 def cmd_issue(args: argparse.Namespace) -> int:
     target = _resolve_target(args)
     gh_eng = GitHubCapabilityEngine(target)
@@ -893,6 +921,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_verf.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_verf.add_argument("--path", help="Target project root directory")
     p_verf.set_defaults(func=cmd_verify)
+
+    # compile
+    p_comp = subparsers.add_parser("compile", help="Compile target repository into an Agent-Native Project Environment")
+    p_comp.add_argument("--path", help="Target project root directory (defaults to cwd)")
+    p_comp.add_argument("--check", "--dry-run", dest="check", action="store_true", help="Perform validation without writing files")
+    p_comp.add_argument("--json", action="store_true", help="Output machine-readable compilation result")
+    p_comp.add_argument("--force", action="store_true", help="Overwrite existing user-authored files without conflict fallback")
+    p_comp.set_defaults(func=cmd_compile)
 
     # issue
     p_iss = subparsers.add_parser("issue", help="Issue and bug management workflow")
