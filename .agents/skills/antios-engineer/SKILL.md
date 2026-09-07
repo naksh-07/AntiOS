@@ -20,19 +20,33 @@ Assess the risk tier before implementing:
 - **Low Risk** (typos, markdown documentation, formatting): Solo execution allowed. Local test check; no subagent needed.
 - **Medium Risk** (isolated UI fixes, standard feature additions): Primary agent implements and self-verifies with native tests.
 - **High Risk** (state machines, persistence/schema, security hooks, packaging): **MANDATORY MAKER-CHECKER**.
-  - Dispatch an independent verifier via `invoke_subagent` using `TypeName='self'` (strictly NEVER `TypeName='research'`).
-  - Pass minimal context: objective, modified files, test commands, target member (via `prepare_checker_context`).
+  - Dispatch an independent verifier via `invoke_subagent` using `TypeName='self'`.
+  - Pass minimal explicit dispatch contract:
+    ```json
+    {
+      "dispatch_contract": {
+        "task_type": "independent_verification",
+        "target_subsystem": "<subsystem_name>",
+        "touched_files": ["path/to/file.py"],
+        "invariants": ["INV-03", "INV-04", "INV-10"],
+        "proving_command": ["python", "-m", "unittest", "tests/..."],
+        "instructions": "Audit working tree diff against invariants and execute proving command. Return structured verdict."
+      }
+    }
+    ```
   - Verifier uses the `antios-verifier` skill and returns a structured JSON verdict.
   - **Shallow Depth Law**: Subagent depth must never exceed 2 (Parent -> Child). Subagents must NEVER spawn children.
 
-## 3. The 8-Stage Engineering Lifecycle
-Always proceed through:
-`UNDERSTAND -> LOCATE -> PLAN -> ACT -> TEST -> VERIFY -> REMEMBER -> RECOVER`.
-- **LOCATE FIRST**: Before exploring files or writing plans, run `python framework/scripts/tools/navigate_repo.py --query "<intent>"` to resolve the owning subsystem, entrypoints, invariants, and covering tests.
-- Standard workflows (`FEATURE`, `BUG`, `REFACTOR`, `INVESTIGATION`, `DOCUMENTATION`, `RELEASE`) govern the operational sequence. Never guess file locations.
+## 3. The 4-Tier Progressive Wayfinding Ladder
+Never perform unguided repository-wide searches (`grep_search`, `find_by_name`). Always proceed through the 4-tier wayfinding ladder:
+- **L0: Orientation**: Read `./AGENTS.md` for the Turn-0 constitution, core invariants, verification law, and subsystem index (<250 tokens).
+- **L1: Subsystem Navigation**: Query `.agents/routes.json` to identify the authoritative subsystem entrypoint, capabilities, and proving tests.
+- **L2: Precision Localization**: Inspect the exact target implementation files and windowed AST symbol slices.
+- **L3: Targeted Proving**: Run the subsystem's specific proving test command before and after modifications.
 
 ## 4. The Stop Gate Ratchet
-Task completion triggers the AntiOS Stop hook, which dynamically discovers and executes configured or manifest-detected test runners.
-- Member-scoped filtering applies for monorepos (executes member runners unless broader blast radius or RELEASE/REFACTOR).
+Task completion triggers the AntiOS Stop hook, which dynamically discovers and executes configured or manifest-detected test runners across all authorized workspaces.
+- Multi-workspace roots are fully supported; tests execute for each enrolled workspace repository.
 - The task CANNOT complete unless all physical test processes exit with code 0.
-- Ensure working tree cleanliness and update `docs/ACTIVE_CONTEXT.md` (<= 60 lines) before stopping.
+- All unresolved git conflict markers (`<<<<<<< `, `=======`, `>>>>>>> `) must be cleared.
+

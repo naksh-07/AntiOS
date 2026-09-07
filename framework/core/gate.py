@@ -283,11 +283,18 @@ def evaluate_stop_gate(
         if not workspace_paths or not isinstance(workspace_paths, list) or len(workspace_paths) == 0:
             return "continue", "AntiOS Stop Gate: workspacePaths must be a non-empty list. Failing closed."
 
-        first_workspace = workspace_paths[0]
-        if not isinstance(first_workspace, str) or not first_workspace.strip():
+        canonical_workspaces: List[str] = []
+        for ws in workspace_paths:
+            if not isinstance(ws, str) or not ws.strip():
+                return "continue", "AntiOS Stop Gate: workspacePaths contains invalid entry. Failing closed."
+            c_ws = os.path.normcase(os.path.abspath(os.path.realpath(ws)))
+            if c_ws not in canonical_workspaces:
+                canonical_workspaces.append(c_ws)
+
+        if not canonical_workspaces:
             return "continue", "AntiOS Stop Gate: workspacePaths contains invalid entry. Failing closed."
 
-        repo_root = os.path.normcase(os.path.abspath(os.path.realpath(first_workspace)))
+        repo_root = canonical_workspaces[0]
 
         # Extract context if present in input_data
         if target_member is None:

@@ -53,30 +53,65 @@ def evaluate_tool_call(
         if not workspace_paths or not isinstance(workspace_paths, list) or len(workspace_paths) == 0:
             return "deny", "AntiOS Security Guard: workspacePaths must be a non-empty list. Failing closed."
 
-        first_workspace = workspace_paths[0]
-        if not isinstance(first_workspace, str) or not first_workspace.strip():
+        canonical_workspaces: List[str] = []
+        for ws in workspace_paths:
+            if not isinstance(ws, str) or not ws.strip():
+                return "deny", "AntiOS Security Guard: workspacePaths contains invalid entry. Failing closed."
+            c_ws = os.path.normcase(os.path.abspath(os.path.realpath(ws)))
+            if c_ws not in canonical_workspaces:
+                canonical_workspaces.append(c_ws)
+
+        if not canonical_workspaces:
             return "deny", "AntiOS Security Guard: workspacePaths contains invalid entry. Failing closed."
 
-        repo_root = os.path.normcase(os.path.abspath(os.path.realpath(first_workspace)))
+        # 4. Resolve TargetFile and matching workspace root
+        if not os.path.isabs(target_file):
+            # Check if relative target matches an existing file in any workspace
+            matched_root = None
+            matched_resolved = None
+            for ws_root in canonical_workspaces:
+                candidate = os.path.normcase(os.path.realpath(os.path.abspath(os.path.join(ws_root, target_file))))
+                try:
+                    if os.path.commonpath([candidate, ws_root]) == ws_root and os.path.exists(candidate):
+                        matched_root = ws_root
+                        matched_resolved = candidate
+                        break
+                except ValueError:
+                    pass
 
-        # 4. Load config if not provided
+            if not matched_root:
+                matched_root = canonical_workspaces[0]
+                matched_resolved = os.path.normcase(os.path.realpath(os.path.abspath(os.path.join(matched_root, target_file))))
+            
+            repo_root = matched_root
+            target_resolved = matched_resolved
+        else:
+            target_resolved = os.path.normcase(os.path.realpath(os.path.abspath(target_file)))
+            # Longest-prefix matching among all workspaces
+            containing_roots: List[str] = []
+            for ws_root in canonical_workspaces:
+                try:
+                    if os.path.commonpath([target_resolved, ws_root]) == ws_root:
+                        containing_roots.append(ws_root)
+                except ValueError:
+                    pass
+
+            if containing_roots:
+                containing_roots.sort(key=len, reverse=True)
+                repo_root = containing_roots[0]
+            else:
+                repo_root = canonical_workspaces[0]
+
+        # 5. Load config if not provided
         if config is None:
             config = load_config(repo_root)
 
-        # 5. Canonicalize TargetFile path anchored strictly to workspace root
-        if not os.path.isabs(target_file):
-            target_abs = os.path.abspath(os.path.join(repo_root, target_file))
-        else:
-            target_abs = os.path.abspath(target_file)
-        target_resolved = os.path.normcase(os.path.realpath(target_abs))
-
-        # 6. Confinement Check: TargetFile must reside within repo_root
+        # 6. Confinement Check: TargetFile must reside within matched repo_root
         is_inside_repo = False
         try:
             if os.path.commonpath([target_resolved, repo_root]) == repo_root:
                 is_inside_repo = True
         except ValueError:
-            # Different Windows drive letters cannot share commonpath
             is_inside_repo = False
 
         if not is_inside_repo:

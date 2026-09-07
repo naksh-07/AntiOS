@@ -211,6 +211,9 @@ import tests.test_experience_operations as test_experience_operations
 # AntiOS 3.0 Stage 1: Project Environment Compiler & Intelligence
 import tests.test_compiler as test_compiler
 
+# AntiOS 3.0 Stage 2: Native Antigravity Integration & Lifecycle Wiring
+import tests.test_stage2_lifecycle as test_stage2_lifecycle
+
 
 
 
@@ -389,6 +392,8 @@ def build_suite() -> unittest.TestSuite:
         test_experience_operations,
         # AntiOS 3.0 Stage 1: Project Environment Compiler & Intelligence
         test_compiler,
+        # AntiOS 3.0 Stage 2: Native Antigravity Integration & Lifecycle Wiring
+        test_stage2_lifecycle,
     ]
 
 

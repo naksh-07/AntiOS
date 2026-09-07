@@ -1,12 +1,29 @@
 ﻿{
   "antios-guard": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python framework/hooks/pre_invocation.py"
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "write_to_file|replace_file_content",
         "hooks": [
           {
             "type": "command",
-            "command": "python -c \"import os,runpy; runpy.run_path('framework/scripts/hooks/pre_tool_guard.py' if os.path.exists('framework/scripts/hooks/pre_tool_guard.py') else '../framework/scripts/hooks/pre_tool_guard.py', run_name='__main__')\""
+            "command": "python framework/hooks/pre_tool_guard.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python framework/hooks/post_tool_use.py"
           }
         ]
       }
@@ -14,7 +31,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "python -c \"import os,runpy; runpy.run_path('framework/scripts/hooks/stop_gate.py' if os.path.exists('framework/scripts/hooks/stop_gate.py') else '../framework/scripts/hooks/stop_gate.py', run_name='__main__')\""
+        "command": "python framework/hooks/gate.py"
       }
     ]
   }
