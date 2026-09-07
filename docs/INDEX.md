@@ -10,6 +10,8 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Universal Constitution](../ANTIOS_CONSTITUTION.md) — The 7 non-negotiable engineering invariants (Protected zones, Same Change Set, etc.).
 - [Master Architecture Specification (v1.0.0-GA)](../ANTIOS_V1.md) — Canonical 4-tier model, 7 subsystems, 63 core modules.
 - [Architectural Decision Register](../DECISION_REGISTER.md) - Complete consensus history of all architectural decisions (ADR 01-82).
+- [AntiOS 3.0 Architecture Specification](architecture/ANTIOS_3_ARCHITECTURE.md) — The canonical Agent-Native Project Environment Compiler & Governance Plane for Google Antigravity (9 Subsystems, Dual-Plane, 4-Zone Boundaries).
+- [AntiOS 3.0 Migration Plan](architecture/MIGRATION_PLAN.md) — The authoritative 5-stage engineering migration sequence from AntiOS 2.x to AntiOS 3.0.
 - [Project Agent OS Specification (AntiOS 2.0)](architecture/PROJECT_AGENT_OS.md) - Universal boundary compiler, 5-tier artifact model, lifecycle engine, and orchestration limits.
 - [Contributing Guide](../CONTRIBUTING.md) — Engineering standards, Same Change Set policy, and test validation.
 

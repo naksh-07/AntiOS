@@ -35,8 +35,8 @@ Unlike brittle machine-learning wrappers that attempt to fine-tune prompts dynam
 
 This directory contains the authoritative specifications for the Experience Architecture:
 
-1. **[`CONTINUOUS_TELEMETRY.md`](file:///c:/Users/Suraj/Documents/Antigravity/AntiOs/docs/architecture/experience/CONTINUOUS_TELEMETRY.md)**:
+1. **[`CONTINUOUS_TELEMETRY.md`](CONTINUOUS_TELEMETRY.md)**:
    The continuous, hook-embedded telemetry ingestion pipeline, byte-offset transcript checkpointing, and non-blocking failure tolerance.
 
-2. **[`SYSTEM_A_B_SEPARATION.md`](file:///c:/Users/Suraj/Documents/Antigravity/AntiOs/docs/architecture/experience/SYSTEM_A_B_SEPARATION.md)**:
+2. **[`SYSTEM_A_B_SEPARATION.md`](SYSTEM_A_B_SEPARATION.md)**:
    The formal specification of the epistemic, storage, operational, and code-import firewall separating Project Learning (System A) from Experience Intelligence (System B).

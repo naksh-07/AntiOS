@@ -71,7 +71,7 @@ AntiOS Core operates with:
 | **C-44** | Canonical Agent Role Contract | Core | `test_agent_role.py` | 100% (PASS) | Least-privilege capability boundaries and Shallow Depth Law enforcement. |
 | **C-45** | Deterministic Agent Topology | Core | `test_agent_topology.py` | 100% (PASS) | Multi-key index for Primary, Specialist, and Checker roles. |
 | **C-46** | Signal-Based Agent Router | Core | `test_agent_router.py` | 100% (PASS) | Conservative delegation gating; defaults strictly to SOLO execution. |
-| **C-47** | Token-Bounded Handoff Contract | Core | `test_agent_routing_pack.py` | 100% (PASS) | Compact context transfer schema for Primary <-> Specialist delegation. |
+| **C-47** | Token-Bounded Handoff Contract | Core | `test_agent_router.py` | 100% (PASS) | Compact context transfer schema for Primary <-> Specialist delegation. |
 | **C-48** | Eight-Tier Hybrid Capability Matrix| Core | `test_tool_policy.py` | 100% (PASS) | Native > Script > Project > External > Authorized MCP > Prohibited MCP. |
 | **C-49** | In-Memory Multi-Dimensional Tool Reg| Core | `test_tool_registry.py` | 100% (PASS) | Sub-millisecond query performance across 100+ tools with zero disk I/O. |
 | **C-50** | Canonical MCP Justification Authority| Core | `test_mcp_justification.py` | 100% (PASS) | Centralized 8-question evaluation report; strictly rejects unauthorized MCPs. |

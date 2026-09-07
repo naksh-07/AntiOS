@@ -1,5 +1,3 @@
-# AntiOS Testing & Quality Assurance (`docs/operations/TESTING.md`)
-
 # AntiOS Testing & Quality Assurance (`docs/operations/TESTING.md`)
 
 AntiOS enforces a rigorous, multi-layered, zero-dependency testing architecture. All tests execute hermetically against the local physical filesystem using standard library `unittest`.
@@ -8,18 +6,17 @@ AntiOS enforces a rigorous, multi-layered, zero-dependency testing architecture.
 
 ## 1. Test Suite Organization
 
-The testing framework is centralized under `tests/` and executed by `tests/run_all.py` (115 test modules, 766 tests):
+The testing framework is centralized under `tests/` and executed by `tests/run_all.py` (140 test modules, 1,086+ tests):
 
 ### A. Core Governance & Boundary Defense
 - `test_guard.py` & `test_guard_hardened.py` — PreToolUse hook evaluation, path traversal defenses, protected zone immutability.
 - `test_governance.py` — Governance rule evaluation and immutable core boundary checks.
-- `test_security_adversarial.py` — Penetration testing, symlink escapes, and privilege escalation mitigations.
 
 ### B. Dynamic Ratchet & Verification
 - `test_gate.py` & `test_gate_hardened.py` — Stop Gate verification ratchet, test runner discovery, timeout handling.
 - `test_verdict.py` — Verifier JSON contract schema validation and tamper resistance.
 - `test_maker_checker_dispatch.py` — Independent Maker-Checker auditor workflow dispatch.
-- `test_verification_adversarial.py` & `test_adversarial_verification.py` — Verification bypass and suppressed failure attacks.
+- `test_adversarial_verification.py` — Verification bypass and suppressed failure attacks.
 
 ### C. Capability & Tool Policy Routing
 - `test_capability_registry.py` & `test_capability_router.py` — Capability taxonomy, multi-index lookup, and task resolution.
@@ -37,7 +34,7 @@ The testing framework is centralized under `tests/` and executed by `tests/run_a
 - `test_discovery.py`, `test_adapter.py` & `test_adapter_verification.py` — Multi-lingual repo discovery and adapter generation.
 - `test_topology.py` & `test_subsystem.py` — Workspace topology detection (monorepos, polyglot) and subsystem boundaries.
 - `test_wayfinding.py` & `test_project_knowledge.py` — Subsystem wayfinding and semantic keyword ranking.
-- `test_fixtures.py` & `test_conflict.py` — 9 project archetypes in `tests/fixtures/`.
+- `test_fixtures.py` & `test_conflict.py` — 17 project archetypes in `tests/fixtures/`.
 
 ### F. Lifecycle, Memory & Recovery
 - `test_lifecycle.py` — 10-stage task lifecycle state machine and active context line budget (<= 60 lines).
@@ -67,21 +64,33 @@ The testing framework is centralized under `tests/` and executed by `tests/run_a
 - `test_failure_injection_campaign.py` — Systemic fault injection across 15 failure modes.
 - `test_performance_benchmarks.py` — Cross-subsystem sub-second performance validations.
 
+### J. Local Engineering Intelligence & Experience Plane (Phases 103–107)
+- `test_experience_foundation.py` — Central data directory and SQLite storage.
+- `test_telemetry_sanitizer.py` — Privacy redaction and path sanitization.
+- `test_telemetry_bridge.py` — Event bridge and hook ingestion.
+- `test_experience_intelligence.py` — Analytics engine and System A/B separation.
+- `test_experience_operations.py` — Hot backup, vacuum, purge, and restore lifecycle operations.
+
 ---
 
 ## 2. Executing Tests
 
-### Run Complete Test Suite
-Execute all 766 tests with the zero-dependency runner:
+### Run Complete Master Test Suite
+Execute all 1,086+ tests with the zero-dependency runner:
 ```bash
 python tests/run_all.py
 ```
 
-### Run Module or Directory
+### Run with Pytest
+```bash
+python -m pytest
+```
+
+### Run Individual Module
 Run any test module directly with Python standard library:
 ```bash
 python -m unittest tests/test_guard.py
-python -m unittest tests/test_context_budget_governor.py
+python -m unittest tests/test_telemetry_bridge.py
 ```
 
 ---
@@ -89,5 +98,5 @@ python -m unittest tests/test_context_budget_governor.py
 ## 3. Performance & Quality Invariants
 
 1. **100% Deterministic Pass Rate**: Zero skipped tests, zero suppressed failures, zero errors.
-2. **Sub-35s Full Execution**: Complete 766-test suite executes in ~30 seconds on standard hardware.
-3. **Sub-Millisecond Routing**: In-memory capability, agent, and tool routing executes in <1ms per query.
+2. **Hermetic Standard Library Execution**: Tests execute without requiring third-party runtime dependencies.
+3. **Strict Epistemic Isolation**: Tests verify that System A never depends on or imports System B.

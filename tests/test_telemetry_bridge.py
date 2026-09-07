@@ -873,7 +873,8 @@ class TestTelemetryBridge(unittest.TestCase):
         self.assertEqual(re_result.tool_calls_ingested, 0)
 
         # 7. Verify StudyLab was completely untouched
-        studylab_dir = Path(r"c:\Users\Suraj\Documents\Antigravity\AntiOs\sandbox\StudyLab")
+        repo_root = Path(__file__).resolve().parent.parent
+        studylab_dir = repo_root / "sandbox" / "StudyLab"
         self.assertTrue(studylab_dir.is_dir())
 
 

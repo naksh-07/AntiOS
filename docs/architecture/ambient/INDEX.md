@@ -35,8 +35,8 @@ In this model:
 
 This directory contains the detailed engineering specifications for the Ambient Project OS layer:
 
-1. **[`BOOTSTRAP.md`](file:///c:/Users/Suraj/Documents/Antigravity/AntiOs/docs/architecture/ambient/BOOTSTRAP.md)**:
+1. **[`BOOTSTRAP.md`](BOOTSTRAP.md)**:
    The zero-cost session orientation model, prompt bounding laws, `docs/AGENTS.md` and `docs/ACTIVE_CONTEXT.md` protocols, and session startup priming.
 
-2. **[`COMPILER.md`](file:///c:/Users/Suraj/Documents/Antigravity/AntiOs/docs/architecture/ambient/COMPILER.md)**:
+2. **[`COMPILER.md`](COMPILER.md)**:
    The Project Environment Compiler contract (`framework/core/compiler.py`), Five Artifact Tiers, Runtime Closure specifications, and `.antios/` instance generation.

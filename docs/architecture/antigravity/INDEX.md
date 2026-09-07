@@ -34,8 +34,8 @@ AntiOS does not compete with Google Antigravity. It treats Antigravity as the **
 
 This directory codifies the formal integration contracts between AntiOS and Antigravity:
 
-1. **[`BOUNDARIES.md`](file:///c:/Users/Suraj/Documents/Antigravity/AntiOs/docs/architecture/antigravity/BOUNDARIES.md)**:
+1. **[`BOUNDARIES.md`](BOUNDARIES.md)**:
    The comprehensive ownership boundary matrix: Antigravity vs AntiOS vs Target Project, delineating execution, policy, verification, and storage responsibilities.
 
-2. **[`LIFECYCLE.md`](file:///c:/Users/Suraj/Documents/Antigravity/AntiOs/docs/architecture/antigravity/LIFECYCLE.md)**:
+2. **[`LIFECYCLE.md`](LIFECYCLE.md)**:
    The runtime integration contract detailing platform hook event handling (`PreToolUse`, `Stop`), subagent invocation constraints, branch isolation, and fail-safe recovery.

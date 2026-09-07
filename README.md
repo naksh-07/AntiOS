@@ -1,154 +1,140 @@
 # AntiOS
 
-**Universal, Domain-Agnostic Project Agent OS for Google Antigravity**
+**Agent-Native Project Environment Compiler and Governance Plane for Google Antigravity**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-1086%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
-[![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](ANTIOS_CONSTITUTION.md)
+[![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](INVARIANT_REGISTRY.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/version-v2.1.0--beta.1-green.svg)](CHANGELOG.md)
+[![Status: Stage 0](https://img.shields.io/badge/status-Stage%200%20(Architecture%20Reconstruction)-orange.svg)](docs/architecture/MIGRATION_PLAN.md)
 
 ---
 
-## What is AntiOS?
+## 1. What AntiOS IS
 
-Autonomous AI coding agents operating in software repositories frequently suffer from **context drift, boundary violations, unverified code claims, broken changesets, and tool sprawl**. 
+> **AntiOS makes the project legible, navigable, stateful, verifiable, and continuously maintainable for an AI agent.**
 
-**AntiOS** is an Agent-Native Project Operating System that wraps repository interactions with deterministic, compile-free, zero-dependency engineering governance. Operating seamlessly within Google Antigravity, AntiOS transforms autonomous LLM coding agents into disciplined, auditable, and reliable software engineers.
+AntiOS is an **Agent-Native Project Environment Compiler and Governance Plane for Google Antigravity**. It compiles an arbitrary software repository into a low-noise, progressively disclosed, verifiable engineering environment by generating native Antigravity configurations (`.agents/hooks.json`, `.agents/routes.json`, `.agents/skills/`, and `antios.config.json`).
 
-It provides an integrated operating environment:
+### Conceptual Pipeline
 ```
-Antigravity Platform
-        ▼
-   AntiOS Core
-        ▼
- Project Adapter
-        ▼
-   Target Project
-```
-
----
-
-## Product Lifecycle
-
-AntiOS exposes a clear, versioned engineering product lifecycle:
-
-```
-INSTALL  ──>  VERIFY  ──>  ADAPT  ──>  USE  ──>  UPDATE  ──>  VERIFY
-                                                  │
-                                                  ├──> ROLLBACK (if required)
-                                                  ├──> REPAIR (if drift occurs)
-                                                  └──> REMOVE (when desired)
-```
-
-- **INSTALL**: Idempotent installation of runtime guards, manifest, and project intelligence.
-- **VERIFY**: Checksum and runtime closure validation ensuring zero source leaks.
-- **ADAPT**: Declarative stack discovery and runner mapping in `antios.config.json`.
-- **USE**: Disciplined agent engineering with pre-tool interception and stop gates.
-- **UPDATE**: Safe, snapshot-backed updates to newer AntiOS revisions.
-- **ROLLBACK**: Atomic reversion of AntiOS state without touching user application code.
-- **REPAIR**: Conservative drift and missing artifact restoration.
-- **REMOVE**: Clean, non-destructive uninstallation preserving project business logic.
-
----
-
-## Unified Command Line Interface (`antios`)
-
-AntiOS provides a single, first-class console binary `antios` registered via package scripts:
-
-```bash
-# 1. Version & System Facts
-antios version [--json]
-
-# 2. Compact Operational Health
-antios status [--json]
-
-# 3. Comprehensive Diagnostics
-antios doctor [--json]
-
-# 4. Project Lifecycle Operations
-antios install [--path <DIR>] [--version <V>] [--force-downgrade]
-antios adapt [--path <DIR>]
-antios verify [--path <DIR>]
-antios update [--check] [--version <V>]
-antios rollback [--version <V>]
-antios repair [--check] [--plan] [--apply]
-antios remove [--dry-run]
-
-# 5. Remote Engineering & Release
-antios issue triage "<DESCRIPTION>"
-antios issue discover "<QUERY>"
-antios release check [--json]
-antios release notes
+TARGET PROJECT (Source of Truth)
+      ↓
+PROJECT ENVIRONMENT COMPILER (antios compile)
+      ↓
+Agent-Native Project Environment (.agents/routes.json, hooks, rules, skills)
+      ↓
+Antigravity Native Execution (External LLM Loop & Language Server)
 ```
 
 ---
 
-## Quick Start: Adopting AntiOS
+## 2. What AntiOS IS NOT
 
-Adopting AntiOS for any repository takes under one minute:
+To prevent scope creep and architectural amnesia, AntiOS maintains strict negative boundaries:
 
-```bash
-# 1. Install AntiOS into target project
-antios install --path /path/to/project
+- ❌ **NOT an agent runtime**: It does not execute language models, schedule LLM worker loops, or manage prompt turns.
+- ❌ **NOT an Antigravity replacement**: Google Antigravity remains the sole execution substrate.
+- ❌ **NOT a mandatory workflow tax**: Simple tasks execute SOLO with zero ritual or multi-agent ceremony.
+- ❌ **NOT a background daemon**: Zero background watcher processes (`watchdog`, `inotify`, polling services). All operations are synchronous hook events or static compilations.
+- ❌ **NOT a vector / dense RAG platform**: Zero embedding models or vector databases (`chromadb`, FAISS). Navigation is deterministic via Subsystem Route Maps and AST symbol outlines.
+- ❌ **NOT a second coding-agent runtime**: Never spawns competing agent runtimes within the Antigravity sandbox.
 
-# 2. Verify installation health and runtime closure
-antios verify --path /path/to/project
+---
 
-# 3. Adapt target project stack (creates antios.config.json)
-antios adapt --path /path/to/project
+## 3. Four-Zone Ownership Boundaries
 
-# 4. Run system diagnostic check
-antios doctor --path /path/to/project
+$$\text{SOURCE} \neq \text{INSTANCE} \neq \text{PROJECT} \neq \text{ANTIGRAVITY}$$
+
+1. **AntiOS Owns**: The Project Environment Compiler, Subsystem Route Maps, physical lifecycle hooks (`PreToolUse`, `Stop`), 6-Dimension MVR verification engine, and epistemic memory schemas.
+2. **Antigravity Owns**: The agent execution loop, LLM context compaction, conversation SQLite databases, transcript streaming, native tool execution, and subagent process management.
+3. **Target Project Owns**: Application source code, physical build manifests (`pyproject.toml`, `Cargo.toml`, `package.json`), physical test suites, Git repository tree, and declarative configuration (`antios.config.json`).
+4. **Experience Plane (System B) Owns**: Centralized developer telemetry store (`experience.db`). Completely isolated from project code; data flows strictly one-way (A $\to$ B) via sanitized NDJSON.
+
+---
+
+## 4. Repository Structure & Source Boundaries
+
+```
+AntiOS/
+├── .agents/                 # Native Antigravity integration
+│   ├── hooks.json           # Platform lifecycle hooks (PreToolUse, Stop)
+│   └── skills/              # Native procedural skills (antios, antios-engineer, antios-verifier...)
+│
+├── framework/               # AntiOS Core & Compiler
+│   ├── cli.py               # Unified product CLI entrypoint (antios)
+│   ├── core/                # Governance, discovery, verification, and telemetry engines
+│   ├── scripts/             # Hook entrypoint scripts and deterministic CLI tools
+│   └── templates/           # Clean runtime & skill templates for target compilation
+│
+├── tests/                   # Zero-dependency test suite
+│   ├── run_all.py           # Canonical master test runner (1,086 tests across 140 modules)
+│   ├── fixtures/            # 17 multi-lingual project archetypes (Rust, TS, Go, Python...)
+│   └── test_*.py            # Unit, integration, adversarial, and benchmark test suites
+│
+├── docs/                    # Authoritative engineering documentation
+│   ├── architecture/        # Architecture 3.0, migration plan, migration matrix, runtime audit
+│   ├── research/            # Foundational Research 1–4 monographs & empirical evidence
+│   ├── guides/              # Adoption & project adapter guides
+│   ├── operations/          # Testing guide & operational runbooks
+│   └── reference/           # CLI, configuration, failure taxonomy, and MCP policy
+│
+├── scripts/                 # Convenience wrappers (test.bat/sh, clean.bat/sh, verify.bat/sh)
+├── antios.config.json       # Sovereign repository adapter configuration
+└── pyproject.toml           # Package definition and CLI entrypoint
 ```
 
 ---
 
-## Canonical Product & Governance Documentation
+## 5. Where Key Resources Live
 
-| Category | Document | Description |
+| Resource Area | Path | Description |
 | :--- | :--- | :--- |
-| **Changelog** | [`CHANGELOG.md`](CHANGELOG.md) | Release history in Keep a Changelog format |
-| **Beta Readiness** | [`BETA_READINESS.md`](BETA_READINESS.md) | Official 2.0.0-beta.1 verification dossier |
-| **Release Guide** | [`RELEASE.md`](RELEASE.md) | Release lifecycle, pre-flight gates, and tagging |
-| **Release Eng** | [`RELEASE_ENGINEERING.md`](RELEASE_ENGINEERING.md) | Release automation, CI pipeline, and maintainer scripts |
-| **Versioning** | [`VERSIONING.md`](VERSIONING.md) | SemVer specification, channels, and compatibility matrix |
-| **Installation** | [`INSTALLATION.md`](INSTALLATION.md) | Step-by-step installation options and guarantees |
-| **Upgrades** | [`UPGRADING.md`](UPGRADING.md) | Update lifecycle, snapshotting, and migrations |
-| **Rollback** | [`ROLLBACK.md`](ROLLBACK.md) | Rollback safety, guarantees, and user code preservation |
-| **Troubleshooting**| [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) | `antios doctor`, error codes, and drift remediation |
-| **Maintenance** | [`MAINTENANCE.md`](MAINTENANCE.md) | Architecture Freeze policy and permitted changes |
-| **MCP Policy** | [`MCP_CAPABILITIES.md`](MCP_CAPABILITIES.md) | 8-tier capability matrix and external MCP governance |
-| **Architecture** | [`ARCHITECTURE_FREEZE.md`](ARCHITECTURE_FREEZE.md) | Phase 101 locked architecture specification |
-| **Invariants** | [`INVARIANT_REGISTRY.md`](INVARIANT_REGISTRY.md) | Ledger of the 20 canonical invariants (`INV-01` to `INV-20`) |
-| **Constitution** | [`ANTIOS_CONSTITUTION.md`](ANTIOS_CONSTITUTION.md) | Universal non-negotiable axioms and laws |
-| **Decisions** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Architectural Decision Register (ADR 01-86) |
+| **Source Code** | [`framework/`](framework/) | Compiler, CLI, governance primitives, and hook scripts |
+| **Test Suites** | [`tests/`](tests/) | Canonical regression suites and multi-stack fixtures |
+| **Architecture** | [`docs/architecture/`](docs/architecture/) | [AntiOS 3.0 Architecture](docs/architecture/ANTIOS_3_ARCHITECTURE.md) & [Migration Plan](docs/architecture/MIGRATION_PLAN.md) |
+| **Research Evidence** | [`docs/research/`](docs/research/) | Foundational Research 1–4 monographs and empirical benchmarks |
+| **Constitutional Invariants** | [`INVARIANT_REGISTRY.md`](INVARIANT_REGISTRY.md) | 20 non-negotiable platform and engineering invariants |
+| **Decision History** | [`DECISION_REGISTER.md`](DECISION_REGISTER.md) | Complete consensus history of Architectural Decision Records |
 
 ---
 
-## Running Tests
+## 6. How to Run Validation
 
-AntiOS includes 920 deterministic automated tests covering all core modules, contracts, safety gates, and beta lifecycles:
+AntiOS enforces 100% deterministic test execution using standard library Python (zero external test dependencies required).
 
+### Canonical Test Command
 ```bash
+# Execute master test suite (140 modules, 1,086 tests)
 python tests/run_all.py
 ```
 
-```
-======================================================================
-AntiOS Master Test Suite
-Ran 920 tests in 36.1s
-OK (100% passed, 0 failures, 0 errors)
-======================================================================
-```
-
-Alternatively, run via pytest:
+### Pytest Execution
 ```bash
 python -m pytest
 ```
 
+### Diagnostics & Doctor
+```bash
+python -m framework.cli verify
+python -m framework.cli doctor
+```
+
 ---
 
-## License
+## 7. Current Implementation Status
 
-AntiOS is released under the [MIT License](LICENSE).
+**Current Phase**: **Stage 0 — Architecture Reconstruction & Project Hygiene**
+- Research 1–4 evidence synthesis: **COMPLETE**
+- Canonical 4-plane boundary formalization: **COMPLETE**
+- Component migration matrix & legacy runtime audit: **COMPLETE**
+- Stage 1 Compiler implementation: **NOT STARTED** (Begins in Stage 1)
+
+---
+
+## 8. Strictly Protected Boundaries (What NOT to Touch)
+
+1. **Target Project Sovereignty**: AntiOS never injects framework code into target repositories. Target projects receive zero-dependency standard-library runtime scripts.
+2. **`sandbox/StudyLab` & StudySourceCore**: Strictly protected test proving ground. Never inspect, modify, clone, or integrate StudyLab or StudySourceCore.
+3. **Antigravity Execution Primitives**: Never attempt to override or emulate native Antigravity scheduling, compaction, or subagent dispatch.
+4. **System A / System B Firewall**: Target projects must never read or depend on the central experience database (`experience.db`).
