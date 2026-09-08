@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antios"
-version = "2.1.0-beta.1"
+version = "3.0.0"
 description = "Project Agent OS for Universal Engineering Governance & Autonomous Development"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -15,7 +15,7 @@ authors = [
 dependencies = []
 keywords = ["antigravity", "ai-agents", "governance", "verification", "maker-checker", "testing"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Quality Assurance",

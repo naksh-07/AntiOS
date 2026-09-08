@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] - 2026-09-08
+
+### Added
+- **AntiOS 3.0 Production Release**:
+  - **Real-Project Certification**: Certified on `pallets/click` (Python 3.12, 109 tests, 734ms) and `VibeAudio` (JavaScript/Node.js, 116 tests, 662ms) with zero virtualization.
+  - **15 Constitutional Invariants (`INV-01` to `INV-15`)**: 100% compliant and physically proven across dual target codebases.
+  - **Wayfinding & Progressive Disclosure**: 100.0% route accuracy across 20 test questions; 375.3x wayfinding acceleration (32,525 tokens down to 100 tokens).
+  - **Physical Stop Gate Lifecycle**: 5-case physical proving (clean pass, test failure rejection, conflict marker rejection, missing runner fail-closed, telemetry resilience).
+  - **Synchronous Freshness & Merkle Tree**: 7 lifecycle mutations verified; Merkle root update executed in 74.5 µs (<100 µs target); zero background daemons.
+  - **Epistemic Memory & Quarantine**: 5 epistemic grades; working hypotheses quarantined; automatic code-drift suppression (`[STALE_EVIDENCE]`).
+  - **System A / System B Telemetry Firewall**: Secret scrubbing, user profile path relativization, external `experience.db`, zero cross-plane leakage.
+  - **Removability & Sovereignty**: Click and VibeAudio execute native test suites with 100% pass rate when AntiOS is removed.
+  - **Exhaustive Documentation**: Added complete certification documentation in `docs/certification/`.
+
+---
+
 ## [2.1.0-beta.1] - 2026-09-06
 
 ### Added

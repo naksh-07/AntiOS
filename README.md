@@ -3,7 +3,7 @@
 **Agent-Native Project Environment Compiler and Governance Plane for Google Antigravity**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-1086%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
+[![Tests](https://img.shields.io/badge/tests-1159%20passed%20(100%25)-brightgreen.svg)](tests/run_all.py)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-blueviolet.svg)](INVARIANT_REGISTRY.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Status: Stage 0](https://img.shields.io/badge/status-Stage%200%20(Architecture%20Reconstruction)-orange.svg)](docs/architecture/MIGRATION_PLAN.md)

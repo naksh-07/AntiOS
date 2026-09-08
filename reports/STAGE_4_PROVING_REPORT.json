@@ -1,0 +1,533 @@
+{
+  "baselines": {
+    "project_a": {
+      "name": "pallets/click",
+      "language": "Python",
+      "manifest": "pyproject.toml",
+      "test_cmd": ".venv/Scripts/pytest tests/test_basic.py",
+      "exit_code": 0,
+      "duration_ms": 734.09,
+      "files_count": 90
+    },
+    "project_b": {
+      "name": "VibeAudio",
+      "language": "JavaScript (Node.js)",
+      "manifest": "package.json",
+      "test_cmd": "node --test tests/",
+      "exit_code": 0,
+      "duration_ms": 662.11,
+      "files_count": 96
+    }
+  },
+  "compilation": {
+    "project_a": {
+      "elapsed_ms": 17.307699999946635,
+      "emitted_files": [
+        ".agents/routes.json",
+        ".agents/cache/ast_outlines.json",
+        "AGENTS.md"
+      ],
+      "subsystems": [
+        "click"
+      ],
+      "agents_md_lines": 18
+    },
+    "project_b": {
+      "elapsed_ms": 15.762499999254942,
+      "emitted_files": [
+        ".agents/routes.json",
+        ".agents/cache/ast_outlines.json",
+        "AGENTS.md"
+      ],
+      "subsystems": [
+        "backend",
+        "frontend"
+      ],
+      "agents_md_lines": 19
+    }
+  },
+  "route_accuracy": {
+    "project_a_click": {
+      "accuracy_pct": 100.0,
+      "questions": [
+        {
+          "question": "Where is CLI entrypoint & package init?",
+          "file": "src/click/__init__.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is CLI command dispatch implemented?",
+          "file": "src/click/core.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is command-line parser implemented?",
+          "file": "src/click/parser.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where are parameter types defined?",
+          "file": "src/click/types.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is terminal formatting & colors located?",
+          "file": "src/click/formatting.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is shell completion implemented?",
+          "file": "src/click/shell_completion.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is exception hierarchy defined?",
+          "file": "src/click/exceptions.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where are command & option decorators defined?",
+          "file": "src/click/decorators.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is isolated test runner CliRunner located?",
+          "file": "src/click/testing.py",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where are basic command tests implemented?",
+          "file": "tests/test_basic.py",
+          "authoritative": true,
+          "status": "correct"
+        }
+      ]
+    },
+    "project_b_vibeaudio": {
+      "accuracy_pct": 100.0,
+      "questions": [
+        {
+          "question": "Where is backend auth Lambda handler?",
+          "file": "backend/lambda/auth.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is backend getBooks API handler?",
+          "file": "backend/lambda/getBooks.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is backend getBookDetails API handler?",
+          "file": "backend/lambda/getBookDetails.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is backend saveProgress API handler?",
+          "file": "backend/lambda/saveProgress.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is frontend service worker & PWA caching?",
+          "file": "frontend/service-worker.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is audio playback engine implemented?",
+          "file": "frontend/src/js/player.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is offline shelf & storage implemented?",
+          "file": "frontend/src/js/offline-shelf.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where is user data & sync queue located?",
+          "file": "frontend/src/js/user-data.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where are UI DOM bindings and layout contracts?",
+          "file": "frontend/src/js/ui-dom.js",
+          "authoritative": true,
+          "status": "correct"
+        },
+        {
+          "question": "Where are download state machine tests?",
+          "file": "tests/download-state-machine.test.mjs",
+          "authoritative": true,
+          "status": "correct"
+        }
+      ]
+    }
+  },
+  "wayfinding": {
+    "without_antios": {
+      "exploratory_searches": 15,
+      "files_scanned": 1301,
+      "latency_ms": 181.49,
+      "token_overhead_estimate": 32525
+    },
+    "with_antios": {
+      "exploratory_searches": 1,
+      "files_scanned": 1,
+      "entrypoint": "src\\click\\__init__.py",
+      "latency_ms": 0.48,
+      "token_overhead_estimate": 100
+    },
+    "navigation_acceleration": 375.3
+  },
+  "boundary_enforcement": [
+    {
+      "test_id": "ALLOW_SOURCE_CLICK",
+      "tool": "replace_file_content",
+      "expected": "allow",
+      "actual": "allow",
+      "reason": null,
+      "latency_ms": 2.57,
+      "passed": true
+    },
+    {
+      "test_id": "ALLOW_TEST_CLICK",
+      "tool": "write_to_file",
+      "expected": "allow",
+      "actual": "allow",
+      "reason": null,
+      "latency_ms": 2.03,
+      "passed": true
+    },
+    {
+      "test_id": "ALLOW_SOURCE_VIBE",
+      "tool": "replace_file_content",
+      "expected": "allow",
+      "actual": "allow",
+      "reason": null,
+      "latency_ms": 2.12,
+      "passed": true
+    },
+    {
+      "test_id": "ALLOW_READ_ONLY",
+      "tool": "view_file",
+      "expected": "allow",
+      "actual": "allow",
+      "reason": null,
+      "latency_ms": 0.0,
+      "passed": true
+    },
+    {
+      "test_id": "DENY_PATH_TRAVERSAL",
+      "tool": "write_to_file",
+      "expected": "deny",
+      "actual": "deny",
+      "reason": "AntiOS Boundary Policy [PATH_OUTSIDE_WORKSPACE]: Modifying files outside authorized workspace roots is strictly forbidden. Target: 'C:\\Users\\Suraj\\Documents\\Antigravity\\AntiOs\\proving_ground\\click\\..\\outside.py'. Failing closed.",
+      "latency_ms": 0.67,
+      "passed": true
+    },
+    {
+      "test_id": "DENY_OUTSIDE_WORKSPACE",
+      "tool": "write_to_file",
+      "expected": "deny",
+      "actual": "deny",
+      "reason": "AntiOS Boundary Policy [PATH_OUTSIDE_WORKSPACE]: Modifying files outside authorized workspace roots is strictly forbidden. Target: 'C:/Windows/System32/calc.exe'. Failing closed.",
+      "latency_ms": 0.63,
+      "passed": true
+    },
+    {
+      "test_id": "DENY_PROTECTED_AGENTS",
+      "tool": "write_to_file",
+      "expected": "deny",
+      "actual": "deny",
+      "reason": "AntiOS Self-Protection Policy [PROTECTED_ZONE_VIOLATION]: Modifying AntiOS framework governance files, hooks, or configurations (.agents) is strictly forbidden. DO NOT RETRY THIS ACTION.",
+      "latency_ms": 1.17,
+      "passed": true
+    },
+    {
+      "test_id": "DENY_PROTECTED_CONFIG",
+      "tool": "replace_file_content",
+      "expected": "deny",
+      "actual": "deny",
+      "reason": "AntiOS Self-Protection Policy [PROTECTED_ZONE_VIOLATION]: Modifying AntiOS framework governance files, hooks, or configurations (antios.config.json) is strictly forbidden. DO NOT RETRY THIS ACTION.",
+      "latency_ms": 1.53,
+      "passed": true
+    },
+    {
+      "test_id": "DENY_PROTECTED_GIT",
+      "tool": "write_to_file",
+      "expected": "deny",
+      "actual": "deny",
+      "reason": "AntiOS Self-Protection Policy [PROTECTED_ZONE_VIOLATION]: Modifying AntiOS framework governance files, hooks, or configurations (.git) is strictly forbidden. DO NOT RETRY THIS ACTION.",
+      "latency_ms": 1.51,
+      "passed": true
+    },
+    {
+      "test_id": "DENY_MALFORMED_INVOCATION",
+      "tool": "write_to_file",
+      "expected": "deny",
+      "actual": "deny",
+      "reason": "AntiOS Security Guard: TargetFile must be a non-empty string. Failing closed.",
+      "latency_ms": 0.01,
+      "passed": true
+    }
+  ],
+  "stop_gate": {
+    "case_a_tests_pass": {
+      "decision": "allow",
+      "report": null,
+      "duration_ms": 821.11
+    },
+    "case_b_test_fails": {
+      "decision": "continue",
+      "report": "AntiOS Stop Gate [TEST_FAILURE]: Physical verification failed in workspace 'c:\\users\\suraj\\documents\\antigravity\\antios\\proving_ground\\vibeaudio'!\nDimension: unit_test\nTest Runner: node-test\nCommand: node --test tests/\nExit Code: 1\nStdout: ini-Player Dock Contracts\n        # Subtest: should declare the persistent mini-player dock and interaction controls\n        ok 1 - should declare the persistent mini-player dock and interaction controls\n          ---\n          duration_ms: 0.4879\n          ...\n        1..1\n    ok 4 - Mini-Player Dock Contracts\n      ---\n      duration_ms: 0.6976\n      type: 'suite'\n      ...\n    # Subtest: Full Player Transport Deck Contracts\n        # Subtest: should declare full player controls, scrubber, and secondary drawers\n        ok 1 - should declare full player controls, scrubber, and secondary drawers\n          ---\n          duration_ms: 0.927\n          ...\n        1..1\n    ok 5 - Full Player Transport Deck Contracts\n      ---\n      duration_ms: 1.174\n      type: 'suite'\n      ...\n    1..5\nok 13 - UI & DOM Contract Regression Invariants\n  ---\n  duration_ms: 6.6774\n  type: 'suite'\n  ...\n1..13\n# tests 117\n# suites 52\n# pass 116\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 546.6373\nStderr: ",
+      "duration_ms": 801.76
+    },
+    "case_c_conflict_marker": {
+      "decision": "continue",
+      "report": "AntiOS Stop Gate [CONFLICT_MARKERS]: Task completion rejected. Unresolved conflict marker '<<<<<<<' in 'frontend/src/js/ui-formatters.js:23' in workspace 'c:\\users\\suraj\\documents\\antigravity\\antios\\proving_ground\\vibeaudio'.\nResolve all merge conflict markers before completing.",
+      "duration_ms": 91.97
+    },
+    "case_d_missing_runner": {
+      "decision": "continue",
+      "report": "AntiOS Stop Gate [MISSING_TEST_RUNNER]: Required test runner 'nonexistent_binary_xyz_123' (unit_test) executable not found in PATH for workspace 'c:\\users\\suraj\\documents\\antigravity\\antios\\proving_ground\\vibeaudio'.\nCommand: nonexistent_binary_xyz_123\nFailing closed to prevent unverified completion.",
+      "duration_ms": 137.59
+    },
+    "case_e_telemetry_resilience": {
+      "decision": "allow",
+      "duration_ms": 748.94
+    }
+  },
+  "freshness": {
+    "steps": [
+      {
+        "step": "1_unchanged",
+        "fresh": true
+      },
+      {
+        "step": "2_modified_tracked",
+        "token_changed": true,
+        "merkle_updated": true,
+        "bubble_up_us": 26738.5
+      },
+      {
+        "step": "3_added_file",
+        "token_changed": true
+      },
+      {
+        "step": "4_deleted_file",
+        "token_changed": true
+      },
+      {
+        "step": "5_committed_change",
+        "token_changed": true
+      },
+      {
+        "step": "6_branch_head_change",
+        "token_changed": true
+      },
+      {
+        "step": "7_repeated_clean_check",
+        "identical": true
+      }
+    ],
+    "clean_token": "8946dbfb90df5c1a",
+    "bubble_up_latency_us": 26738.5
+  },
+  "epistemic_memory": {
+    "records_created": 5,
+    "hypothesis_quarantined": true,
+    "stale_evidence_suppressed": true,
+    "tiers_verified": [
+      "VERIFIED_FACT",
+      "ARCHITECTURAL_DECISION",
+      "TESTED_NEGATIVE",
+      "WORKING_HYPOTHESIS",
+      "STALE_EVIDENCE"
+    ]
+  },
+  "telemetry_firewall": {
+    "sanitization_verified": true,
+    "secret_token_redacted": true,
+    "api_key_redacted": true,
+    "home_path_scrubbed": true,
+    "target_repo_has_no_db": true
+  },
+  "multi_repo_federation": {
+    "longest_prefix_matching": true,
+    "no_cross_repo_bleed": true,
+    "workspacePaths_zero_avoided": true
+  },
+  "maker_checker": {
+    "zero_context_inheritance": true,
+    "shallow_depth_law_enforced": true,
+    "valid_verdict_approved": true,
+    "fraudulent_done_rejected": true
+  },
+  "removability": {
+    "project_a_click": "SOVEREIGN_PASSED",
+    "project_b_vibeaudio": "SOVEREIGN_PASSED"
+  },
+  "failure_matrix": [
+    [
+      "malformed_routes_json",
+      "DEGRADE_GRACEFULLY",
+      "Routes generator falls back to directory structure"
+    ],
+    [
+      "malformed_antios_config",
+      "FAIL_CLOSED",
+      "PreToolUse and Stop Gate reject or default to strict core immutability"
+    ],
+    [
+      "missing_test_runner",
+      "FAIL_CLOSED",
+      "Stop Gate blocks task completion with code 'continue'"
+    ],
+    [
+      "test_command_failure",
+      "FAIL_CLOSED",
+      "Stop Gate returns non-zero status and continues session"
+    ],
+    [
+      "missing_hook_executable",
+      "FAIL_CLOSED",
+      "PreToolUse hook aborts on missing binary with 'deny'"
+    ],
+    [
+      "telemetry_write_failure",
+      "DEGRADE_GRACEFULLY",
+      "Task verification succeeds independently of logging failure"
+    ],
+    [
+      "stale_memory_evidence",
+      "DEGRADE_GRACEFULLY",
+      "Mismatched code hash suppresses stale memory silently"
+    ],
+    [
+      "invalid_tool_path",
+      "FAIL_CLOSED",
+      "Path resolver rejects unresolvable path with 'deny'"
+    ],
+    [
+      "ambiguous_repository_root",
+      "FAIL_CLOSED",
+      "Path resolver denies multi-workspace collision"
+    ]
+  ],
+  "benchmarks": {
+    "compiler_latency_ms": 17.31,
+    "pre_tool_use_latency_ms": 1.13,
+    "freshness_token_latency_ms": 169.25,
+    "merkle_bubble_up_ms": 0.0745,
+    "merkle_bubble_up_us": 74.5,
+    "memory_lookup_ms": 2.03,
+    "route_lookup_us": 0.09
+  },
+  "invariants": [
+    [
+      "INV-01",
+      "Platform Sovereignty",
+      "COMPLIANT",
+      "Native Antigravity primitives used; zero subprocess virtualization"
+    ],
+    [
+      "INV-02",
+      "Declarative Core",
+      "COMPLIANT",
+      "Zero mutable in-process state; antios.config.json & routes.json authoritative"
+    ],
+    [
+      "INV-03",
+      "Physical Verification",
+      "COMPLIANT",
+      "Stop Gate executes physical test runner exit code 0; verbal claims blocked"
+    ],
+    [
+      "INV-04",
+      "Fail-Closed Boundaries",
+      "COMPLIANT",
+      "PreToolUse denies on error/traversal; Stop Gate continues on failure"
+    ],
+    [
+      "INV-05",
+      "Maker-Checker Separation",
+      "COMPLIANT",
+      "Independent fresh context verifier rejects false completion claims"
+    ],
+    [
+      "INV-06",
+      "Epistemic Hygiene",
+      "COMPLIANT",
+      "4-tier memory; hypotheses quarantined; code drift triggers STALE_EVIDENCE"
+    ],
+    [
+      "INV-07",
+      "Same Change Set",
+      "COMPLIANT",
+      "Source code, tests, and documentation must co-evolve in atomic set"
+    ],
+    [
+      "INV-08",
+      "Progressive Disclosure",
+      "COMPLIANT",
+      "AGENTS.md <= 40 lines, < 250 tokens; routes.json ~400 tokens; AST outlines"
+    ],
+    [
+      "INV-09",
+      "Zero Vector Databases",
+      "COMPLIANT",
+      "Zero vector embeddings or ChromaDB; exact structural hierarchical index"
+    ],
+    [
+      "INV-10",
+      "4-Zone Security Demarcation",
+      "COMPLIANT",
+      "SOURCE != INSTANCE != PROJECT != ANTIGRAVITY boundaries enforced"
+    ],
+    [
+      "INV-11",
+      "Zero Framework Imports",
+      "COMPLIANT",
+      "Runtime scripts pure stdlib; zero framework dependencies in target repos"
+    ],
+    [
+      "INV-12",
+      "Telemetry Sanitization",
+      "COMPLIANT",
+      "Secrets (API keys, tokens), home paths, and raw code scrubbed before NDJSON"
+    ],
+    [
+      "INV-13",
+      "System A / System B Firewall",
+      "COMPLIANT",
+      "Markdown memory (A) firewalled from experience.db (B); zero auto-mutation"
+    ],
+    [
+      "INV-14",
+      "Multi-Repo Federation",
+      "COMPLIANT",
+      "Longest-prefix workspace matching across arbitrary workspacePaths"
+    ],
+    [
+      "INV-15",
+      "Zero Background Daemons",
+      "COMPLIANT",
+      "Synchronous Turn-0 Git token & sub-millisecond Merkle; zero watchers"
+    ]
+  ]
+}

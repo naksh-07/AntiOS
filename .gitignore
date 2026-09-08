@@ -40,4 +40,5 @@ Thumbs.db
 .agents/cache/
 .agents/telemetry.ndjson
 .agents/telemetry.db
+proving_ground/
 

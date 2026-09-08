@@ -88,8 +88,8 @@ class TestVersioning(unittest.TestCase):
         """get_version_info returns valid payload with compatibility facts."""
         info = get_version_info()
         self.assertEqual(info.version, ANTIOS_VERSION)
-        self.assertEqual(info.channel, "beta")
-        self.assertTrue(info.is_prerelease)
+        self.assertEqual(info.channel, "stable")
+        self.assertFalse(info.is_prerelease)
         d = info.to_dict()
         self.assertIn("antigravity", d["compatibility"])
         self.assertIn("python", d["compatibility"])

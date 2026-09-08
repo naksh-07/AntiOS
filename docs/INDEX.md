@@ -53,7 +53,15 @@ Welcome to the definitive documentation map for **AntiOS** (Agent-Native Enginee
 - [Platform Hook Security Model](architecture/HOOK_SECURITY_MODEL.md) — PreToolUse containment, process confinement, and immutability.
 - [Rejected Architecture Patterns](architecture/REJECTED_ARCHITECTURE.md) — Formally rejected designs (vector DBs, AST regex, custom daemons).
 
-## 3. Agent Operations, Skills & Workflows (`.agents/`)
+## 3. Production Proving & Certification (`docs/certification/`)
+- [Real-Project Certification Report](certification/REAL_PROJECT_CERTIFICATION.md) — Production certification across `pallets/click` and `VibeAudio`.
+- [Wayfinding & Navigation Results](certification/WAYFINDING_RESULTS.md) — Empirical route map accuracy and 375.3x wayfinding acceleration.
+- [Lifecycle & Boundary Proving](certification/LIFECYCLE_PROOF.md) — 5 Stop Gate lifecycles, 7 Freshness mutations, and failure injection matrix.
+- [Constitutional Invariant Audit](certification/INVARIANT_AUDIT.md) — Exhaustive proof for all 15 Constitutional Invariants (`INV-01` to `INV-15`).
+- [Performance Certification](certification/PERFORMANCE_CERTIFICATION.md) — Sub-millisecond latency benchmarks and resource consumption proofs.
+- [Known Limitations & Epistemic Boundaries](certification/KNOWN_LIMITATIONS.md) — Transparent boundary catalog and operating constraints.
+
+## 4. Agent Operations, Skills & Workflows (`.agents/`)
 - [Global Agent Constitution](AGENTS.md) — Strict operating constraints for autonomous agents in AntiOS workspaces.
 - [Active Context Ledger](ACTIVE_CONTEXT.md) — Bounded working memory tracking active status and next actions (<= 60 lines).
 - [Validated Project Lessons](LESSONS.md) — Cross-session lessons and distilled procedural memory.
