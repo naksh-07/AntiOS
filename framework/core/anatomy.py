@@ -182,7 +182,18 @@ class ProjectAnatomyCompiler:
             manifest_fingerprint = self._calculate_manifest_fingerprint(manifests)
 
         # Provenance block
-        now_ts = datetime.now(timezone.utc).isoformat()
+        now_ts = None
+        existing_anatomy_file = self.repo_root / ".antios/project_anatomy.json"
+        if existing_anatomy_file.is_file():
+            try:
+                with open(existing_anatomy_file, "r", encoding="utf-8-sig") as f:
+                    prev_anatomy = json.load(f)
+                if prev_anatomy.get("provenance", {}).get("manifest_fingerprint") == manifest_fingerprint:
+                    now_ts = prev_anatomy.get("provenance", {}).get("generated_at")
+            except Exception:
+                pass
+        if not now_ts:
+            now_ts = datetime.now(timezone.utc).isoformat()
         provenance = {
             "generator": f"AntiOS ProjectAnatomyCompiler v{self.VERSION}",
             "generated_at": now_ts,

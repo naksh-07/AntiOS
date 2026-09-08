@@ -63,7 +63,7 @@ class TelemetryCollectionMode(str, Enum):
 @dataclass
 class TelemetryConfig:
     """Configuration governing telemetry collection and ingestion limits."""
-    mode: TelemetryCollectionMode = TelemetryCollectionMode.OFF
+    mode: Optional[TelemetryCollectionMode] = None
     max_read_bytes_per_turn: int = 10 * 1024 * 1024  # 10 MB per read window
     max_steps_per_turn: int = 1000
     track_navigation_paths: bool = True
@@ -674,10 +674,13 @@ class AntigravityEventBridge:
         config: Optional[TelemetryConfig] = None,
         timeout: float = 5.0,
         project_id: Optional[str] = None,
+        mode: Optional[Union[str, TelemetryCollectionMode]] = None,
     ):
         self.project_root = Path(project_root or Path.cwd()).resolve()
         self.explicit_data_dir = Path(data_dir).resolve() if data_dir else None
         self.config = config or TelemetryConfig()
+        if mode is not None:
+            self.config.mode = TelemetryConfigResolver.resolve_mode(explicit_mode=mode)
         self.timeout = timeout
 
         # Resolve project identity deterministically
@@ -875,6 +878,164 @@ class AntigravityEventBridge:
                 session_id=resolved_session_id,
                 project_id=self.project_id,
                 error=f"Ingestion persistence error: {e}",
+                duration_ms=int((time.perf_counter() - start_time) * 1000),
+            )
+
+    def ingest_ndjson_telemetry(
+        self,
+        ndjson_path: Optional[Union[str, Path]] = None,
+        session_id: Optional[str] = None,
+    ) -> IngestionResult:
+        """Ingests events from .agents/telemetry.ndjson incrementally into experience.db.
+
+        Guarantees:
+        - If collection mode is OFF, returns immediately (~0ms).
+        - Checkpointed by byte offset (source_type="telemetry_ndjson").
+        - Strictly non-blocking: Never raises exceptions.
+        """
+        start_time = time.perf_counter()
+        mode = TelemetryConfigResolver.resolve_mode(
+            project_root=self.project_root,
+            explicit_mode=self.config.mode,
+        )
+
+        if mode != TelemetryCollectionMode.ON:
+            return IngestionResult(
+                success=True,
+                mode=TelemetryCollectionMode.OFF,
+                session_id=session_id,
+                project_id=self.project_id,
+                duration_ms=int((time.perf_counter() - start_time) * 1000),
+            )
+
+        resolved_path = Path(ndjson_path).resolve() if ndjson_path else self.project_root / ".agents" / "telemetry.ndjson"
+        if not resolved_path.is_file():
+            return IngestionResult(
+                success=True,
+                mode=mode,
+                session_id=session_id,
+                project_id=self.project_id,
+                duration_ms=int((time.perf_counter() - start_time) * 1000),
+            )
+
+        try:
+            context = AntiOSDataResolver.resolve_context(
+                project_root=self.project_root,
+                explicit_dir=self.explicit_data_dir,
+            )
+            repo = ExperienceRepository(context.db_path, timeout=self.timeout)
+            self.project_id = register_project(
+                db_path=context.db_path,
+                project_root=self.project_root,
+                project_id=self.project_id,
+            )
+
+            resolved_sess = session_id or f"ndjson_{self.project_id[:12]}"
+            source_type = "telemetry_ndjson"
+            checkpoint = repo.load_session_checkpoint(resolved_sess, source_type=source_type)
+            last_offset = checkpoint.last_byte_offset if checkpoint else 0
+
+            file_size = resolved_path.stat().st_size
+            if last_offset > file_size:
+                last_offset = 0
+
+            safe_events: List[SafeEngineeringEvent] = []
+            new_offset = last_offset
+            mission_id = f"m_{resolved_sess[:12]}"
+
+            with open(resolved_path, "rb") as f:
+                f.seek(last_offset)
+                while True:
+                    line_start = f.tell()
+                    raw_line = f.readline()
+                    if not raw_line:
+                        break
+                    if not raw_line.endswith(b"\n") and not raw_line.endswith(b"\r"):
+                        # Incomplete line mid-write
+                        f.seek(line_start)
+                        break
+                    new_offset = f.tell()
+                    line_str = raw_line.decode("utf-8", errors="replace").strip()
+                    if not line_str:
+                        continue
+                    try:
+                        record = json.loads(line_str)
+                        if not isinstance(record, dict):
+                            continue
+                        event_name = str(record.get("event", "UNKNOWN_EVENT"))
+                        ts = record.get("timestamp") or datetime.now(timezone.utc).isoformat()
+                        sig = hashlib.sha256(f"ndjson|{self.project_id}|{line_str}".encode("utf-8")).hexdigest()[:16]
+
+                        # Classify event
+                        epistemic = "FACT"
+                        event_type = "HOOK_DECISION"
+                        if event_name in ("stop", "Stop"):
+                            event_type = "STOP_GATE_RESULT"
+                        elif event_name in ("post_tool_use", "tool_call"):
+                            event_type = "TOOL_CALL"
+                        elif event_name in ("pre_invocation",):
+                            event_type = "TURN_CONTEXT"
+
+                        # Sanitize metadata payload
+                        san_meta, _ = TelemetrySanitizer.sanitize_text(
+                            json.dumps(record.get("metadata", record)),
+                            max_length=2000,
+                        )
+
+                        ev = SafeEngineeringEvent(
+                            event_id=f"evt_{sig}",
+                            mission_id=mission_id,
+                            project_id=self.project_id,
+                            event_type=event_type,
+                            epistemic_grade=epistemic,
+                            event_signature=sig,
+                            payload_json=san_meta,
+                            created_at=ts,
+                            session_id=resolved_sess,
+                            outcome=record.get("decision"),
+                        )
+                        safe_events.append(ev)
+                    except json.JSONDecodeError:
+                        continue
+
+            events_inserted = 0
+            if safe_events:
+                repo.record_session(resolved_sess, self.project_id, surface="NDJSON_HOOKS")
+                repo.record_mission(mission_id, resolved_sess, self.project_id)
+                events_inserted = repo.record_engineering_events(safe_events)
+
+            # Update checkpoint
+            header_sha = hashlib.sha256(str(file_size).encode("utf-8")).hexdigest()
+            updated_checkpoint = IngestionCheckpoint(
+                checkpoint_id=f"chk_{resolved_sess}_{source_type}",
+                project_id=self.project_id,
+                session_id=resolved_sess,
+                source_type=source_type,
+                source_path=str(resolved_path),
+                last_byte_offset=new_offset,
+                last_step_idx=0,
+                file_sha256=header_sha,
+                file_size_bytes=file_size,
+                records_ingested=(checkpoint.records_ingested if checkpoint else 0) + len(safe_events),
+                updated_at=datetime.now(timezone.utc).isoformat(),
+            )
+            repo.save_checkpoint(updated_checkpoint)
+
+            return IngestionResult(
+                success=True,
+                mode=mode,
+                session_id=resolved_sess,
+                project_id=self.project_id,
+                events_ingested=events_inserted,
+                bytes_processed=new_offset - last_offset if new_offset >= last_offset else new_offset,
+                checkpoint_offset=new_offset,
+                duration_ms=int((time.perf_counter() - start_time) * 1000),
+            )
+        except Exception as e:
+            return IngestionResult(
+                success=False,
+                mode=mode,
+                error=f"NDJSON ingestion error: {e}",
                 duration_ms=int((time.perf_counter() - start_time) * 1000),
             )
 

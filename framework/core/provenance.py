@@ -76,6 +76,15 @@ def classify_artifact(
     norm_path = rel_path.replace("\\", "/").strip("/")
     abs_path = Path(target_root) / norm_path
 
+    # 0. External System B / External Artifacts
+    try:
+        resolved_root = Path(target_root).resolve()
+        resolved_abs = abs_path.resolve()
+        if resolved_abs != resolved_root and resolved_root not in resolved_abs.parents:
+            return ArtifactOwnership.EXTERNAL, "Path resides outside project repository boundary (External System B data)"
+    except Exception:
+        pass
+
     # 1. AntiOS Core Governance (Immutable)
     core_prefixes = (".agents/hooks.json", "framework/", "framework")
     if norm_path == "framework" or norm_path.startswith("framework/") or norm_path == ".agents/hooks.json":

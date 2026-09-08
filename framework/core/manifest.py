@@ -33,6 +33,7 @@ class InstallationState(str, Enum):
     PARTIAL = "PARTIAL"
     INSTALLED = "INSTALLED"
     REPAIRING = "REPAIRING"
+    UPGRADING = "UPGRADING"
     REMOVED = "REMOVED"
     ERROR = "ERROR"
 
@@ -52,6 +53,7 @@ class ArtifactOwnership(str, Enum):
     USER_AUTHORED = "USER_AUTHORED"    # Authored/customized by user, strictly protected against overwrite
     PROJECT_PROTECTED = "PROJECT_PROTECTED"  # Project domain path, strictly immutable to agents
     ANTIOS_IMMUTABLE = "ANTIOS_IMMUTABLE"    # AntiOS core governance, strictly immutable
+    EXTERNAL = "EXTERNAL"              # Data belonging outside project (e.g. System B experience store)
 
 
 @dataclass
@@ -128,6 +130,7 @@ class ProjectManifest:
     agent_topology_revision: str = "1.0"
     tool_policy_revision: str = "1.0"
     memory_revision: str = "1.0"
+    reconciliation_state: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def validate(self) -> Tuple[bool, List[str]]:
@@ -155,6 +158,9 @@ class ProjectManifest:
             issues.append("'protected_paths' must be a list")
         if not isinstance(self.stale_paths, list):
             issues.append("'stale_paths' must be a list")
+
+        if self.reconciliation_state is not None and not isinstance(self.reconciliation_state, dict):
+            issues.append("'reconciliation_state' must be a dictionary or None")
 
         # Verify all managed paths have records
         for p, rec in self.managed_paths.items():
@@ -192,6 +198,7 @@ class ProjectManifest:
             "agent_topology_revision": self.agent_topology_revision,
             "tool_policy_revision": self.tool_policy_revision,
             "memory_revision": self.memory_revision,
+            "reconciliation_state": dict(self.reconciliation_state) if isinstance(self.reconciliation_state, dict) else None,
             "metadata": dict(self.metadata),
         }
 
@@ -199,10 +206,40 @@ class ProjectManifest:
         return json.dumps(self.to_dict(), indent=indent)
 
     @classmethod
+    def migrate_manifest_data(cls, data: Dict[str, Any]) -> Tuple[Dict[str, Any], bool]:
+        """Migrates older manifest dictionary structures to current schema version."""
+        if not isinstance(data, dict):
+            raise ValueError(f"Expected dict for ProjectManifest, got {type(data).__name__}")
+        migrated = dict(data)
+        was_migrated = False
+
+        schema_v = str(migrated.get("schema_version", ""))
+        if not schema_v:
+            migrated["schema_version"] = CURRENT_SCHEMA_VERSION
+            was_migrated = True
+
+        for k in ("managed_paths", "generated_paths"):
+            if k not in migrated or not isinstance(migrated[k], dict):
+                migrated[k] = {}
+                was_migrated = True
+        for k in ("user_owned_paths", "protected_paths", "stale_paths"):
+            if k not in migrated or not isinstance(migrated[k], list):
+                migrated[k] = []
+                was_migrated = True
+        if "metadata" not in migrated or not isinstance(migrated["metadata"], dict):
+            migrated["metadata"] = {}
+            was_migrated = True
+        if "reconciliation_state" not in migrated:
+            migrated["reconciliation_state"] = None
+
+        return migrated, was_migrated
+
+    @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> ProjectManifest:
         """Constructs ProjectManifest from dict with fail-closed validation."""
         if not isinstance(data, dict):
             raise ValueError(f"Expected dict for ProjectManifest, got {type(data).__name__}")
+        data, _ = cls.migrate_manifest_data(data)
 
         # Extract states safely
         inst_val = data.get("installation_state", InstallationState.UNINSTALLED.value)
@@ -248,6 +285,7 @@ class ProjectManifest:
             agent_topology_revision=str(data.get("agent_topology_revision", "1.0")),
             tool_policy_revision=str(data.get("tool_policy_revision", "1.0")),
             memory_revision=str(data.get("memory_revision", "1.0")),
+            reconciliation_state=data.get("reconciliation_state") if isinstance(data.get("reconciliation_state"), dict) else None,
             metadata=dict(data.get("metadata", {})),
         )
 

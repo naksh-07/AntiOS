@@ -134,6 +134,38 @@ def cmd_install(args: argparse.Namespace) -> int:
     return 0 if res.status in ("SUCCESS", "IDEMPOTENT") else 1
 
 
+def cmd_upgrade(args: argparse.Namespace) -> int:
+    target = _resolve_target(args)
+    source = _resolve_source()
+    mgr = InstallationLifecycleManager(source_root=source, target_root=target)
+
+    is_plan = getattr(args, "plan", False)
+    is_check = getattr(args, "check", False)
+    dry_run = getattr(args, "dry_run", False) or is_check
+    force = getattr(args, "force", False)
+    target_v = getattr(args, "version", None)
+
+    res = mgr.upgrade(
+        target_version=target_v,
+        dry_run=dry_run,
+        plan_only=is_plan,
+        force=force,
+    )
+
+    if getattr(args, "json", False):
+        print(json.dumps(res.to_dict(), indent=2))
+    else:
+        print(f"[{res.status}] {res.summary}")
+        if res.conflicts:
+            print("Conflicts:")
+            for c in res.conflicts:
+                print(f"  ! {c}")
+        if res.issues:
+            print("Issues:")
+            for issue in res.issues:
+                print(f"  - {issue}")
+    return 0 if res.status in ("SUCCESS", "IDEMPOTENT") else 1
+
 def cmd_update(args: argparse.Namespace) -> int:
     target = _resolve_target(args)
     source = _resolve_source()
@@ -712,13 +744,18 @@ def cmd_telemetry(args: argparse.Namespace) -> int:
 
     if action == "ingest":
         transcript_path = getattr(args, "transcript", None)
-        if not transcript_path:
-            print("Error: --transcript <path> is required for ingestion.")
-            return 1
-        res = bridge.ingest_transcript(
-            transcript_path=transcript_path,
-            session_id=getattr(args, "session_id", None),
-        )
+        ndjson_path = getattr(args, "ndjson", None)
+
+        if transcript_path:
+            res = bridge.ingest_transcript(
+                transcript_path=transcript_path,
+                session_id=getattr(args, "session_id", None),
+            )
+        else:
+            res = bridge.ingest_ndjson_telemetry(
+                ndjson_path=ndjson_path,
+                session_id=getattr(args, "session_id", None),
+            )
         if getattr(args, "json", False):
             print(json.dumps(res.to_dict(), indent=2))
         else:
@@ -772,6 +809,15 @@ def cmd_experience(args: argparse.Namespace) -> int:
     else:
         # Default to current project root identity
         report = engine.analyze_project(context.project_id)
+
+    if action == "sync":
+        bridge = AntigravityEventBridge(project_root=target, data_dir=explicit_dd)
+        res = bridge.ingest_ndjson_telemetry()
+        if getattr(args, "json", False):
+            print(json.dumps(res.to_dict(), indent=2))
+        else:
+            print(f"[SUCCESS] Synchronized telemetry: {res.events_ingested} event(s) recorded to {context.db_path}")
+        return 0 if res.success else 1
 
     if action == "analyze":
         if getattr(args, "json", False):
@@ -868,6 +914,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_inst.add_argument("--path", help="Target project root directory")
     p_inst.add_argument("--data-dir", help="Central AntiOS Data Directory path")
     p_inst.set_defaults(func=cmd_install)
+
+    # upgrade
+    p_upg = subparsers.add_parser("upgrade", help="Safely reconcile and upgrade AntiOS instance")
+    p_upg.add_argument("--check", action="store_true", help="Check for upgrade without applying")
+    p_upg.add_argument("--plan", action="store_true", help="Display reconciliation plan")
+    p_upg.add_argument("--version", help="Target AntiOS version")
+    p_upg.add_argument("--dry-run", action="store_true", help="Preview upgrade mutations")
+    p_upg.add_argument("--force", action="store_true", help="Force overwrite in conflicts")
+    p_upg.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    p_upg.add_argument("--path", help="Target project root directory")
+    p_upg.set_defaults(func=cmd_upgrade)
 
     # update
     p_upd = subparsers.add_parser("update", help="Update AntiOS instance to a newer revision")
@@ -1034,8 +1091,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_telem_dis = p_telem_sub.add_parser("disable", help="Disable telemetry collection in project configuration")
     p_telem_dis.add_argument("--path", help="Target project root directory")
 
-    p_telem_ing = p_telem_sub.add_parser("ingest", help="Manually ingest Antigravity transcript file")
-    p_telem_ing.add_argument("--transcript", required=True, help="Path to transcript.jsonl file")
+    p_telem_ing = p_telem_sub.add_parser("ingest", help="Manually ingest Antigravity transcript or NDJSON file")
+    p_telem_ing.add_argument("--transcript", help="Path to transcript.jsonl file")
+    p_telem_ing.add_argument("--ndjson", help="Path to telemetry.ndjson file (defaults to .agents/telemetry.ndjson)")
     p_telem_ing.add_argument("--session-id", help="Explicit session/conversation ID override")
     p_telem_ing.add_argument("--path", help="Target project root directory")
     p_telem_ing.add_argument("--json", action="store_true", help="Output machine-readable JSON")
@@ -1045,6 +1103,12 @@ def build_parser() -> argparse.ArgumentParser:
     # experience
     p_exp = subparsers.add_parser("experience", help="AntiOS Experience Intelligence and analytics engine")
     p_exp_sub = p_exp.add_subparsers(dest="experience_action", help="Experience actions")
+
+    # experience sync
+    p_exp_sync = p_exp_sub.add_parser("sync", help="Synchronize pending telemetry into experience database")
+    p_exp_sync.add_argument("--data-dir", help="Explicit data directory override")
+    p_exp_sync.add_argument("--path", help="Target project root directory")
+    p_exp_sync.add_argument("--json", action="store_true", help="Output machine-readable JSON")
 
     # experience analyze
     p_exp_an = p_exp_sub.add_parser("analyze", help="Deterministically analyze recorded telemetry")

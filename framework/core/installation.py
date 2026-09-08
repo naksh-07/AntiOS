@@ -50,6 +50,12 @@ from framework.core.manifest import (
     load_manifest,
     save_manifest,
 )
+from framework.core.reconciliation import (
+    ArtifactReconciliation,
+    ReconciliationAction,
+    ReconciliationEngine,
+    ReconciliationPlan,
+)
 from framework.core.provenance import (
     ProvenanceConflict,
     ProvenanceTracker,
@@ -286,6 +292,12 @@ class InstallationLifecycleManager:
             compilation.manifest.adaptation_state = AdaptationState.ADAPTED
             save_manifest(compilation.manifest, self.target_root)
 
+            try:
+                from framework.compiler.compiler import compile_project
+                compile_project(self.target_root)
+            except Exception:
+                pass
+
         return LifecycleResult(
             operation="INSTALL",
             status="SUCCESS",
@@ -372,6 +384,223 @@ class InstallationLifecycleManager:
         except Exception:
             return None
 
+    def upgrade(
+        self,
+        target_version: Optional[str] = None,
+        dry_run: bool = False,
+        plan_only: bool = False,
+        force: bool = False,
+    ) -> LifecycleResult:
+        """Executes a safe, ownership-aware, idempotent instance upgrade.
+
+        detect existing AntiOS instance
+        → read manifest (and migrate manifest schema if needed)
+        → compare versions / schema / profile
+        → inspect current project state
+        → calculate reconciliation plan
+        → if plan_only or dry_run, return plan summary
+        → create pre-upgrade snapshot
+        → reap obsolete unmodified generated artifacts
+        → regenerate AntiOS-owned generated artifacts (preserving user modifications)
+        → preserve user-owned and user-modified artifacts
+        → update manifest
+        → recompile static environment
+        → run verification
+        → declare upgrade successful
+        """
+        manifest_path = self.target_root / ".antios/manifest.json"
+        if not manifest_path.is_file():
+            return LifecycleResult(
+                operation="UPGRADE",
+                status="ERROR",
+                installation_state=InstallationState.UNINSTALLED,
+                adaptation_state=AdaptationState.UNADAPTED,
+                issues=["Cannot upgrade: AntiOS instance is not installed in this project."],
+                summary="AntiOS is not installed in this project.",
+            )
+
+        try:
+            manifest = load_manifest(self.target_root)
+        except Exception as e:
+            return LifecycleResult(
+                operation="UPGRADE",
+                status="BLOCKED",
+                installation_state=InstallationState.ERROR,
+                adaptation_state=AdaptationState.CONFLICT,
+                issues=[f"Corrupted manifest detected: {e}. Run 'repair' or inspect .antios/manifest.json."],
+                summary="Upgrade blocked by corrupted manifest.",
+            )
+
+        if not manifest:
+            return LifecycleResult(
+                operation="UPGRADE",
+                status="ERROR",
+                installation_state=InstallationState.UNINSTALLED,
+                adaptation_state=AdaptationState.UNADAPTED,
+                issues=["Cannot upgrade: Failed to load manifest."],
+                summary="Upgrade failed: manifest missing.",
+            )
+
+        target_ver = target_version or ANTIOS_VERSION
+
+        # Check for downgrade unless forced
+        if not force:
+            try:
+                cmp_res = compare_versions(manifest.antios_version, target_ver)
+                if cmp_res.get("is_downgrade"):
+                    return LifecycleResult(
+                        operation="UPGRADE",
+                        status="BLOCKED",
+                        installation_state=manifest.installation_state,
+                        adaptation_state=manifest.adaptation_state,
+                        manifest=manifest,
+                        issues=[f"Downgrade rejected: Installed version ({manifest.antios_version}) is newer than requested ({target_ver}). Pass force=True to override."],
+                        summary="Upgrade blocked to prevent silent downgrade.",
+                    )
+            except Exception:
+                pass
+
+        # Ensure static project environment is current before boundary compilation
+        if not dry_run and not plan_only:
+            try:
+                from framework.compiler.compiler import compile_project
+                compile_project(self.target_root)
+            except Exception:
+                pass
+
+        # 1. Compile proposed target state in-memory
+        compilation = self.compiler.compile(existing_manifest=manifest)
+
+        # 2. Calculate deterministic reconciliation plan
+        plan = ReconciliationEngine.calculate_plan(
+            target_root=self.target_root,
+            current_manifest=manifest,
+            compiled_files=compilation.compiled_files,
+            target_version=target_ver,
+            force=force,
+        )
+
+        # 3. Handle plan_only, dry_run, or idempotency
+        if plan_only:
+            return LifecycleResult(
+                operation="UPGRADE",
+                status="SUCCESS" if plan.can_safely_apply else "CONFLICT",
+                installation_state=manifest.installation_state,
+                adaptation_state=manifest.adaptation_state,
+                manifest=manifest,
+                conflicts=[c.path for c in plan.conflicts],
+                issues=plan.issues,
+                summary=plan.summary,
+            )
+
+        if plan.is_idempotent and not force:
+            return LifecycleResult(
+                operation="UPGRADE",
+                status="IDEMPOTENT",
+                installation_state=manifest.installation_state,
+                adaptation_state=manifest.adaptation_state,
+                manifest=manifest,
+                summary="AntiOS instance is already up to date (idempotent no-op).",
+            )
+
+        if not plan.can_safely_apply and not force:
+            return LifecycleResult(
+                operation="UPGRADE",
+                status="CONFLICT",
+                installation_state=manifest.installation_state,
+                adaptation_state=manifest.adaptation_state,
+                manifest=manifest,
+                conflicts=[c.path for c in plan.conflicts],
+                issues=plan.issues,
+                summary=plan.summary,
+            )
+
+        if dry_run:
+            return LifecycleResult(
+                operation="UPGRADE",
+                status="SUCCESS" if plan.can_safely_apply else "CONFLICT",
+                installation_state=manifest.installation_state,
+                adaptation_state=manifest.adaptation_state,
+                manifest=manifest,
+                conflicts=[c.path for c in plan.conflicts],
+                issues=plan.issues,
+                summary=f"[DRY RUN] {plan.summary}",
+            )
+
+        # 4. Create pre-upgrade snapshot
+        self._create_snapshot(manifest, "pre-upgrade")
+
+        # 5. Execute reconciliation plan
+        written_files: List[str] = []
+        removed_files: List[str] = []
+
+        # 5a. Reap obsolete unmodified artifacts
+        for item in plan.reaped_obsolete:
+            target_file = self.target_root / item.path
+            if target_file.is_file():
+                try:
+                    target_file.unlink()
+                    removed_files.append(item.path)
+                except Exception:
+                    pass
+
+        # 5b. Write regenerations, creations, and restorations
+        write_targets = plan.regenerations + plan.creations
+        for item in write_targets:
+            if item.path in compilation.compiled_files:
+                target_file = self.target_root / item.path
+                target_file.parent.mkdir(parents=True, exist_ok=True)
+                target_file.write_text(compilation.compiled_files[item.path], encoding="utf-8", newline="\n")
+                written_files.append(item.path)
+
+        # 5c. Preserve user modifications
+        for item in plan.preserved_user_modified:
+            if item.path not in compilation.manifest.user_owned_paths:
+                compilation.manifest.user_owned_paths.append(item.path)
+            if item.path in compilation.manifest.generated_paths:
+                compilation.manifest.generated_paths[item.path].is_user_modified = True
+            if item.path in compilation.manifest.managed_paths:
+                compilation.manifest.managed_paths[item.path].is_user_modified = True
+
+        # 5d. Remove reaped items from manifest
+        for item in plan.reaped_obsolete:
+            if item.path in compilation.manifest.generated_paths:
+                del compilation.manifest.generated_paths[item.path]
+
+        # 6. Update manifest metadata & versions
+        compilation.manifest.antios_version = target_ver
+        compilation.manifest.source_revision = f"v{target_ver}"
+        compilation.manifest.schema_version = plan.target_schema_version
+        compilation.manifest.installation_state = InstallationState.INSTALLED
+        compilation.manifest.adaptation_state = AdaptationState.ADAPTED
+        compilation.manifest.reconciliation_state = plan.to_dict()
+        save_manifest(compilation.manifest, self.target_root)
+
+        # 7. Recompile static project environment
+        try:
+            from framework.compiler.compiler import compile_project
+            compile_project(self.target_root)
+        except Exception:
+            pass
+
+        # 8. Run verification
+        verification = self.verify()
+        v_issues = verification.issues if verification else []
+
+        status = "SUCCESS" if len(v_issues) == 0 else "PARTIAL"
+        return LifecycleResult(
+            operation="UPGRADE",
+            status=status,
+            installation_state=InstallationState.INSTALLED,
+            adaptation_state=AdaptationState.ADAPTED,
+            manifest=compilation.manifest,
+            written_files=written_files,
+            removed_files=removed_files,
+            conflicts=[c.path for c in plan.conflicts],
+            issues=v_issues,
+            summary=f"Upgraded AntiOS to {target_ver} ({len(written_files)} updated/created, {len(removed_files)} obsolete reaped, {len(plan.preserved_user_modified)} user modifications preserved).",
+        )
+
     def update(self, new_revision: Optional[str] = None, dry_run: bool = False) -> LifecycleResult:
         """Updates AntiOS instance to a newer source revision with pre-update snapshotting."""
         manifest = load_manifest(self.target_root)
@@ -410,6 +639,7 @@ class InstallationLifecycleManager:
             conflicts=conflicts,
             summary=f"Updated AntiOS to revision '{revision}'. Pre-update snapshot preserved in .antios/backups/.",
         )
+
 
     def rollback(self, target_version: Optional[str] = None, dry_run: bool = False) -> LifecycleResult:
         """Rolls back AntiOS instance to a prior snapshot. Strictly preserves user code."""
@@ -547,6 +777,7 @@ class InstallationLifecycleManager:
         # Target files to remove: only managed and generated files from manifest
         paths_to_remove: List[str] = []
         if manifest:
+            paths_to_remove.append(".antios/manifest.json")
             paths_to_remove.extend(list(manifest.generated_paths.keys()))
             paths_to_remove.extend(list(manifest.managed_paths.keys()))
         else:
@@ -574,15 +805,35 @@ class InstallationLifecycleManager:
                     abs_path.unlink()
                 removed.append(rel_path)
 
+        # Clean empty runtime directory if present
+        runtime_dir = self.target_root / ".antios/runtime"
+        if runtime_dir.is_dir() and not dry_run:
+            try:
+                if not any(runtime_dir.iterdir()):
+                    runtime_dir.rmdir()
+                    removed.append(".antios/runtime/")
+            except Exception:
+                pass
+
+        # Clean .antios/backups directory if present
+        backup_dir = self.target_root / ".antios/backups"
+        if backup_dir.is_dir() and not dry_run:
+            try:
+                shutil.rmtree(backup_dir)
+            except Exception:
+                pass
+
         # Remove .antios directory if empty or contains only non-user files
         antios_dir = self.target_root / ".antios"
         if antios_dir.is_dir():
-            if not dry_run:
-                try:
-                    shutil.rmtree(antios_dir)
-                except Exception:
-                    pass
-            removed.append(".antios/")
+            remaining_files = [p for p in antios_dir.rglob("*") if p.is_file()]
+            if not remaining_files:
+                if not dry_run:
+                    try:
+                        shutil.rmtree(antios_dir)
+                    except Exception:
+                        pass
+                removed.append(".antios/")
 
         # Remove .agents/skills/antios directory if empty
         skill_antios_dir = self.target_root / ".agents/skills/antios"
@@ -598,9 +849,17 @@ class InstallationLifecycleManager:
         residuals: List[str] = []
         if not dry_run:
             if (self.target_root / ".antios").exists():
-                residuals.append(".antios")
+                antios_files = [p for p in (self.target_root / ".antios").rglob("*") if p.is_file()]
+                unexpected = []
+                for af in antios_files:
+                    rel = str(af.relative_to(self.target_root)).replace("\\", "/")
+                    if not (manifest and manifest.is_artifact_user_owned(rel)):
+                        unexpected.append(rel)
+                if unexpected:
+                    residuals.append(f".antios ({len(unexpected)} unexpected files)")
             if (self.target_root / "antios.config.json").exists():
-                residuals.append("antios.config.json")
+                if not (manifest and manifest.is_artifact_user_owned("antios.config.json")):
+                    residuals.append("antios.config.json")
 
         status = "SUCCESS" if len(residuals) == 0 else "PARTIAL"
         return LifecycleResult(
