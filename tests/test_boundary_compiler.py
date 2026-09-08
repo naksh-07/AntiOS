@@ -117,5 +117,39 @@ class TestBoundaryCompiler(unittest.TestCase):
         self.assertIn("pytest-custom", runner_names)
 
 
+    def test_compiler_preserves_user_modified_config_on_recompile_and_emit(self):
+        compiler = ProjectBoundaryCompiler(
+            source_root=self.source_root,
+            target_root=self.target_root,
+        )
+        # Initial compilation and emission
+        result1 = compiler.compile()
+        success1, written1, conflicts1 = compiler.emit(result1)
+        self.assertTrue(success1)
+
+        # User modifies antios.config.json
+        cfg_file = self.target_root / "antios.config.json"
+        cfg_data = json.loads(cfg_file.read_text(encoding="utf-8"))
+        cfg_data["name"] = "user-customized-service"
+        cfg_file.write_text(json.dumps(cfg_data, indent=2), encoding="utf-8")
+
+        # Load existing manifest and record as user-owned
+        existing_manifest = load_manifest(self.target_root)
+        existing_manifest.user_owned_paths.append("antios.config.json")
+
+        result2 = compiler.compile(existing_manifest=existing_manifest)
+        self.assertTrue(result2.manifest.managed_paths["antios.config.json"].is_user_modified)
+
+        # Emit second compilation
+        success2, written2, conflicts2 = compiler.emit(result2, existing_manifest=existing_manifest)
+        self.assertTrue(success2, f"Emit failed with conflicts: {conflicts2}")
+        self.assertEqual(len(conflicts2), 0)
+        self.assertIn("antios.config.json", result2.skipped_files)
+
+        # Verify disk file content was preserved
+        saved_cfg = json.loads(cfg_file.read_text(encoding="utf-8"))
+        self.assertEqual(saved_cfg["name"], "user-customized-service")
+
+
 if __name__ == "__main__":
     unittest.main()

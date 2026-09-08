@@ -24,6 +24,11 @@ from pathlib import Path
 import sys
 from typing import Any, Dict, List, Optional
 
+# Ensure repository root is on sys.path for direct CLI script execution
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
 from framework.core.adapter import analyze_adaptation, apply_project_adaptation, verify_adapter
 from framework.core.discovery import discover_project
 from framework.core.doctor import DoctorEngine

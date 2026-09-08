@@ -254,6 +254,20 @@ class ProjectBoundaryCompiler:
             if k in compiled_files:
                 content = compiled_files[k]
                 sha = hashlib.sha256(content.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+                is_user_mod = False
+                if existing_manifest:
+                    if k in existing_manifest.user_owned_paths:
+                        is_user_mod = True
+                    elif k in existing_manifest.managed_paths and existing_manifest.managed_paths[k].is_user_modified:
+                        is_user_mod = True
+
+                if is_user_mod:
+                    disk_path = self.target_root / k
+                    if disk_path.is_file():
+                        disk_sha = compute_file_sha256(disk_path)
+                        if disk_sha:
+                            sha = disk_sha
+
                 managed_paths[k] = ArtifactRecord(
                     path=k,
                     ownership=ArtifactOwnership.MANAGED,
@@ -261,6 +275,7 @@ class ProjectBoundaryCompiler:
                     source_revision=self.source_revision,
                     generated_at=now_ts,
                     source_template=k,
+                    is_user_modified=is_user_mod,
                 )
 
         # Generated paths (intelligence, runtime scripts, and operating skills)
@@ -285,12 +300,27 @@ class ProjectBoundaryCompiler:
             if k in compiled_files:
                 content = compiled_files[k]
                 sha = hashlib.sha256(content.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+                is_user_mod = False
+                if existing_manifest:
+                    if k in existing_manifest.user_owned_paths:
+                        is_user_mod = True
+                    elif k in existing_manifest.generated_paths and existing_manifest.generated_paths[k].is_user_modified:
+                        is_user_mod = True
+
+                if is_user_mod:
+                    disk_path = self.target_root / k
+                    if disk_path.is_file():
+                        disk_sha = compute_file_sha256(disk_path)
+                        if disk_sha:
+                            sha = disk_sha
+
                 generated_paths[k] = ArtifactRecord(
                     path=k,
                     ownership=ArtifactOwnership.GENERATED,
                     sha256=sha,
                     source_revision=self.source_revision,
                     generated_at=now_ts,
+                    is_user_modified=is_user_mod,
                 )
 
         # Protected paths from adapter config
@@ -355,6 +385,13 @@ class ProjectBoundaryCompiler:
             )
 
             if not can_overwrite:
+                # If artifact is explicitly tracked as user-owned, safely preserve it without error
+                if existing_manifest and (
+                    rel_path in existing_manifest.user_owned_paths
+                    or "USER_AUTHORED" in reason
+                ):
+                    result.skipped_files[rel_path] = f"Preserved user-owned artifact: {reason}"
+                    continue
                 conflict_errors.append(f"Refused to write '{rel_path}': {reason}")
                 continue
 
