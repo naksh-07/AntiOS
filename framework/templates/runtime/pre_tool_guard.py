@@ -81,7 +81,11 @@ def evaluate_payload(input_data: Any) -> Tuple[str, Optional[str]]:
         target_abs = os.path.abspath(target_file)
     target_resolved = os.path.normcase(os.path.realpath(target_abs))
 
-    # Confinement Check: TargetFile must reside within repo_root
+    # Confinement Check: TargetFile must reside within repo_root (or Antigravity brain artifacts)
+    norm_target = target_resolved.replace("/", "\\")
+    if "\\.gemini\\antigravity\\brain\\" in norm_target:
+        return "allow", None
+
     try:
         if os.path.commonpath([target_resolved, repo_root]) != repo_root:
             return (

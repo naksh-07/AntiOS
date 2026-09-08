@@ -54,6 +54,7 @@ class AntiOSConfig:
     capabilities: Dict[str, Any] = field(default_factory=dict)
     agent_topology: Dict[str, Any] = field(default_factory=dict)
     data_dir: Optional[str] = None
+    telemetry: Dict[str, Any] = field(default_factory=lambda: {"enabled": False, "mode": "OFF"})
 
     def __post_init__(self):
         if isinstance(self.policies, dict):
@@ -126,6 +127,7 @@ def load_config(repo_root: Optional[str] = None) -> AntiOSConfig:
             capabilities=data.get("capabilities", {}),
             agent_topology=data.get("agent_topology", {}),
             data_dir=data.get("data_dir"),
+            telemetry=data.get("telemetry", {"enabled": False, "mode": "OFF"}),
         )
     except Exception:
         return AntiOSConfig()
