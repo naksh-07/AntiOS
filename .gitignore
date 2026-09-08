@@ -35,6 +35,9 @@ venv/
 *.swo
 .DS_Store
 Thumbs.db
-# AntiOS session execution junction
+# AntiOS session execution junction, cache, and telemetry
 .agents/framework/
+.agents/cache/
+.agents/telemetry.ndjson
+.agents/telemetry.db
 

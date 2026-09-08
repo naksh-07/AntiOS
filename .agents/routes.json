@@ -38,6 +38,53 @@
         "tests.test_compiler"
       ]
     },
+    "hooks": {
+      "capabilities": [
+        "check_working_tree_conflicts",
+        "discover_test_runners",
+        "load_adapter_config",
+        "output_decision",
+        "run_command_safe",
+        "sanitize_command"
+      ],
+      "dependencies": [],
+      "description": "Platform lifecycle interception hooks and physical validation gates.",
+      "entrypoint": "framework/hooks/gate.py",
+      "invariants": [
+        "INV-03",
+        "INV-04",
+        "INV-10",
+        "INV-11",
+        "INV-12",
+        "INV-15"
+      ],
+      "root_dir": "framework/hooks",
+      "test_suite": [
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_gate"
+      ]
+    },
+    "intelligence": {
+      "capabilities": [
+        "run___init__"
+      ],
+      "dependencies": [],
+      "description": "Intelligence subsystem implementation and domain logic.",
+      "entrypoint": "framework/intelligence/__init__.py",
+      "invariants": [
+        "INV-09",
+        "INV-10",
+        "INV-11",
+        "INV-15"
+      ],
+      "root_dir": "framework/intelligence",
+      "test_suite": [
+        "python",
+        "tests/run_all.py"
+      ]
+    },
     "scripts": {
       "capabilities": [
         "run___init__"

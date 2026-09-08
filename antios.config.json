@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "3.0",
   "name": "AntiOS-Universal-Self-Adapter",
   "protected_zones": [
     ".agents",
@@ -7,6 +7,52 @@
   ],
   "protected_domain_paths": [],
   "forbidden_patterns": [],
+  "verification": {
+    "lint": {
+      "name": "lint",
+      "command": [
+        "python",
+        "-m",
+        "py_compile",
+        "framework/cli.py"
+      ],
+      "timeout_seconds": 30,
+      "required": false
+    },
+    "typecheck": {
+      "name": "typecheck",
+      "command": [],
+      "timeout_seconds": 60,
+      "required": false
+    },
+    "build": {
+      "name": "build",
+      "command": [],
+      "timeout_seconds": 60,
+      "required": false
+    },
+    "unit_test": {
+      "name": "python-self-tests",
+      "command": [
+        "python",
+        "tests/run_all.py"
+      ],
+      "timeout_seconds": 120,
+      "required": true
+    },
+    "integration_test": {
+      "name": "integration",
+      "command": [],
+      "timeout_seconds": 120,
+      "required": false
+    },
+    "security_scan": {
+      "name": "security",
+      "command": [],
+      "timeout_seconds": 60,
+      "required": false
+    }
+  },
   "test_runners": [
     {
       "name": "python-self-tests",
@@ -15,13 +61,14 @@
         "python",
         "tests/run_all.py"
       ],
-      "timeout_seconds": 60,
+      "timeout_seconds": 120,
       "required": true
     }
   ],
   "policies": {
     "fail_closed": true,
     "enforce_working_tree_cleanliness": true,
-    "enforce_same_change_set": true
+    "enforce_same_change_set": true,
+    "check_merge_conflicts": true
   }
 }

@@ -14,6 +14,8 @@ AntiOS 3.0 Agent-Native Environment & Governance Plane.
 | :--- | :--- | :--- |
 | `compiler` | `framework/compiler` | `framework/compiler/compiler.py` |
 | `core` | `framework/core` | `framework/core/compiler.py` |
+| `hooks` | `framework/hooks` | `framework/hooks/gate.py` |
+| `intelligence` | `framework/intelligence` | `framework/intelligence/__init__.py` |
 | `scripts` | `framework/scripts` | `framework/scripts/__init__.py` |
 | `templates` | `framework/templates` | `framework/templates` |
 

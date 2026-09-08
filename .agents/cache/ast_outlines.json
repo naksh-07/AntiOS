@@ -121,6 +121,104 @@
       "language": "python",
       "path": "framework/core/compiler.py"
     },
+    "framework/hooks/gate.py": {
+      "classes": [],
+      "confidence": 1.0,
+      "extractor": "python_ast",
+      "functions": [
+        {
+          "docstring": "Ensures test commands do not hang in interactive or watch modes.",
+          "end_line": 77,
+          "is_async": false,
+          "name": "sanitize_command",
+          "qualified_name": "sanitize_command",
+          "signature": "sanitize_command(cmd: List[str]) -> List[str]",
+          "start_line": 53
+        },
+        {
+          "docstring": "Emits JSON decision to stdout and non-blocking telemetry.",
+          "end_line": 103,
+          "is_async": false,
+          "name": "output_decision",
+          "qualified_name": "output_decision",
+          "signature": "output_decision(decision: str, reason: Optional[str], reason_code: Optional[str], project_root: Optional[str]) -> None",
+          "start_line": 80
+        },
+        {
+          "docstring": "Loads antios.config.json from repo_root if present.",
+          "end_line": 115,
+          "is_async": false,
+          "name": "load_adapter_config",
+          "qualified_name": "load_adapter_config",
+          "signature": "load_adapter_config(repo_root: str) -> Dict[str, Any]",
+          "start_line": 106
+        },
+        {
+          "docstring": "Scans working tree for unresolved git merge conflict markers.",
+          "end_line": 173,
+          "is_async": false,
+          "name": "check_working_tree_conflicts",
+          "qualified_name": "check_working_tree_conflicts",
+          "signature": "check_working_tree_conflicts(repo_root: str) -> Optional[str]",
+          "start_line": 118
+        },
+        {
+          "docstring": "Resolves test runners from adapter config or project manifests.",
+          "end_line": 298,
+          "is_async": false,
+          "name": "discover_test_runners",
+          "qualified_name": "discover_test_runners",
+          "signature": "discover_test_runners(repo_root: str, config: Dict[str, Any]) -> List[Dict[str, Any]]",
+          "start_line": 176
+        },
+        {
+          "docstring": "Executes verification command safely in subprocess.",
+          "end_line": 346,
+          "is_async": false,
+          "name": "run_command_safe",
+          "qualified_name": "run_command_safe",
+          "signature": "run_command_safe(cmd: List[str], cwd: str, timeout: int) -> Tuple[int, str, str, bool, float]",
+          "start_line": 301
+        },
+        {
+          "docstring": "Atomically caches last verification report to .agents/cache/last_verification_report.json.",
+          "end_line": 362,
+          "is_async": false,
+          "name": "save_verification_report",
+          "qualified_name": "save_verification_report",
+          "signature": "save_verification_report(repo_root: str, report: Dict[str, Any]) -> None",
+          "start_line": 349
+        },
+        {
+          "docstring": "Evaluates Stop hook payload across all authorized workspaces.",
+          "end_line": 479,
+          "is_async": false,
+          "name": "evaluate_stop_gate",
+          "qualified_name": "evaluate_stop_gate",
+          "signature": "evaluate_stop_gate(input_data: Any) -> Tuple[str, Optional[str], Optional[str], Optional[str]]",
+          "start_line": 365
+        },
+        {
+          "docstring": "",
+          "end_line": 507,
+          "is_async": false,
+          "name": "main",
+          "qualified_name": "main",
+          "signature": "main() -> None",
+          "start_line": 482
+        }
+      ],
+      "language": "python",
+      "path": "framework/hooks/gate.py"
+    },
+    "framework/intelligence/__init__.py": {
+      "classes": [],
+      "confidence": 1.0,
+      "extractor": "python_ast",
+      "functions": [],
+      "language": "python",
+      "path": "framework/intelligence/__init__.py"
+    },
     "framework/scripts/__init__.py": {
       "classes": [],
       "confidence": 1.0,

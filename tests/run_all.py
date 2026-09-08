@@ -214,6 +214,12 @@ import tests.test_compiler as test_compiler
 # AntiOS 3.0 Stage 2: Native Antigravity Integration & Lifecycle Wiring
 import tests.test_stage2_lifecycle as test_stage2_lifecycle
 
+# AntiOS 3.0 Stage 3: State + Memory + Freshness + Verification
+import tests.test_freshness as test_freshness
+import tests.test_merkle as test_merkle
+import tests.test_memory_epistemic as test_memory_epistemic
+import tests.test_mvr as test_mvr
+
 
 
 
@@ -394,6 +400,11 @@ def build_suite() -> unittest.TestSuite:
         test_compiler,
         # AntiOS 3.0 Stage 2: Native Antigravity Integration & Lifecycle Wiring
         test_stage2_lifecycle,
+        # AntiOS 3.0 Stage 3: State + Memory + Freshness + Verification
+        test_freshness,
+        test_merkle,
+        test_memory_epistemic,
+        test_mvr,
     ]
 
 

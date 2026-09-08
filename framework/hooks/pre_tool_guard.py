@@ -1,4 +1,4 @@
-﻿"""AntiOS 3.0 PreToolUse Security Guard Hook.
+"""AntiOS 3.0 PreToolUse Security Guard Hook.
 
 Intercepts native mutation tool calls (write_to_file, replace_file_content)
 before physical execution.
